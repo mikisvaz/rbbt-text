@@ -1,4 +1,4 @@
-require 'rbbt/util/base'
+require 'rbbt'
 require 'rbbt/bow/misc'
 require 'stemmer'
 
@@ -10,7 +10,6 @@ require 'stemmer'
 # Dictionary::KL.best methods, determine the vector representations for that
 # text.
 module BagOfWords
-
   # Divide the input string into an array of words (sequences of \w characters).
   # Words are stemmed and filtered to remove stopwords and words with less than
   # 2 characters. The list of stopwords is a global variable defined in

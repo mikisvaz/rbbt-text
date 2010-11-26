@@ -1,14 +1,26 @@
 rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.txt *.conf" {
  bin=bin {
  }
- lib=lib/rbbt/bow {
-  bow.rb
-  misc.rb
+ lib=lib{
+  bow=rbbt/bow {
+   misc.rb
+   bow.rb
+   dictionary.rb
+  }
+  ner=rbbt/ner{
+   abner.rb
+  }
  }
  test=test {
   test_helper.rb
   bow=rbbt/bow{
-   }
+   test_bow.rb
+   test_misc.rb
+   test_dictionary.rb
+  }
+  ner=rbbt/ner{
+   test_abner.rb
+  }
  }
  data=data{
  }
