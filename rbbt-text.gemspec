@@ -9,14 +9,15 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2010-11-30}
+  s.date = %q{2010-12-02}
   s.description = %q{Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
   s.files = [
     "lib/rbbt/bow/bow.rb",
     "lib/rbbt/bow/dictionary.rb",
     "lib/rbbt/bow/misc.rb",
-    "lib/rbbt/ner/regexpNER.rb"
+    "lib/rbbt/ner/regexpNER.rb",
+    "share/stopwords"
   ]
   s.homepage = %q{http://github.com/mikisvaz/rbbt-util}
   s.require_paths = ["lib"]
