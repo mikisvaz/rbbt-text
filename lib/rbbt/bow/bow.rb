@@ -1,4 +1,3 @@
-require 'rbbt'
 require 'rbbt/bow/misc'
 require 'stemmer'
 
