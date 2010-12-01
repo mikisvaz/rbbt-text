@@ -5,16 +5,18 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rbbt-text}
-  s.version = "0.0.1"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2010-11-19}
+  s.date = %q{2010-11-30}
   s.description = %q{Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
   s.files = [
     "lib/rbbt/bow/bow.rb",
-    "lib/rbbt/bow/misc.rb"
+    "lib/rbbt/bow/dictionary.rb",
+    "lib/rbbt/bow/misc.rb",
+    "lib/rbbt/ner/regexpNER.rb"
   ]
   s.homepage = %q{http://github.com/mikisvaz/rbbt-util}
   s.require_paths = ["lib"]
@@ -22,6 +24,9 @@ Gem::Specification.new do |s|
   s.summary = %q{Text mining tools for the Ruby Bioinformatics Toolkit (rbbt)}
   s.test_files = [
     "test/rbbt/bow/test_bow.rb",
+    "test/rbbt/bow/test_dictionary.rb",
+    "test/rbbt/bow/test_misc.rb",
+    "test/rbbt/ner/test_regexpNER.rb",
     "test/test_helper.rb"
   ]
 
