@@ -2,14 +2,6 @@ require 'rbbt-util'
 require 'rbbt/bow/misc'
 
 class RegExpNER
-
-  def self.build_re(names, ignorecase=true)
-    res = names.compact.reject{|n| n.empty?}.
-      sort_by{|a| a.length}.reverse.collect{|n| Regexp.quote(n) }
-
-    /\b(#{ res.join("|").gsub(/\\?\s/,'\s+') })\b/
-  end
-
   def initialize(lexicon, options = {})
     options = Misc.add_defaults options, :flatten => true, :case_insensitive => true, :stopwords => nil
 
@@ -22,7 +14,7 @@ class RegExpNER
     data = TSV.new(lexicon, options)
 
     @index = {}
-    data.collect{|code, names|
+    data.each{|code, names|
       next if code.nil? || code == ""
       if options[:stopwords].any?
         names = names.select{|n| 
@@ -33,6 +25,14 @@ class RegExpNER
    }
   end
 
+
+  def self.build_re(names, ignorecase=true)
+    res = names.compact.reject{|n| n.empty?}.
+      sort_by{|a| a.length}.reverse.collect{|n| Regexp.quote(n) }
+
+    /\b(#{ res.join("|").gsub(/\\?\s/,'\s+') })\b/
+  end
+
   def self.match_re(text, res)
     res = [res] unless Array === res
 
@@ -40,6 +40,7 @@ class RegExpNER
       text.scan(re) 
     }.flatten
   end
+
 
   def match_hash(text)
     return {} if text.nil? or text.empty?

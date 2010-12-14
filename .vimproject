@@ -9,6 +9,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    dictionary.rb
   }
   ner=rbbt/ner{
+   polysearch.rb
    named_entity.rb
    abner.rb
    banner.rb
