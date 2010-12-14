@@ -1,0 +1,19 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='OSCAR3'
+url="http://downloads.sourceforge.net/project/oscar3-chem/oscar3-chem/alpha5/oscar3-a5.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Foscar3-chem%2F&ts=1292333939&use_mirror=switch"
+
+get_pkg "$name" "$url"
+uncompress_pkg "$name" "$url"
+
+PKG_DIR=`opt_dir $name`
+[ -d $PKG_DIR ] || mkdir -p $PKG_DIR
+mv `build_dir $name`/oscar3-a5.jar $PKG_DIR/OSCAR3.jar
+ln -sf  "$PKG_DIR/OSCAR3.jar"  "$OPT_JAR_DIR/OSCAR3.jar"
+clean_build
+
+

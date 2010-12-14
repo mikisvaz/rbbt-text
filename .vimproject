@@ -9,7 +9,11 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    dictionary.rb
   }
   ner=rbbt/ner{
+   named_entity.rb
    abner.rb
+   banner.rb
+   oscar3.rb
+   regexpNER.rb
   }
  }
  test=test {
@@ -21,6 +25,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
   ner=rbbt/ner{
    test_abner.rb
+   test_banner.rb
+   test_oscar3.rb
+   test_regexpNER.rb
   }
  }
  data=data{

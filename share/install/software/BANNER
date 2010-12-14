@@ -1,0 +1,35 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='BANNER'
+url="http://sourceforge.net/projects/banner/files/banner/0.2/BANNER_v02.zip/download"
+
+get_pkg "$name" "$url"
+uncompress_pkg "$name" "$url"
+
+cd `build_dir $name`
+libs=`find libs/ -name "*.jar"`
+mkdir classes
+javac -classpath `echo $libs|sed s/\ /:/g` -d classes `find src/ -name "*.java"`
+cd classes
+for f in ../libs/*.jar; do jar xf "$f";done
+jar cf BANNER.jar *
+PKG_DIR="`opt_dir $name`"
+[ -d "$PKG_DIR" ] || mkdir -p "$PKG_DIR"
+mv BANNER.jar $PKG_DIR/
+cd `build_dir $name`
+cp -R nlpdata/ "$PKG_DIR" 
+
+wget "http://sourceforge.net/projects/banner/files/banner/0.2/gene_model_v02.bin/download" -O "$PKG_DIR/gene_model.bin" 
+
+ln -sf  "$PKG_DIR/BANNER.jar"  "$OPT_JAR_DIR/BANNER.jar"
+clean_build
+
+
+
+
+
+
