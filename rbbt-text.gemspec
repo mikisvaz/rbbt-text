@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rbbt-text}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2010-12-14}
+  s.date = %q{2010-12-22}
   s.description = %q{Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
   s.files = [
@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
     "lib/rbbt/ner/named_entity.rb",
     "lib/rbbt/ner/oscar3.rb",
     "lib/rbbt/ner/regexpNER.rb",
+    "lib/rbbt/ner/tokenNER.rb",
     "share/install/software/ABNER",
     "share/install/software/BANNER",
     "share/install/software/OSCAR3",
@@ -39,6 +40,7 @@ Gem::Specification.new do |s|
     "test/rbbt/ner/test_named_entity.rb",
     "test/rbbt/ner/test_oscar3.rb",
     "test/rbbt/ner/test_regexpNER.rb",
+    "test/rbbt/ner/test_tokenNER.rb",
     "test/test_helper.rb"
   ]
 
