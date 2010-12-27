@@ -139,7 +139,7 @@ class TokenNER
   end
 
   attr_accessor :index, :longest_match
-  def initialize(file, options = {})
+  def initialize(file = [], options = {})
     options = Misc.add_defaults options, :flatten => true, :longest_match => true
     @longest_match = options.delete :longest_match
 
@@ -154,7 +154,7 @@ class TokenNER
     case
     when TokenNER === new
       TokenNER.merge(@index, new.index)
-    when Hash === new
+    when (Hash === new or TSV === new)
       TokenNER.merge(@index, new)
     when String === new
       TokenNER.merge(@index, TokenNER.process(TSV.new(new, :flatten => true)))
