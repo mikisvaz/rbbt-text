@@ -1,10 +1,11 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/named_entity'
+require 'rbbt/ner/annotations'
+require 'rbbt/ner/NER'
 
 # Offers a Ruby interface to the Banner Named Entity Recognition Package
 # in Java. Banner[http://banner.sourceforge.net/].
-class Banner
+class Banner < NER
 
   Rbbt.add_software "BANNER" => ['','']
 
@@ -48,7 +49,7 @@ class Banner
   
   # Returns an array with the mention found in the provided piece of
   # text.
-  def extract(text)
+  def match(text)
     text.gsub!(/\n/,' ')
     text.gsub!(/\|/,'/') # Character | gives an error
     sentence = @@Sentence.new(text)
@@ -63,7 +64,7 @@ class Banner
       mention = $1
       mention.sub!(/^\s*/,'')
       mention.sub!(/\s*$/,'')
-      NamedEntity.annotate mention
+      NamedEntity.annotate mention, nil, 'GENE'
       mention
     }
     res

@@ -6,12 +6,12 @@ require 'test/unit'
 class TestOSCAR3 < Test::Unit::TestCase
 
 
-  def test_extract
+  def test_match
     begin
       ner = OSCAR3.new
       str  = "Alternatively, rearrangement of O-(ω-haloalkyl)esters 34 of 2-carboethoxy-N-hydroxypyridine-2-selone affords azonianaphthalenium halides 37 in 79% yield"
 
-      mentions = ner.extract(str, "CM", false)
+      mentions = ner.match(str, "CM", false)
       good_mentions = ["2-carboethoxy-N-hydroxypyridine-2-selone", "O-(ω-haloalkyl)esters"]
 
       good_mentions.each{|mention| 

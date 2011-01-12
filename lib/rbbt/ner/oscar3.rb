@@ -1,10 +1,11 @@
 require 'rbbt'
 require 'rjb'
 require 'libxml'
-require 'rbbt/ner/named_entity'
+require 'rbbt/ner/annotations'
+require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
-class OSCAR3
+class OSCAR3 < NER
   Rbbt.add_software "OSCAR3" => ['','']
 
   @@TextToSciXML   = Rjb::import('uk.ac.cam.ch.wwmm.ptclib.scixml.TextToSciXML')
@@ -14,7 +15,7 @@ class OSCAR3
   @@MEMM = @@MEMMSingleton.getInstance();
   @@DFA  = @@DFANEFinder.getInstance();
 
-  def self.extract(text,  type = nil, memm =  true)
+  def self.match(text,  type = nil, memm =  true)
     doc  = @@ProcessingDocumentFactory.getInstance().makeTokenisedDocument(@@TextToSciXML.textToSciXML(text), true, false, false);
     mentions = []
     it = doc.getTokenSequences().iterator
@@ -34,7 +35,7 @@ class OSCAR3
         next unless type.nil? or type.include? mention_type
         score  = entities.get(key)
 
-        NamedEntity.annotate mention, mention_type, score.to_string.to_f, (rstart..rend)
+        NamedEntity.annotate mention, rstart, mention_type, nil, score.to_string.to_f
         
         mentions << mention
       end
@@ -43,8 +44,8 @@ class OSCAR3
     mentions
   end
 
-  def extract(*args)
-    OSCAR3.extract *args
+  def match(*args)
+    OSCAR3.match *args
   end
 end
 

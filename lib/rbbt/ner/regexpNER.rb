@@ -1,67 +1,71 @@
-require 'rbbt-util'
-require 'rbbt/bow/misc'
+require 'rbbt/ner/annotations'
+require 'rbbt/ner/NER'
 
-class RegExpNER
-  def initialize(lexicon, options = {})
-    options = Misc.add_defaults options, :flatten => true, :case_insensitive => true, :stopwords => nil
+class RegExpNER < NER
+  def self.match_regexp(text, regexp, type = nil)
+    matches = []
+    start = 0
+    while matchdata = text.match(regexp)
+      pre   = matchdata.pre_match
+      post  = matchdata.post_match
+      match = matchdata[0]
 
-    if $stopwords and  (options[:stopwords].nil? || options[:stopwords] == true) 
-      options[:stopwords] = $stopwords 
-    else
-      options[:stopwords] = []
+      if matchdata.captures.any?
+        capture = matchdata.captures.first
+        more_pre, more_post = match.split(/#{capture}/)
+
+        match = capture
+        pre << more_pre || ""
+        post = more_post || "" << post
+      end
+
+      if match and not match.empty?
+        NamedEntity.annotate(match, start + pre.length, type)
+        matches << match
+      end
+
+      start += pre.length + match.length
+      text = post
     end
 
-    data = TSV.new(lexicon, options)
-
-    @index = {}
-    data.each{|code, names|
-      next if code.nil? || code == ""
-      names << code if names.empty?
-      
-    
-      if options[:stopwords].any?
-        names = names.select{|n| 
-          ! options[:stopwords].include?(options[:case_insensitive] ? n.downcase : n)
-        } 
-      end
-      @index[code] = RegExpNER.build_re(names, options[:case_insensitive])
-   }
-  end
-
-
-  def self.build_re(names, ignorecase=true)
-    res = names.compact.reject{|n| n.empty? or n.length < 3}.
-      sort_by{|a| a.length }.reverse.collect{|n| Regexp.quote(n) }
-
-    return nil if res.empty?
-
-    /\b(#{ res.join("|").gsub(/\\?\s/,'\s+') })\b/i
-  end
-
-  def self.match_re(text, res)
-    res = [res] unless Array === res
-
-    res.collect{|re|
-      text.scan(re) 
-    }.flatten
-  end
-
-
-  def match_hash(text)
-    return {} if text.nil? or text.empty?
-    matches = {}
-    @index.each{|code, re|
-      next if re.nil?
-      RegExpNER.match_re(text, re).each{|match|
-         matches[code] ||= []
-         matches[code] << match
-      }
-    }
     matches
   end
 
+  def self.match_regexp_list(text, regexp_list, type = nil)
+    matches = []
+
+    regexp_list.each do |regexp|
+      chunks = Segment.split(text, matches)
+      chunks.each do |chunk|
+        new_matches = match_regexp(chunk, regexp, type)
+        new_matches.each do |match| match.offset += chunk.offset; matches << match end
+      end
+    end
+
+    matches
+  end
+
+  def self.match_regexp_hash(text, regexp_hash)
+    matches = []
+
+    regexp_hash.each do |type, regexp_list|
+      regexp_list = [regexp_list] unless Array === regexp_list
+      chunks = Segment.split(text, matches)
+      chunks.each do |chunk|
+        match_regexp_list(chunk, regexp_list, type).collect do |match| match.offset += chunk.offset; matches << match end
+      end
+    end
+
+    matches
+  end
+
+  attr_accessor :regexps
+  def initialize(regexps = {})
+    @regexps = regexps
+  end
+
   def match(text)
-    match_hash(text)
+    matches = RegExpNER.match_regexp_hash(text, @regexps)
   end
 
 end

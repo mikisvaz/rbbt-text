@@ -9,12 +9,14 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    misc.rb
   }
   ner=rbbt/ner{
+   annotations.rb
+   NER.rb
+   regexpNER.rb
+   token_trieNER.rb
+   tokenNER.rb
    abner.rb
    banner.rb
-   named_entity.rb
    oscar3.rb
-   regexpNER.rb
-   tokenNER.rb
   }
  }
  test=test {

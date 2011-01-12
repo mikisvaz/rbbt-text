@@ -1,56 +1,63 @@
 require File.dirname(__FILE__) + '/../../test_helper'
-require 'rbbt-util'
 require 'rbbt/ner/regexpNER'
-require 'rbbt/sources/polysearch'
-require 'test/unit'
 
 class TestRegExpNER < Test::Unit::TestCase
-  def test_true
-    assert true
+  def test_match_regexp
+    sentence = "In this sentence I should find this and 'that'"
+
+    regexp = /this/
+    matches = RegExpNER.match_regexp(sentence, regexp)
+
+    assert_equal ["this", "this"], matches
+    assert_equal "In ".length, matches[0].offset
+    assert_equal "In this sentence I should find ".length, matches[1].offset
+
+    regexp_list = [/this/, /that/]
+    matches = RegExpNER.match_regexp_list(sentence, regexp_list)
+
+    assert_equal ["this", "this", "that"], matches
+    assert_equal "In ".length, matches[0].offset
+    assert_equal "In this sentence I should find ".length, matches[1].offset
+
+    regexp_hash = {:this => /this/, :that => /that/}
+    matches = RegExpNER.match_regexp_hash(sentence, regexp_hash)
+
+    assert_equal ["this", "this", "that"].sort, matches.sort
+    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.type == :this}[0].type
   end
-  def _test_class
-    text = "a bc d e f g h i j k  l m n o p q one two"
 
-    lexicon =<<-EOF
-C1,a,x,xx,xxx
-C2,bc,y,yy,yyy
-C3,i,z,zz,zzz,m,one two
-    EOF
+  def test_entities
+    sentence = "In this sentence I should find this and 'that'"
 
-    file = TmpFile.tmp_file
-    File.open(file, 'w'){|f| f.write lexicon}
+    ner = RegExpNER.new({:this => /this/, :that => /that/})
+    matches = ner.entities(sentence)
+    assert_equal ["this", "this", "that"].sort, matches.sort
+    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.type == :this}[0].type
 
-    r = RegExpNER.new(file, :sep => ',', :stopwords => false)
-    assert_equal(['a', 'bc', 'i', 'm','one two'].sort, r.match_hash(text).values.flatten.sort)
+    Annotated.annotate(sentence)
+    ner_this = RegExpNER.new({:this => /this/})
+    ner_that = RegExpNER.new({:that => /that/})
+    sentence.annotations += ner_this.entities(sentence)
+    sentence.annotations += ner_that.entities(sentence)
+    matches = sentence.annotations
 
-    r = RegExpNER.new(file, :sep => ',', :stopwords => true)
-    assert_equal(['bc', 'm','one two'].sort,r.match_hash(text).values.flatten.sort)
-
-
-    FileUtils.rm file
+    assert_equal ["this", "this", "that"].sort, matches.sort
+    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.type == :this}[0].type
   end
 
-  def _test_persistence
-    text = "a bc d e f g h i j k  l m n o p q one two"
+  def test_entities_captures
+    sentence = "In this sentence I should find this and 'that'"
 
-    lexicon =<<-EOF
-C1,a,x,xx,xxx
-C2,bc,y,yy,yyy
-C3,i,z,zz,zzz,m,one two
-    EOF
-
-    file = TmpFile.tmp_file
-    File.open(file, 'w'){|f| f.write lexicon}
-
-    r = RegExpNER.new(file, :sep => ',', :stopwords => false, :persistence => true)
-    assert_equal(['a', 'bc', 'i', 'm','one two'].sort, r.match_hash(text).values.flatten.sort)
-
-    r = RegExpNER.new(file, :sep => ',', :stopwords => true, :persistence => true)
-    assert_equal(['bc', 'm','one two'].sort,r.match_hash(text).values.flatten.sort)
-
-
-    FileUtils.rm file
+    ner = RegExpNER.new({:this => /this/, :that => /that/, :should => /I (should)/})
+    matches = ner.entities(sentence)
+    assert_equal ["this", "this", "that", "should"].sort, matches.sort
+    assert_equal "In this sentence I ".length, matches.select{|m| m.type == :should}[0].offset
+    assert_equal :should, matches.select{|m| m.type == :should}[0].type
   end
 end
-
-

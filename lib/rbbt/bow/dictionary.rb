@@ -174,7 +174,7 @@ class Dictionary::KL
     if limit
       Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
     else
-      Hash[*best.flatten]
+      best
     end
   end
 
