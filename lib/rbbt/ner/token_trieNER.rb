@@ -3,7 +3,7 @@ require 'rbbt/util/tsv'
 require 'rbbt/ner/annotations'
 require 'rbbt/ner/NER'
 
-class TokenTrieNER
+class TokenTrieNER < NER
   def self.clean(token)
     if token.length > 3
       token.downcase
@@ -31,12 +31,24 @@ class TokenTrieNER
   end
 
   #{{{ Process dictionary
-   
-  def self.index_for_tokens(tokens, code)
+
+  class Code
+    attr_accessor :value, :type
+    def initialize(value, type = nil)
+      @value = value
+      @type = type
+    end
+
+    def to_s
+      [type, value] * ":"
+    end
+  end
+
+  def self.index_for_tokens(tokens, code, type = nil)
     if tokens.empty?
-      {:END => [code]}
+      {:END => [Code.new code, type]}
     else
-      {tokens.shift => index_for_tokens(tokens, code)}
+      {tokens.shift => index_for_tokens(tokens, code, type)}
     end
   end
   
@@ -45,7 +57,7 @@ class TokenTrieNER
       case
       when key == :END
         index1[:END] ||= []
-        index1[:END] += new_index2
+        index1[:END] += new_index2.reject{|new| index1[:END].collect{|e| e.to_s }.include? new.to_s }
         index1[:END].uniq!
       when index1.include?(key)
         merge(index1[key], new_index2)
@@ -55,14 +67,14 @@ class TokenTrieNER
     end
   end
 
-  def self.process(hash)
+  def self.process(hash, type = nil)
     index = {}
     hash.each do |code, names|
-      names.each do |name|
+      names.flatten.each do |name|
         next if name.empty? or name.length < 2
         tokens = tokenize name
 
-        merge(index, index_for_tokens(tokens, code)) unless tokens.empty?
+        merge(index, index_for_tokens(tokens, code, type)) unless tokens.empty?
       end
     end
     index
@@ -118,17 +130,19 @@ class TokenTrieNER
 
     file = [file] unless Array === file
     @index = {}
-    file.each do |f| TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(f, options))) end
+    file.each do |f| TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(f, options), type)) end
   end
 
-  def merge(new)
+  def merge(new, type = nil)
     case
     when TokenTrieNER === new
       TokenTrieNER.merge(@index, new.index)
     when Hash === new
       TokenTrieNER.merge(@index, new)
+    when TSV === new
+      TokenTrieNER.merge(@index, TokenTrieNER.process(new,type))
     when String === new
-      TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(new, :flatten => true)))
+      TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(new, :flatten => true), type))
     end
   end
 
@@ -141,7 +155,7 @@ class TokenTrieNER
 
       if new_matches
         codes, match_tokens = new_matches
-        matches << TokenTrieNER.make_match(match_tokens, type, codes)
+        matches << TokenTrieNER.make_match(match_tokens, codes.collect{|c| c.type}, codes.collect{|c| c.value})
       else
         tokens.shift
       end

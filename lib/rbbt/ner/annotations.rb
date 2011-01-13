@@ -1,8 +1,25 @@
 module Segment 
   attr_accessor :offset
 
-  def self.sort(segments)
-    segments.sort_by do |segment| segment.offset || 0 end
+  def self.sort(segments, inline = true)
+    if inline
+      segments.sort do |a,b| 
+        case
+        when ((a.nil? and b.nil?) or (a.offset.nil? and b.offset.nil?))
+          0
+        when (a.nil? or a.offset.nil?)
+          -1
+        when (b.nil? or b.offset.nil?)
+          +1
+        when (not a.range.include? b.offset and not b.range.include? a.offset)
+          a.offset <=> b.offset
+        else
+          b.length <=> a.length
+        end
+      end.reverse
+    else
+      segments.sort_by do |segment| segment.offset || 0 end
+    end
   end
 
   def self.split(text, segments)
@@ -12,13 +29,15 @@ module Segment
     segment_end = 0
     text_offset = 0
     sorted_segments.each do |segment|
+      return chunks if text.nil? or text.empty?
       next if segment.offset.nil?
-
       offset = segment.offset - text_offset
+
+      # Consider segment offset. Save pre, or skip if overlap
       case
-      when offset < 0
+      when offset < 0 # Overlap, skip
         next
-      when offset > 0
+      when offset > 0 # Save pre
         chunk = text[0..offset - 1]
         Segment.annotate(chunk, text_offset)
         chunks << chunk
@@ -30,15 +49,17 @@ module Segment
       Segment.annotate(chunk, text_offset + offset)
       chunks << chunk
 
-      text = text[(segment_end + 1)..-1]
-      text_offset = segment_end + 1
+      text_offset += segment_end + 1
+      text = text[segment_end + 1..-1]
     end
 
-    if text.any?
-      chunk = text
+    if not text.nil? and text.any?
+      chunk = text.dup
       Segment.annotate(chunk, text_offset)
       chunks << chunk
     end
+
+    chunks
   end
 
   def self.annotate(string, offset = nil)
@@ -76,6 +97,16 @@ module NamedEntity
     string.code  = code
     string.score = score
     string
+  end
+
+  def to_s
+    <<-EOF
+String: #{ self }
+Offset: #{ offset.inspect }
+Type: #{type.inspect}
+Code: #{code.inspect}
+Score: #{score.inspect}
+    EOF
   end
 end
 

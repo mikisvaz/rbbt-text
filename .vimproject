@@ -13,7 +13,6 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    NER.rb
    regexpNER.rb
    token_trieNER.rb
-   tokenNER.rb
    abner.rb
    banner.rb
    oscar3.rb

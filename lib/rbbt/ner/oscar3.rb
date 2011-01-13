@@ -15,29 +15,44 @@ class OSCAR3 < NER
   @@MEMM = @@MEMMSingleton.getInstance();
   @@DFA  = @@DFANEFinder.getInstance();
 
-  def self.match(text,  type = nil, memm =  true)
+  def self.match(text,  type = nil, memm =  false)
     doc  = @@ProcessingDocumentFactory.getInstance().makeTokenisedDocument(@@TextToSciXML.textToSciXML(text), true, false, false);
     mentions = []
     it = doc.getTokenSequences().iterator
 
-    reconizer = memm ? @@MEMM : @@DFA
     type = [type] unless type.nil? or Array === type
-    pos = 0
     while it.hasNext do 
-      Log.debug "OSCAR3: Finding mentions in sequence #{pos += 1}"
       sequence = it.next
-      entities = @@MEMM.findNEs(sequence, text)
 
-      keys = entities.keySet.iterator
+      # Fix sequence offset
+      sequence_str = sequence.getSourceString.to_s
+      sequence_offset = sequence.offset.to_i
+      offset = 0
+      while text[(sequence_offset + offset)..(sequence_offset + offset + sequence_str.length - 1)] != sequence_str and
+        not offset + sequence_offset + sequence_str.length > text.length
+
+        offset += 1
+      end
+
+      next if offset + sequence_offset + sequence_str.length > text.length
+
+      if memm
+        entities = @@MEMM.findNEs(sequence, text) 
+        keys = entities.keySet.iterator
+      else
+        entities = @@DFA.getNEs(sequence)
+        keys = entities.iterator
+      end
+
       while keys.hasNext do
         key = keys.next
         mention_type, rstart, rend, mention = key.to_string.match(/\[NE:(.*):(.*):(.*):(.*)\]/).values_at(1,2,3,4)
         next unless type.nil? or type.include? mention_type
-        score  = entities.get(key)
+        score  = memm ? entities.get(key).to_string.to_f : nil
 
-        NamedEntity.annotate mention, rstart, mention_type, nil, score.to_string.to_f
+        NamedEntity.annotate mention, rstart.to_i + offset, mention_type, nil, score
         
-        mentions << mention
+        mentions << mention unless mentions.collect{|m| m.to_s}.include? mention.to_s
       end
     end
 

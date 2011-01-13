@@ -1,7 +1,10 @@
 require 'rbbt/ner/annotations'
 require 'rbbt/ner/NER'
+require 'rbbt/util/simpleDSL'
 
 class RegExpNER < NER
+  include SimpleDSL
+
   def self.match_regexp(text, regexp, type = nil)
     matches = []
     start = 0
@@ -15,8 +18,8 @@ class RegExpNER < NER
         more_pre, more_post = match.split(/#{capture}/)
 
         match = capture
-        pre << more_pre || ""
-        post = more_post || "" << post
+        pre << more_pre if more_pre
+        post = more_post << post if more_post
       end
 
       if match and not match.empty?
@@ -52,7 +55,11 @@ class RegExpNER < NER
       regexp_list = [regexp_list] unless Array === regexp_list
       chunks = Segment.split(text, matches)
       chunks.each do |chunk|
-        match_regexp_list(chunk, regexp_list, type).collect do |match| match.offset += chunk.offset; matches << match end
+        chunk_offset = chunk.offset
+        match_regexp_list(chunk, regexp_list, type).collect do |match| 
+          match.offset += chunk_offset; 
+          matches << match 
+        end
       end
     end
 
@@ -61,7 +68,20 @@ class RegExpNER < NER
 
   attr_accessor :regexps
   def initialize(regexps = {})
-    @regexps = regexps
+    @regexps = regexps.collect
+  end
+
+
+  def __define_regexp_hook(name, regexp, *args)
+    @regexps << [name, regexp]
+  end
+
+  def define_regexp(*args, &block)
+    load_config("__define_regexp_hook", *args, &block)
+  end
+
+  def add_regexp(list = {})
+    @regexps.concat list.collect
   end
 
   def match(text)

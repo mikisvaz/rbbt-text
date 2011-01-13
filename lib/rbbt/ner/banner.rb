@@ -53,6 +53,7 @@ class Banner < NER
     text.gsub!(/\n/,' ')
     text.gsub!(/\|/,'/') # Character | gives an error
     sentence = @@Sentence.new(text)
+
     @tokenizer.tokenize(sentence)
     @tagger.tag(sentence)
     @parenPP.postProcess(sentence)
