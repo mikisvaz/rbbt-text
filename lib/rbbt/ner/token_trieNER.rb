@@ -81,7 +81,7 @@ class TokenTrieNER < NER
   end
 
   #{{{ Matching
-  
+ 
   def self.find(index, tokens, longest_match = true)
     return nil unless index.include? tokens.first
 
@@ -99,7 +99,7 @@ class TokenTrieNER < NER
 
       return [next_index[:END], [head]] if next_index.include?(:END) and not longest_match
 
-      matches = find(next_index, tokens)
+      matches = find(next_index, tokens, longest_match)
       if not matches.nil?
         matches.last.unshift head
         return matches

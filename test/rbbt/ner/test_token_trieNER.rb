@@ -30,7 +30,7 @@ C2;11;22;3 3;bb
 
     TmpFile.with_file(lexicon) do |file|
 
-      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :flatten => true))
+      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat))
 
       assert_equal ['AA', 'aa', 'bb', '11', '22', '3'].sort, index.keys.sort
       assert_equal [:END], index['aa'].keys
@@ -47,7 +47,7 @@ C2;11;22;3 3;bb
 
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :flatten => true))
+      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat ))
 
       assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).first.collect{|c| c.value}.include?   'C1'
       assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).last
@@ -76,37 +76,6 @@ C2;11;22;3 3;bb
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end
-
-  def _test_polysearch_long_match
-    begin
-      require 'rbbt/sources/polysearch'
-    rescue
-      puts "Polysearch is not available. Some test have not ran."
-      assert true
-      return
-    end
-
-    sentence = "mammary and pituitary neoplasms as well as other drug-related mammary/reproductive tissue alterations in females were considered"
-
-    index = TokenTrieNER.new Rbbt.find_datafile('organ')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'OR00063'
-
-    index = TokenTrieNER.new Rbbt.find_datafile('disease')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'DID44386'
-
-    index = TokenTrieNER.new Rbbt.find_datafile('disease'), Rbbt.find_datafile('organ')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'DID44386'
-
-    index = TokenTrieNER.new Rbbt.find_datafile('disease'), Rbbt.find_datafile('organ')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'DID44386'
-
-    index = TokenTrieNER.new Rbbt.find_datafile('organ')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'OR00063'
-    index.merge Rbbt.find_datafile('disease')
-    assert ! index.match(sentence).collect{|m| m.code}.flatten.include?('OR00063')
-    assert index.match(sentence).collect{|m| m.code}.flatten.include? 'DID44386'
-  end
-
 
 end
 
