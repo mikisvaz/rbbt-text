@@ -11,15 +11,24 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   ner=rbbt/ner{
    annotations.rb
    NER.rb
-   regexpNER.rb
-   token_trieNER.rb
+
    abner.rb
    banner.rb
    oscar3.rb
+   regexpNER.rb
+   token_trieNER.rb
+
+   rnorm.rb
+   rnorm=rnorm{
+    cue_index.rb
+    tokens.rb
+   }
   }
  }
  share=share{
-  }
+  rnorm=rnorm{
+   }
+ }
  test=test {
   test_helper.rb
   data=data{
@@ -37,6 +46,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    test_polysearch.rb
    test_regexpNER.rb
    test_tokenNER.rb
+   test_rnorm.rb
   }
  }
  data=data{
