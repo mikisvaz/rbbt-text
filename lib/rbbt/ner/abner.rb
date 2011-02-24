@@ -27,6 +27,7 @@ class Abner < NER
   # returns all the mentions found, regardless of type, to be coherent
   # with the rest of NER packages in Rbbt.
   def match(text)
+    return [] if text.nil? or text.empty?
 
     res = @tagger.getEntities(text)
     types = res[1]

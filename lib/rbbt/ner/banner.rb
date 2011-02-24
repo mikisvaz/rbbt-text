@@ -50,8 +50,10 @@ class Banner < NER
   # Returns an array with the mention found in the provided piece of
   # text.
   def match(text)
+    return [] if text.nil? 
     text.gsub!(/\n/,' ')
     text.gsub!(/\|/,'/') # Character | gives an error
+    return [] if text.strip.empty? 
     sentence = @@Sentence.new(text)
 
     @tokenizer.tokenize(sentence)
