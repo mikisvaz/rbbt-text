@@ -1,9 +1,5 @@
 #!/bin/bash
 
-INSTALL_HELPER_FILE="$1"
-RBBT_SOFTWARE_DIR="$2"
-source "$INSTALL_HELPER_FILE"
-
 name='ABNER'
 url="http://pages.cs.wisc.edu/~bsettles/abner/abner.jar"
 

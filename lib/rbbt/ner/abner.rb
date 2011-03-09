@@ -7,7 +7,7 @@ require 'rbbt/ner/NER'
 # in Java Abner[http://www.cs.wisc.edu/~bsettles/abner/].
 class Abner < NER
 
-  Rbbt.add_software "ABNER" => ['','']
+  Rbbt.software.opt.ABNER.define_as_install Rbbt.share.install.software.ABNER.find
 
   @@JFile   = Rjb::import('java.io.File')
   @@Tagger  = Rjb::import('abner.Tagger')

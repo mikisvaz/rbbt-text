@@ -6,7 +6,7 @@ require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
 class OSCAR3 < NER
-  Rbbt.add_software "OSCAR3" => ['','']
+  Rbbt.software.opt.OSCAR3.define_as_install Rbbt.share.install.software.OSCAR3.find
 
   @@TextToSciXML   = Rjb::import('uk.ac.cam.ch.wwmm.ptclib.scixml.TextToSciXML')
   @@ProcessingDocumentFactory   = Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.document.ProcessingDocumentFactory')

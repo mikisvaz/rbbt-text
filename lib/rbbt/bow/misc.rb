@@ -1,9 +1,7 @@
 require 'rbbt'
 require 'rbbt/util/open'
 
-Rbbt.claim 'stopwords', nil, 'wordlists'
-
-$stopwords = Rbbt.files.wordlists.stopwords.read.scan(/\w+/)
+$stopwords = Rbbt.share.wordlists.stopwords.read.scan(/\w+/)
 
 $greek = {
   "alpha"   => "a",

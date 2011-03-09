@@ -16,7 +16,7 @@ class CueIndex
   def initialize(file = nil, &block)
     @rules   = []
 
-    file ||= Rbbt.files.rnorm.cue_default.produce if !file && !block
+    file ||= Rbbt.share.rnorm.cue_default.produce if !file && !block
 
     load_config(:define, file, &block)
   end

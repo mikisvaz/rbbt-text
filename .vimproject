@@ -26,6 +26,11 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
  }
  share=share{
+  software=install/software filter="*"{
+   ABNER
+   BANNER
+   OSCAR3
+   }
   rnorm=rnorm{
    }
  }

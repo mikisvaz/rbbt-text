@@ -7,10 +7,6 @@ require 'rbbt/bow/bow.rb'
 
 class Normalizer
 
-  Rbbt.claim "cue_default", nil, "rnorm"
-  Rbbt.claim "tokens_default", nil, "rnorm"
-
-
   # Given a list of pairs of candidates along with their scores as
   # parameter +values+, and a minimum value for the scores. It returns
   # a list of pairs of the candidates that score the highest and that

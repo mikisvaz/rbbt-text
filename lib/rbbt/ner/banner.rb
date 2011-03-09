@@ -7,7 +7,7 @@ require 'rbbt/ner/NER'
 # in Java. Banner[http://banner.sourceforge.net/].
 class Banner < NER
 
-  Rbbt.add_software "BANNER" => ['','']
+  Rbbt.software.opt.BANNER.define_as_install Rbbt.share.install.software.BANNER.find
 
   @@JFile = Rjb::import('java.io.File')
   @@SimpleTokenizer = Rjb::import('banner.tokenization.SimpleTokenizer')
@@ -22,9 +22,9 @@ class Banner < NER
   # The parameters are set to default values, the only one that one
   # might want to change is the modelfile to point to a custom trained
   # one.
-  def initialize(modelfile = File.join(Rbbt.find_software('BANNER'), 'gene_model.bin'),
-                 lemmadir  = File.join(Rbbt.find_software('BANNER'), 'nlpdata/lemmatiser'),
-                 taggerdir = File.join(Rbbt.find_software('BANNER'), 'nlpdata/tagger')
+  def initialize(modelfile = Rbbt.software.opt.BANNER["gene_model.bin"].find,
+                 lemmadir  = Rbbt.software.opt.BANNER.nlpdata.lemmatiser.find,
+                 taggerdir = Rbbt.software.opt.BANNER.nlpdata.tagger.find
                 )
 
     @tokenizer = @@SimpleTokenizer.new

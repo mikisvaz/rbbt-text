@@ -159,7 +159,7 @@ class Tokenizer
     @operations = []
     @transforms = []
 
-    file ||= Rbbt.files.rnorm.tokens_default.produce if !file && !block
+    file ||= Rbbt.share.rnorm.tokens_default.produce if !file && !block
     load_config :main, file, &block
   end
 
