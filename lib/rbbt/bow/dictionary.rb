@@ -74,15 +74,15 @@ class Dictionary::TF_IDF
   end
 
   def best(options = {})
-    hi, low, limit = {
+    high, low, limit = {
       :low   => 0,
-      :hi    => 1,
+      :high    => 1,
     }.merge(options).
-    values_at(:hi, :low, :limit)
+    values_at(:high, :low, :limit)
 
     num_docs = @num_docs.to_f
     best = df.select{|term, value|
-      value >= low && value <= hi
+      value >= low && value <= high
     }.collect{|p| 
       term     = p.first
       df_value = p.last
@@ -147,19 +147,19 @@ class Dictionary::KL
   end
   
   def best(options = {})
-    hi, low, limit = {
+    high, low, limit = {
       :low   => 0,
-      :hi    => 1,
+      :high    => 1,
     }.merge(options).
-    values_at(:hi, :low, :limit)
+    values_at(:high, :low, :limit)
 
     pos_df = @pos_dict.df
     neg_df = @neg_dict.df
 
     best = {}
     terms.select{|term|
-      pos_df[term] >= low && pos_df[term] <= hi ||
-      neg_df[term] >= low && neg_df[term] <= hi 
+      pos_df[term] >= low && pos_df[term] <= high ||
+      neg_df[term] >= low && neg_df[term] <= high 
     }.each{|term|
       pos = pos_df[term]
       neg = neg_df[term]
