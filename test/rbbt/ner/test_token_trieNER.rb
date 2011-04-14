@@ -17,7 +17,7 @@ class TestTokenTrieNER < Test::Unit::TestCase
 
   def test_merge
     tokens = %w(a b c)
-    index = {'a' => {'b' => {'c' => {:END => [TokenTrieNER::Code.new 'CODE']}}}}
+    index = {'a' => {'b' => {'c' => {:END => [TokenTrieNER::Code.new('CODE')]}}}}
 
     assert_equal 'CODE', TokenTrieNER.merge({}, TokenTrieNER.index_for_tokens(tokens, 'CODE'))['a']['b']['c'][:END].first.value
   end

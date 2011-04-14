@@ -43,28 +43,28 @@ class Tokenizer
 
       value = 0
       case @comparison.to_s
-      when 'same':
+      when 'same'
         if toks1 == toks2 && toks1.any?
           value = @value
         end
-      when 'diff':
+      when 'diff'
         if toks1 != toks2
           value = @value
         end
-      when 'common':
+      when 'common'
         if toks1.to_set.intersection(toks2.to_set).length > 0
           value = @value
         end
-      when 'distinct':
+      when 'distinct'
         if toks1.to_set.intersection(toks2.to_set).length == 0
           value = @value
         end
-      when 'miss':
+      when 'miss'
         missing = (toks1 - toks2)
         if missing.length > 0
           value = @value * missing.length
         end
-      when 'extr':
+      when 'extr'
         extr = (toks2 - toks1)
         if extr.length > 0
           value = @value * extr.length

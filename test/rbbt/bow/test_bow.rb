@@ -1,4 +1,4 @@
-require File.expand_path(File.dirname(__FILE__) + '/../../test_helper')
+require File.join(File.expand_path(File.dirname(__FILE__)), '../../test_helper.rb')
 require 'rbbt/bow/bow'
 require 'test/unit'
 

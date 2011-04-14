@@ -46,7 +46,7 @@ class TokenTrieNER < NER
 
   def self.index_for_tokens(tokens, code, type = nil)
     if tokens.empty?
-      {:END => [Code.new code, type]}
+      {:END => [Code.new(code, type)]}
     else
       {tokens.shift => index_for_tokens(tokens, code, type)}
     end
