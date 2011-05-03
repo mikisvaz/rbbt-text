@@ -1,0 +1,16 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='OSCAR4'
+url="http://maven.ch.cam.ac.uk/m2repo/uk/ac/cam/ch/wwmm/oscar/oscar4-all/4.0.1/oscar4-all-4.0.1-with-dependencies.jar"
+
+
+PKG_DIR=`opt_dir $name`
+[ -d $PKG_DIR ] || mkdir -p $PKG_DIR
+wget "$url" -O "$PKG_DIR/OSCAR4.jar"
+ln -sf  "$PKG_DIR/OSCAR4.jar"  "$OPT_JAR_DIR/OSCAR4.jar"
+
+

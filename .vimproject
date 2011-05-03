@@ -15,6 +15,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    abner.rb
    banner.rb
    oscar3.rb
+   oscar4.rb
    regexpNER.rb
    token_trieNER.rb
 
@@ -30,6 +31,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    ABNER
    BANNER
    OSCAR3
+   OSCAR4
    }
   rnorm=rnorm{
    }
