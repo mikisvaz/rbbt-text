@@ -1,0 +1,11 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='Geniass'
+url="http://www-tsujii.is.s.u-tokyo.ac.jp/~y-matsu/geniass/geniass-1.00.tar.gz"
+
+
+install_src "$name" "$url"

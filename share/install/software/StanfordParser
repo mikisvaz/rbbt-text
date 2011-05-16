@@ -1,0 +1,15 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='StanfordParser'
+url="http://nlp.stanford.edu/downloads/stanford-parser-2011-04-20.tgz"
+
+
+get_src "$name" "$url"
+mkdir "$OPT_DIR/$name"
+cp "$OPT_BUILD_DIR/stanford-parser.jar" "$OPT_DIR/$name"
+ln -s "$OPT_DIR/$name/stanford-parser.jar" "$OPT_JAR_DIR/stanford-parser.jar"
+

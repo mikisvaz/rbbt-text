@@ -67,7 +67,7 @@ class Banner < NER
       mention = $1
       mention.sub!(/^\s*/,'')
       mention.sub!(/\s*$/,'')
-      NamedEntity.annotate mention, nil, 'GENE'
+      NamedEntity.annotate(mention, text.index(mention), 'GENE')
       mention
     }
     res

@@ -35,7 +35,7 @@ class Abner < NER
 
     strings.zip(types).collect do |mention, type| 
       mention = mention.to_s; 
-      NamedEntity.annotate(mention, nil, type.to_s)
+      NamedEntity.annotate(mention, text.index(mention), type.to_s)
     end
   end
 

@@ -25,6 +25,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     tokens.rb
    }
   }
+  nlp=rbbt/nlp{
+   nlp.rb
+  }
  }
  share=share{
   software=install/software filter="*"{
