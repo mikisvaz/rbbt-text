@@ -13,6 +13,8 @@ class OSCAR4 < NER
 
   def self.match(text,  type = nil, memm =  false)
 
+    return [] if text.nil? or text.strip.empty?
+
     oscar = @@OSCAR.new();
     entities = oscar.findAndResolveNamedEntities(text);
     it = entities.iterator

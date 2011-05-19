@@ -35,7 +35,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    BANNER
    OSCAR3
    OSCAR4
-   }
+   StanfordParser
+   Geniass
+  }
   rnorm=rnorm{
    }
  }
