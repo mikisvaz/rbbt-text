@@ -1,0 +1,78 @@
+#!/bin/bash
+
+INSTALL_HELPER_FILE="$1"
+RBBT_SOFTWARE_DIR="$2"
+source "$INSTALL_HELPER_FILE"
+
+name='ChemicalTagger'
+url="https://bitbucket.org/lh359/chemicaltagger/downloads/chemicalTagger-1.0-jar-with-dependencies.jar"
+
+PKG_DIR=`opt_dir $name`
+[ -d $PKG_DIR ] || mkdir -p $PKG_DIR
+wget "$url" -O "$PKG_DIR/ChemicalTagger.jar"
+[ -t  "$OPT_JAR_DIR/ChemicalTagger.jar" ] || ln -sf  "$PKG_DIR/ChemicalTagger.jar"  "$OPT_JAR_DIR/ChemicalTagger.jar"
+
+cat > /tmp/RbbtChemicalTagger.java <<EOF
+import uk.ac.cam.ch.wwmm.chemicaltagger.Utils;
+import uk.ac.cam.ch.wwmm.chemicaltagger.ChemistryPOSTagger ;
+import uk.ac.cam.ch.wwmm.chemicaltagger.ChemistrySentenceParser;
+import uk.ac.cam.ch.wwmm.chemicaltagger.POSContainer;
+import uk.ac.cam.ch.wwmm.chemicaltagger.Utils;
+import org.antlr.runtime.Token;
+import org.antlr.runtime.tree.Tree;
+import org.apache.commons.lang.StringUtils;
+import nu.xom.Document;
+import java.util.ArrayList;
+
+class RbbtChemicalTagger{
+    public static String[] match(String text){
+
+        ChemistryPOSTagger chemPos = ChemistryPOSTagger.getDefaultInstance();
+
+        POSContainer posContainer = chemPos.runTaggers(text);
+
+        ChemistrySentenceParser chemistrySentenceParser = new ChemistrySentenceParser(posContainer);
+
+        chemistrySentenceParser.parseTags();
+
+        Tree tree = chemistrySentenceParser.getParseTree();
+
+        ArrayList tokens = new ArrayList();
+        ArrayList molecules = new ArrayList();
+        ArrayList new_tokens = new ArrayList();
+        tokens.add(tree);
+        while (tokens.size() > 0){
+            for(int tree_i = 0; tree_i < tokens.size(); tree_i++){
+                Tree subtree = (Tree) tokens.get(tree_i);
+                int type = subtree.getType();
+                if (type == 78){
+                    molecules.add(subtree.getChild(0));
+                }else{
+                    for(int tree_j = 0; tree_j < subtree.getChildCount(); tree_j++){
+                        Tree child = subtree.getChild(tree_j);
+                        child.setTokenStartIndex(child.getTokenStartIndex() + subtree.getTokenStartIndex());
+                        new_tokens.add(child);
+                    }
+                }
+            }
+            tokens = new_tokens;
+            new_tokens = new ArrayList();
+        }
+
+        String[] matches = new String[molecules.size()];
+        for(int molecule_i = 0; molecule_i < molecules.size(); molecule_i++){
+            Tree molecule = (Tree) molecules.get(molecule_i);
+            matches[molecule_i] = molecule.getText();
+        }
+        return matches;
+    }
+
+    public static void main(String[] args){
+        String text  = "Alternatively, rearrangement of O-(w-haloalkyl)esters 34 of 2-carboethoxy-N-hydroxypyridine-2-selone affords azonianaphthalenium halides 37 in 79% yield";
+        match(text);
+    }
+}
+
+EOF
+
+env CLASSPATH="$CLASSPATH:$OPT_JAR_DIR/ChemicalTagger.jar" javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class || (rm "$PKG_DIR/*.jar" && rmdir $PKG_DIR)
