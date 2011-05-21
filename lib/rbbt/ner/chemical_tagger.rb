@@ -4,7 +4,7 @@ require 'rbbt/ner/annotations'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
-class ChemicalTagger
+class ChemicalTagger < NER
   Rbbt.software.opt.ChemicalTagger.define_as_install Rbbt.share.install.software.ChemicalTagger.find
 
   Rjb::load(nil, jvmargs = ['-Xms128m','-Xmx2048m'])
