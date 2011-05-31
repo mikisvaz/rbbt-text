@@ -14,7 +14,7 @@ module NLP
 
     TmpFile.with_file(text) do |fin|
       TmpFile.with_file do |fout|
-        CMD.cmd("cd #{Rbbt.software.opt.Geniass.find}; geniass #{ fin } #{ fout }")
+        CMD.cmd("cd #{Rbbt.software.opt.Geniass.find}; ./geniass #{ fin } #{ fout }")
 
         # Addapted from sentence2standOff.rb in Geniass package
         
@@ -51,6 +51,8 @@ module NLP
 
         end
 
+        inTxtStrict.close
+        inTxtNew.close
       end
     end
     

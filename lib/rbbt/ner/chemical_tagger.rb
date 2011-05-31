@@ -15,7 +15,12 @@ class ChemicalTagger < NER
 
     return [] if text.nil? or text.strip.empty?
 
-    matches = @@RbbtChemicalTagger.match(text)
+    begin
+      matches = @@RbbtChemicalTagger.match(text)
+    rescue
+      Log.debug "ChemicalTagger Error: #{$!.message}"
+      return []
+    end
 
     matches.collect do |mention|
       offset = text.index mention
@@ -23,7 +28,7 @@ class ChemicalTagger < NER
     end
   end
 
-    def match(*args)
-      ChemicalTagger.match(*args)
-    end
+  def match(*args)
+    ChemicalTagger.match(*args)
   end
+end

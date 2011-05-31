@@ -1,5 +1,16 @@
 module Segment 
-  attr_accessor :offset
+  attr_accessor :offset, :docid, :segment_types
+
+  def self.included(base)
+    class << base
+      self.module_eval do 
+        define_method "extended" do |object|
+          object.segment_types ||= []
+          object.segment_types << self.to_s
+        end
+      end
+    end
+  end
 
   def self.sort(segments, inline = true)
     if inline
@@ -62,14 +73,59 @@ module Segment
     chunks
   end
 
-  def self.annotate(string, offset = nil)
+  def self.annotate(string, offset = nil, docid = nil)
     string.extend Segment
     string.offset = offset
+    string.docid = docid
     string
   end
 
+  def pull(offset)
+    if self.offset.nil? or offset.nil?
+      self.offset = nil
+    else
+      self.offset += offset 
+    end
+
+    self
+  end
+
+  def end
+    return nil if offset.nil?
+    offset + length - 1
+  end
+
   def range
-    (offset..offset + length - 1)
+    raise "No offset specified" if offset.nil?
+    (offset..self.end)
+  end
+
+  def info
+    equal_ascii = "="[0]
+    info = {}
+    singleton_methods.select{|method| method[-1] == equal_ascii}.
+      collect{|m| m[(0..-2)]}.each{|m| info[m] = self.send(m) if self.respond_to?(m)}
+    info
+  end
+
+  def id
+    new = info.dup
+    new.delete :docid
+    [docid, Misc.hash2string(new)] * ">"
+  end
+
+  
+  def self.load(text, start, eend, info)
+    string = text[start..eend] if start and eend
+    string ||= ""
+    string.extend Segment
+    types = info.delete("segment_types")|| info.delete(:segment_types) || []
+    types.each do |type| string.extend Misc.string2const(type) end
+
+    info.each do |key,value|
+      string.send key + '=', value
+    end
+    string
   end
 end
 

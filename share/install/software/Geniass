@@ -9,3 +9,4 @@ url="http://www-tsujii.is.s.u-tokyo.ac.jp/~y-matsu/geniass/geniass-1.00.tar.gz"
 
 
 install_src "$name" "$url"
+ln -s "$OPT_DIR/$name/geniass" "$OPT_BIN_DIR"

@@ -50,7 +50,6 @@ class RbbtChemicalTagger{
                 }else{
                     for(int tree_j = 0; tree_j < subtree.getChildCount(); tree_j++){
                         Tree child = subtree.getChild(tree_j);
-                        child.setTokenStartIndex(child.getTokenStartIndex() + subtree.getTokenStartIndex());
                         new_tokens.add(child);
                     }
                 }

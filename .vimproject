@@ -37,9 +37,6 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    OSCAR3
    OSCAR4
    ChemicalTagger
-   ChemicalTagger_wrapper=ChemicalTagger_wrapper{
-    RbbtChemicalTagger.java
-   }
    StanfordParser
    Geniass
   }
