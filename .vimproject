@@ -29,6 +29,16 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   nlp=rbbt/nlp{
    nlp.rb
   }
+  annotations=rbbt/annotations{
+   corpus=corpus{
+    annotation_repo.rb
+    document_repo.rb
+    pubmed.rb
+   }
+   corpus.rb
+   document.rb
+   sentence.rb
+  }
  }
  share=share{
   software=install/software filter="*"{
@@ -41,12 +51,12 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    Geniass
   }
   rnorm=rnorm{
-   }
+  }
  }
  test=test {
   test_helper.rb
   data=data{
-   }
+  }
   bow=rbbt/bow{
    test_bow.rb
    test_misc.rb
@@ -62,6 +72,10 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    test_tokenNER.rb
    test_rnorm.rb
   }
+  annotations=rbbt/annotations{
+   test_annotation_repo.rb
+   test_corpus.rb
+   test_document_repo.rb
  }
  data=data{
  }
