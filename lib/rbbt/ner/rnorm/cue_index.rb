@@ -48,9 +48,8 @@ class CueIndex
   
   def load(file, max_candidates = 50)
     @indexes = Array.new(@rules.size){Hash.new}
-    data = TSV.new(file)
-    data.each{|code, values_lists|
-      values = values_lists.flatten.compact.uniq
+    data = TSV.new(file, :flat)
+    data.each{|code, values|
       values.each{|value|
         cues(value).each_with_index{|cue_list,i|
           cue_list.each{|cue|

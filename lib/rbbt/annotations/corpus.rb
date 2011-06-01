@@ -66,12 +66,6 @@ class Corpus
     @annotation_repo.annotations_at(docid, pos, type).collect{|annotation| load_segment(annotation)}
   end
 
-  #{{{ Functionalities
-
-  def genes
-    find.collect{|document| document.genes}.flatten
-  end
-
   def annotations
     @annotation_repo.to_s
   end

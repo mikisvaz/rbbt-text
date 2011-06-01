@@ -1,12 +1,16 @@
 rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.txt *.conf" {
  Rakefile
  bin=bin {
+
  }
  lib=lib{
   bow=rbbt/bow {
    bow.rb
    dictionary.rb
    misc.rb
+  }
+  nlp=rbbt/nlp{
+   nlp.rb
   }
   ner=rbbt/ner{
    annotations.rb
@@ -26,9 +30,6 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     tokens.rb
    }
   }
-  nlp=rbbt/nlp{
-   nlp.rb
-  }
   annotations=rbbt/annotations{
    corpus=corpus{
     annotation_repo.rb
@@ -38,6 +39,12 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    corpus.rb
    document.rb
    sentence.rb
+   entities=entities{
+    genes.rb
+   }
+   relationships=relationships{
+    ppi.rb
+   }
   }
  }
  share=share{

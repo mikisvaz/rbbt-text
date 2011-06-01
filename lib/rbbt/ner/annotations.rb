@@ -166,14 +166,40 @@ Score: #{score.inspect}
   end
 end
 
+module PPI
+  include Segment
+  attr_accessor :trigger_terms, :interactors
+  def self.annotate(string, offset = nil, interactors = nil, trigger_terms = nil)
+    string.extend PPI
+    string.offset = offset
+    string.trigger_terms = trigger_terms
+    string.interactors = interactors
+    string
+  end
+end
+
 module Token
   include Segment
   attr_accessor :original
   def self.annotate(string, offset = nil, original = nil)
     string.extend Token
     string.offset   = offset
-    string.original = original
+    string.original = original || string.dup
     string
+  end
+
+  def self.tokenize(text, split_at = /\s|(\(|\)|[-."':,])/, start = 0)
+
+    tokens = []
+    while matchdata = text.match(split_at)
+      tokens << Token.annotate(matchdata.pre_match, start) unless matchdata.pre_match.empty?
+      tokens << Token.annotate(matchdata.captures.first, start + matchdata.begin(1)) if matchdata.captures.any? and not matchdata.captures.first.empty?
+      start += matchdata.end(0)
+      text = matchdata.post_match
+    end
+    tokens << Token.annotate(text, start, token) unless text.empty?
+
+    tokens
   end
 end
 

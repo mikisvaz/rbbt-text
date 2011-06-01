@@ -69,7 +69,7 @@ class Normalizer
   
   # Takes a list of candidate codes and selects the ones that have the
   # mention explicitly in their list of synonyms, and in the earliest
-  # positions. This is based on the idea that synonym list order their
+  # positions. This is based on the idea that synonym lists order their
   # synonyms by importance.
   def appearence_order(candidates, mention)
     positions = candidates.collect{|code|

@@ -15,6 +15,10 @@ class Document
     @corpus, @namespace, @id, @type, @hash = corpus, namespace, id, type, hash
   end
 
+  def annotations_at(pos, type)
+    corpus.annotations_at(docid, pos, type)
+  end
+
   def sentences
     corpus.add_annotations(docid, "Sentence") do 
       NLP.geniass_sentence_splitter(text)
@@ -22,17 +26,7 @@ class Document
   end
 
   def sentences_at(pos)
-    corpus.annotations_at(docid, pos, "Sentence")
-  end
-
-  def genes
-    corpus.add_annotations(docid, "Genes") do
-      sentences.collect{|sentence|
-        Sentence.new(sentence).genes.collect{|gene| 
-          gene.pull(sentence.offset)
-        }
-      }.flatten
-    end
+    annotations_at(pos, "Sentence")
   end
 end
 

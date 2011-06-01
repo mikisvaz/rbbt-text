@@ -1,7 +1,9 @@
 require 'rbbt'
 require 'rbbt/util/open'
 
-$stopwords = Rbbt.share.wordlists.stopwords.read.scan(/\w+/)
+Rbbt.share.wordlists.trigger_terms.define_as_url "http://zope.bioinfo.cnio.es/hpylori/pubmedxml2dir_files/ppi_trigger_term_table.txt"
+
+$stopwords     = Rbbt.share.wordlists.stopwords.read.scan(/\w+/)
 
 $greek = {
   "alpha"   => "a",
