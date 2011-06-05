@@ -19,14 +19,5 @@ class Document
     corpus.annotations_at(docid, pos, type)
   end
 
-  def sentences
-    corpus.add_annotations(docid, "Sentence") do 
-      NLP.geniass_sentence_splitter(text)
-    end
-  end
-
-  def sentences_at(pos)
-    annotations_at(pos, "Sentence")
-  end
 end
 

@@ -9,7 +9,8 @@ url="https://bitbucket.org/lh359/chemicaltagger/downloads/chemicalTagger-1.0-jar
 
 PKG_DIR=`opt_dir $name`
 [ -d $PKG_DIR ] || mkdir -p $PKG_DIR
-wget "$url" -O "$PKG_DIR/ChemicalTagger.jar"
+[ -t "$OPT_SRC_DIR/ChemicalTagger.jar" ] || wget "$url" -O "$OPT_SRC_DIR/ChemicalTagger.jar"
+cp "$OPT_SRC_DIR/ChemicalTagger.jar" "$PKG_DIR/ChemicalTagger.jar"
 [ -t  "$OPT_JAR_DIR/ChemicalTagger.jar" ] || ln -sf  "$PKG_DIR/ChemicalTagger.jar"  "$OPT_JAR_DIR/ChemicalTagger.jar"
 
 cat > /tmp/RbbtChemicalTagger.java <<EOF
@@ -74,4 +75,7 @@ class RbbtChemicalTagger{
 
 EOF
 
-env CLASSPATH="$CLASSPATH:$OPT_JAR_DIR/ChemicalTagger.jar" javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class || (rm "$PKG_DIR/*.jar" && rmdir $PKG_DIR)
+env |grep JAVA
+
+
+(env CLASSPATH="$OPT_JAR_DIR/ChemicalTagger.jar:$CLASSPATH" /home/mvazquezg/software/opt/java/jdk/bin/javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class) || (rm "$PKG_DIR/ChemicalTagger.jar" && rmdir $PKG_DIR)

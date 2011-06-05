@@ -111,12 +111,12 @@ module Segment
   def id
     new = info.dup
     new.delete :docid
-    [docid, Misc.hash2string(new)] * ">"
+    Digest::MD5.hexdigest(Misc.hash2string(new) << self)
   end
 
   
   def self.load(text, start, eend, info)
-    string = text[start..eend] if start and eend
+    string = text[start.to_i..eend.to_i] if start and eend
     string ||= ""
     string.extend Segment
     types = info.delete("segment_types")|| info.delete(:segment_types) || []

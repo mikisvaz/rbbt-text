@@ -66,13 +66,23 @@ class DocumentRepo < TokyoCabinet::BDB
     end
   end
 
+  def docid2fields(docid)
+    docid.split(":", -1).values_at 0,1,2,3
+  end
+
+  def fields2docid(namespace = nil, id = nil, type = nil, hash = nil)
+    [namespace, id, type, hash] * ":"
+  end
+
   def docid(docid)
     get(docid)
   end
 
   def add(text, namespace, id, type, hash)
     write unless write?
-    self[[namespace, id, type, hash] * ":"] = text
+    docid = fields2docid(namespace, id, type, hash)
+    self[docid] = text unless self.include? docid
+    docid
   end
 
   def find(namespace=nil, id = nil, type = nil, hash = nil)
@@ -96,6 +106,10 @@ class DocumentRepo < TokyoCabinet::BDB
       range_end   = [namespace, id] * ":" + ';'
       self.range(range_start, true, range_end, false)
     end
+  end
+
+  def find_docid(docid)
+    find(*docid2fields(docid))
   end
 
 end

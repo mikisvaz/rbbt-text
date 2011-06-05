@@ -1,7 +1,7 @@
 rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass *.txt *.conf" {
  Rakefile
  bin=bin {
-
+  get_ppis.rb
  }
  lib=lib{
   bow=rbbt/bow {
@@ -36,9 +36,11 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     document_repo.rb
     pubmed.rb
    }
+
    corpus.rb
    document.rb
    sentence.rb
+   entities.rb
    entities=entities{
     genes.rb
    }

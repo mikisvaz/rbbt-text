@@ -5,24 +5,22 @@ require 'rbbt/annotations/corpus'
 require 'rbbt/annotations/corpus/pubmed'
 require 'rbbt/annotations/relationships/ppi'
 require 'rbbt/sources/pubmed'
+require 'rbbt/ner/chemical_tagger'
 
-corpus = Corpus.new Rbbt.tmp.corpus["PPIS"]
+Corpus.define_entity_ner "Compounds", false do |doc|
+  @@chemical_tagger ||= ChemicalTagger.new
+  @@chemical_tagger.entities(doc.text)
+end
 
-pmids = PubMed.query("Cancer", 1000)
-corpus.add_pmid(pmids, true)
+corpus = Corpus.new Rbbt.tmp.corpus["PPIS3"]
 
-pmids.collect do |pmid|
-  corpus.find("pubmed:#{ pmid }")
-end.flatten.each do |document|
-  ppis = document.ppis
+docids = corpus.add_pubmed_query("Phospholipidosis", 1000, :abstract)
 
-  next if ppis.empty?
-  puts "------"
-  puts document.docid.sub(/pubmed:(\d+):.*:.*/,'\1')
-  ppis.each do |ppi|
-    puts ">"
-    puts "PPI: #{ ppi }"
-    puts "Genes: #{ppi.interactors * ", "}"
-    puts "Triggers: #{ppi.trigger_terms * ", "}"
+Misc.profile do
+  docids.collect do |docid|
+    document = corpus.docid(docid)
+    document.sentences
   end
 end
+
+exit
