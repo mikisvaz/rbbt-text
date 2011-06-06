@@ -2,6 +2,7 @@ require 'rbbt/util/tsv'
 require 'rbbt/ner/annotations'
 require 'json'
 class AnnotationRepo < TSV
+  attr_accessor :docid_index, :type_index
   def initialize(path_to_db)
     if File.exists? path_to_db
       super TCHash.get(path_to_db, false, TCHash::StringArraySerializer)
@@ -12,13 +13,46 @@ class AnnotationRepo < TSV
       self.key_field = "Annotation"
       self.data.read
     end
+    @docid_index = {}
+    @type_index = {}
+  end
+
+  def docid_index(docid)
+    return @docid_index[docid] if @docid_index.include? docid
+    updated = @docid_index.keys
+
+    through{|id, values|
+      annot_docid = values.first
+      next if updated.include? docid
+      @docid_index[annot_docid] ||= [] 
+      @docid_index[annot_docid] << id
+    }
+
+    @docid_index[docid] || []
+  end
+
+  def type_index(type)
+    return @type_index[type] if @type_index.include? type
+    updated = @type_index.keys
+
+    through{|id, values|
+      annot_type = values[1]
+      next if updated.include? type
+      @type_index[annot_type] ||= [] 
+      @type_index[annot_type] << id
+    }
+
+    @type_index[type] || []
+  end
+
+  def clean_index(docid, type)
+    @docid_index.delete docid
+    @type_index.delete type
   end
 
   def add_annotations(docid, type)
     read
-    annotations = select{|id, values|
-      [docid, type] == values.values_at(0, 1)
-    }.values
+    annotations = self.values_at(*(docid_index(docid) & type_index(type)))
 
     if annotations.empty?
       annotations = yield 
@@ -26,6 +60,7 @@ class AnnotationRepo < TSV
       begin
         @annotation_index.delete docid if not @annotation_index.nil? and @annotation_index.include? docid
         write
+        clean_index(docid, type)
         annotations.each do |annotation|
           annotation.docid = docid
           self[annotation.id] = [docid, type, annotation.offset, annotation.end, annotation.info.to_json]
