@@ -1,3 +1,148 @@
+module Transformed
+  attr_accessor :transformation_offset_differences, :transformation_original
+
+  def self.with_transform(text, segments, replacement)
+    require 'rbbt/util/misc'
+
+    text.extend Transformed
+    text.replace(segments, replacement)
+
+    segments = yield text
+
+    segments = nil unless Array === segments
+
+    text.restore(segments, true)
+  end
+ 
+  def self.transform(text, segments, replacement)
+    require 'rbbt/util/misc'
+
+    text.extend Transformed
+    text.replace(segments, replacement)
+
+    text
+  end
+  
+  def transform_pos(pos)
+    return pos if transformation_offset_differences.nil?
+    # tranformation_offset_differences are assumed to be sorted in reverse
+    # order
+    transformation_offset_differences.reverse.each do |trans_diff|
+      trans_diff.reverse.each do |offset, diff|
+        break if pos <= offset + diff
+        pos = pos - diff 
+      end
+    end
+
+    pos
+  end
+
+  def transform_pos(pos)
+    return pos if transformation_offset_differences.nil?
+    # tranformation_offset_differences are assumed to be sorted in reverse
+    # order
+    transformation_offset_differences.reverse.each do |trans_diff|
+      trans_diff.reverse.each do |offset, diff|
+        break if pos <= offset + diff
+        pos = pos - diff 
+      end
+    end
+
+    pos
+  end
+
+  def transformed_set(pos, value)
+    transformed_pos = case
+                when Range === pos
+                  (transform_pos(pos.begin)..transform_pos(pos.end))
+                when Integer === pos
+                  transform_pos(pos)
+                else
+                  raise "Text position not understood '#{pos.inspect}'. Not Range or Integer"
+                end
+
+    self[transformed_pos] = value
+  end
+
+  def transformed_get(pos)
+    transformed_pos = case
+                when Range === pos
+                  (transform_pos(pos.begin)..transform_pos(pos.end))
+                when Integer === pos
+                  transform_pos(pos)
+                else
+                  raise "Text position not understood '#{pos.inspect}'. Not Range or Integer"
+                end
+
+    self[transformed_pos]
+  end
+
+  def replace(segments, replacement = nil, &block)
+    replacement ||= block
+    raise "No replacement given" if replacement.nil?
+    transformation_offset_differences = []
+    transformation_original = []
+    Segment.sort(segments).each do |segment|
+      original = self.transformed_get(segment.range)
+      case
+      when String === replacement
+        text = replacement
+      when Proc === replacement
+        text = replacement.call segment
+      else
+        raise "Replacemente not String nor Proc"
+      end
+      diff = segment.length - text.length
+      self.transformed_set(segment.range, text)
+
+      transformation_offset_differences << [segment.offset, diff, original.length, text.length]
+      transformation_original << original
+    end
+
+    @transformation_offset_differences ||= []
+    @transformation_offset_differences << transformation_offset_differences
+    @transformation_original ||= []
+    @transformation_original << transformation_original
+  end
+
+  def restore(segments = nil, first_only = false)
+    stop = false
+    while self.transformation_offset_differences.any? and not stop
+      transformation_offset_differences = self.transformation_offset_differences.pop
+      transformation_original           = self.transformation_original.pop
+
+      ranges = transformation_offset_differences.collect do |offset,diff,orig_length,rep_length|
+        (offset..(offset + rep_length - 1))
+      end
+
+      ranges.zip(transformation_original).reverse.each do |range,text|
+        self.transformed_set(range, text)
+      end
+
+      stop = true if first_only
+
+      next if segments.nil?
+
+      segment_ranges = segments.each do |segment|
+        r = segment.range
+
+        s = r.begin
+        e = r.end
+        sdiff = 0
+        ediff = 0
+        transformation_offset_differences.reverse.each do |offset,diff,orig_length,rep_length|
+          sdiff += diff if offset + rep_length <= s
+          ediff += diff if offset + rep_length <= e
+        end
+
+        segment.offset = s + sdiff
+        segment.replace self[(s+sdiff)..(e + ediff)]
+      end
+
+    end
+  end
+end
+
 module Segment 
   attr_accessor :offset, :docid, :segment_types
 
@@ -29,7 +174,7 @@ module Segment
         end
       end.reverse
     else
-      segments.sort_by do |segment| segment.offset || 0 end
+      segments.sort_by do |segment| segment.offset || 0 end.reverse
     end
   end
 
@@ -163,6 +308,17 @@ Type: #{type.inspect}
 Code: #{code.inspect}
 Score: #{score.inspect}
     EOF
+  end
+
+  def html
+    text = <<-EOF
+<span class='Entity'\
+#{type.nil? ? "" : " attr-entity-type='#{type}'"}\
+#{code.nil? ? "" : " attr-entity-type='#{Array === code ? code * " " : code}'"}\
+#{score.nil? ? "" : " attr-entity-type='#{Array === score ? score * " " : score}'"}\
+>#{ self }</span>
+    EOF
+    text.chomp
   end
 end
 
