@@ -1,6 +1,7 @@
 require 'rbbt-util'
 require 'rbbt/util/tsv'
 require 'rbbt/ner/annotations'
+require 'rbbt/ner/annotations/token'
 require 'rbbt/ner/NER'
 
 class TokenTrieNER < NER
