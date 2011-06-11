@@ -1,10 +1,12 @@
 require 'rbbt/util/tsv'
 require 'rbbt/ner/annotations'
+require 'rbbt/util/tsv/filters'
 require 'json'
 require 'set'
+
 class AnnotationRepo < TSV
-  attr_accessor :docid_index, :type_index
-  def initialize(path_to_db)
+  attr_accessor :filter_dir
+  def initialize(path_to_db, filter_dir = nil)
     if File.exists? path_to_db
       super TCHash.get(path_to_db, false, TCHash::StringArraySerializer)
     else
@@ -13,105 +15,96 @@ class AnnotationRepo < TSV
       self.fields    = ["Document ID", "Type", "Start", "End", "Info"]
       self.key_field = "Annotation"
       self.data.read
+      self.filename = path_to_db
+      self.data.filename = path_to_db
     end
-    @docid_index = {}
-    @type_index = {}
+    filter
+    @filter_dir = filter_dir || path_to_db + ".filters"
   end
 
-  def docid_index(docid = nil)
-    return keys if docid.nil? or docid == :all
-    return @docid_index[docid] if @docid_index.include? docid
-
-    updated = @docid_index.keys
-
-    through{|id, values|
-      annot_docid = values.first
-      next if updated.include? docid
-      @docid_index[annot_docid] ||= Set.new 
-      @docid_index[annot_docid] << id
-    }
-
-    @docid_index[docid] || Set.new
+  def with_filter(docid = nil, type = nil)
+    filters.clear
+    add_filter("field:Document ID", docid) unless docid.nil?
+    add_filter("field:Type", type) unless type.nil?
+    res = yield
+    pop_filter unless type.nil?
+    pop_filter unless docid.nil?
+    res
   end
 
-  def type_index(type = nil)
-    return keys if type.nil? or type == :all
-    return @type_index[type] if @type_index.include? type
-    updated = @type_index.keys
-
-    through{|id, values|
-      annot_type = values[1]
-      next if updated.include? type
-      @type_index[annot_type] ||= Set.new 
-      @type_index[annot_type] << id
-    }
-
-    @type_index[type] || Set.new
+  def filtered_ids(docid = nil, type = nil)
+    with_filter(docid, type) do keys end
   end
 
-  def clear_index(docid, type)
-    @docid_index.delete docid
-    @type_index.delete type
+  def reset_filters
+    filters.each do |filter| filter.reset end
   end
 
-  def find_annotation_ids(docid, type)
-    docid_index(docid) & type_index(type)
+  def clear_filters
+    Dir.glob(File.join(filter_dir, "*")).each do |file| TCHash.get(file).close; FileUtils.rm file end if filter_dir
   end
 
-  def produce_annotations(docid, type, &block)
-    annotations = block.call 
-    annotations = [Segment.annotate("NO-ANNOTATIONS-FOUND", nil, docid)] if annotations.empty?
+  def add_comment(docid, type, comment)
+    self[comment.id] = [docid, type, nil, nil, comment]
+  end
+
+  def add_segment(docid, type, segment)
+    self[segment.id] = [docid, type, segment.offset, segment.end, segment.info.to_json]
+  end
+  
+  def add_segments(docid, type, segments)
+    segments.each do |segment| self[segment.id] = [docid, type, segment.offset, segment.end, segment.info.to_json] end
+  end
+
+  def update_filters
+    filters.each do |filter| filter.add_unsaved end
+    FileUtils.rm Dir.glob(filename + '*Index*')
+  end
+
+  def produce_segments(docid, type, &block)
+    segments = block.call 
+    segments = [Segment.annotate("NO-ANNOTATIONS-FOUND", nil, docid)] if segments.empty?
 
     begin
-      @annotation_index.delete docid if not @annotation_index.nil? and @annotation_index.include? docid
       write
-      clear_index(docid, type)
-      annotations.each do |annotation|
-        annotation.docid = docid
-        self[annotation.id] = [docid, type, annotation.offset, annotation.end, annotation.info.to_json]
+      with_filter(docid, type) do
+        segments.each do |segment|
+          segment.docid = docid
+          add_segment(docid, type, segment)
+        end
+        update_filters 
       end
     ensure
       read
     end
   end
 
-  def add_annotations(docid, type, noload = false, &block)
+  def updated_segments(docid, type, &block)
     read
-    annotation_ids = find_annotation_ids(docid, type)
+    annotation_ids = filtered_ids(docid, type)
 
-    return annotation_ids if annotation_ids.any? and noload
+    return annotation_ids if annotation_ids.any?
 
-    annotations = if annotation_ids.empty?
-                    produce_annotations(docid, type, &block)
-                  else
-                    self.values_at(*annotation_ids)
-                  end 
+    segments = if annotation_ids.empty?
+                 produce_segments(docid, type, &block)
+               else
+                 self.values_at(*annotation_ids)
+               end 
 
-    annotations.reject{|annotation| annotation == "NO-ANNOTATIONS-FOUND"}
+    segments.reject{|segment| segment == "NO-ANNOTATIONS-FOUND"}
   end
 
   def clear_annotations(docid = nil, type = nil)
-    docid ||= :all
-    type ||= :all
-
     restore = ! self.write?
     write unless self.write?
-    all = (docid_index(docid) & type_index(type)).each do |key| self.delete key end
+
+    ids = with_filter(docid, type) do
+      filters.each do |filter| filter.reset end
+    end
+
     read if restore
 
-    if docid == :all
-      @docid_index.clear
-    else
-      @docid_index.delete docid
-    end
-
-    if type == :all
-      @type_index.clear
-    else
-      @type_index.delete type
-    end
-
-    all
+    ids.each do |id| self.delete id end
   end
 
   def merge(tsv)
@@ -122,25 +115,46 @@ class AnnotationRepo < TSV
     read
   end
 
-  def annotation_index(docid = :all)
-    @annotation_index ||= {}
-    return @annotation_index[docid] if @annotation_index.include? docid
-
-    value_size = self.keys.collect{|k| k.length}.max
-
-    annotation_index = @annotation_index[docid] ||= FixWidthTable.new(:memory, value_size, true)
-    data = self.collect{|key,annotation| 
-      next if docid != :all and annotation[0] != docid 
-      next if annotation[2].nil? or (String === annotation[2] and annotation[2].empty?)
-      [key, annotation.values_at(2, 3).collect{|v| v.to_i}]
-    }.compact
-    annotation_index.add_range data
-    annotation_index
+  def load_segment(text, annotation)
+    docid, type, start, eend, info = annotation.values_at(0, 1, 2, 3, 4)
+    Segment.load(text, start, eend, JSON.parse(info), docid)
   end
 
-  def annotations_at(docid, pos, type = nil)
-    annotations = annotation_index(docid)[pos].collect{|id| self[id]}
-    annotations = annotations.select{|annotation| annotation[1] == type} if type
-    annotations
+  def segments(text)
+    values.collect{|annotation| load_segment(text, annotation)}
+  end
+
+  def filtered_annotations(docid, type)
+    with_filter(docid, type) do
+      values
+    end
+  end
+
+  def filtered_segments(text,docid, type)
+    with_filter(docid, type) do
+      segments(text)
+    end
+  end
+
+  def annotations_at(pos, docid = nil, type = nil)
+    with_filter(docid, type) do
+      if keys.any?
+        range_index("Start", "End")[pos] 
+      else
+        []
+      end
+    end
+  end
+
+  def segments_at(text, pos, docid = nil, type = nil)
+    with_filter(docid, pos) do
+      range_index("Start", "End")[pos].collect{|annotation| load_segment(text, annotation)}
+    end
+  end
+
+  def dump(docid = nil, type = nil)
+    with_filter(docid, type) do
+      to_s
+    end
   end
 end

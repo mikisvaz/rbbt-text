@@ -49,6 +49,8 @@ class TestCorpus < Test::Unit::TestCase
     corpus = Corpus.new(Rbbt.tmp.test.Corpus.find :user)
     corpus.add_pmid("19458159", :abstract)
 
+    corpus.sentences
+
     assert corpus.find.first.sentences.length > 0 
     assert corpus.find.first.sentences.sort_by{|s| s.offset}.first =~ /Semantic features in Text/i
 
@@ -59,7 +61,7 @@ class TestCorpus < Test::Unit::TestCase
   def test_doc_genes
     corpus = Corpus.new(Rbbt.tmp.test.Corpus.find :user)
     corpus.add_pmid("21611789", :abstract)
-
+    
     assert corpus.find(:pubmed, "21611789").first.genes.include? "CDKAL1"
   end
 
@@ -90,7 +92,7 @@ class TestCorpus < Test::Unit::TestCase
 
     genes = corpus.genes.select{|gene| gene == "CDKAL1"}
 
-    TmpFile.with_file(corpus.annotations) do |annotation_file|
+    TmpFile.with_file(corpus.dump_annotations) do |annotation_file|
       corpus = Corpus.new(Rbbt.tmp.test.Corpus2.find :user)
       corpus.load TSV.new(annotation_file, :list)
 

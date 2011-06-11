@@ -12,14 +12,15 @@ Corpus.define_entity_ner "Compounds", false do |doc|
   @@chemical_tagger.entities(doc.text)
 end
 
-corpus = Corpus.new Rbbt.tmp.corpus["PPIS3"]
 
-docids = corpus.add_pubmed_query("Phospholipidosis", 1000, :abstract)
+corpus = Corpus.new Rbbt.tmp.corpus["PPIS2"].find
 
-text = ""
-entities = docids.collect do |docid|
-  document = corpus.docid(docid)
-  document.genes + document.compounds
-  text += document.text
+docids = corpus.add_pubmed_query("Phospholipidosis", 10000, :abstract)
+
+Misc.benchmark do
+  corpus.genes
 end
 
+Misc.benchmark do
+  corpus.genes
+end

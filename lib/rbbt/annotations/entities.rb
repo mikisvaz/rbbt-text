@@ -47,7 +47,7 @@ class Document
   end
 
   def find_entities(entity, noload = false)
-    corpus.add_annotations(docid, entity, noload) do
+    corpus.send((noload ? :update_segments : :segments), docid, entity) do
       if ENTITIES.include? entity
         ENTITIES[entity].call self
       else

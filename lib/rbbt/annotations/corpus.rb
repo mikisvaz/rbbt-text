@@ -6,7 +6,6 @@ require 'rbbt/annotations/corpus/annotation_repo'
 require 'rbbt/annotations/document'
 require 'rbbt/annotations/entities'
 require 'rbbt/annotations/sentence'
-require 'json'
 
 class Corpus
   NAMESPACES = {} unless defined? NAMESPACES
@@ -67,6 +66,7 @@ class Corpus
   
   def load(tsv)
     @annotation_repo.merge(tsv)
+    @annotation_repo.clear_filters
     tsv.through :key, "Document ID" do |id, values|
       docid = values.first
       if not @document_repo.include?(docid)
@@ -76,28 +76,39 @@ class Corpus
     end
   end
 
-  def load_segment(annotation)
-    return annotation if Segment === annotation
-    docid, type, start, eend, info = annotation.values_at(0, 1, 2, 3, 4)
-    document = self.docid(docid)
-    annotation = Segment.load(document.text, start, eend, JSON.parse(info))
-    annotation
+  def update_segments(docid, type, &block)
+    @annotation_repo.updated_segments(docid, type, &block)
   end
 
-  def add_annotations(docid, type, noload = false, &block)
-    @annotation_repo.add_annotations(docid, type, noload, &block).collect{|annotation| load_segment(annotation) unless noload}
+  def segments(docid, type, &block)
+    @annotation_repo.updated_segments(docid, type, &block)
+    text = docid(docid).text
+    @annotation_repo.filtered_segments(text, docid, type)
   end
 
-  def annotations_at(docid, pos, type = nil)
-    @annotation_repo.annotations_at(docid, pos, type).collect{|annotation| load_segment(annotation)}
+  def annotations_at(pos, docid, type = nil)
+    @annotation_repo.annotations_at(pos, docid, type)
   end
 
-  def annotations
-    @annotation_repo.to_s
+  def segments_at(pos, docid, type = nil)
+    text = docid(docid).text
+    @annotation_repo.segments_at(text, pos, docid, type)
+  end
+
+  def annotations_for(docid, type)
+    annotation_repo.filtered_annotations(docid, type)
+  end
+
+  def segments_for(docid, type)
+    annotation_repo.filtered_annotations(docid, type)
   end
 
   def clear_annotations(*args)
     annotation_repo.clear_annotations(*args)
+  end
+
+  def dump_annotations(docid = nil, type = nil)
+    annotation_repo.dump(docid, type)
   end
 end
 

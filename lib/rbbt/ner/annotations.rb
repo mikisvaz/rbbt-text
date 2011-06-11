@@ -25,24 +25,33 @@ module Segment
     Digest::MD5.hexdigest(Misc.hash2string(new) << self)
   end
  
+  SKIP = %w(docid)
   def info
     equal_ascii = "="[0]
     info = {}
     singleton_methods.select{|method| method[-1] == equal_ascii}.
-      collect{|m| m[(0..-2)]}.each{|m| info[m] = self.send(m) if self.respond_to?(m)}
+      collect{|m| m[(0..-2)]}.each{|m| info[m] = self.send(m) if self.respond_to?(m) and not SKIP.include? m.to_s}
+    info
+    info.delete_if{|k,v| v.nil?}
     info
   end
 
-  def self.load(text, start, eend, info)
+  def self.load(text, start, eend, info, docid = nil)
     string = text[start.to_i..eend.to_i] if start and eend
     string ||= ""
     string.extend Segment
+
+    # add types
     types = info.delete("segment_types")|| info.delete(:segment_types) || []
     types.each do |type| string.extend Misc.string2const(type) end
 
+    # set info data
     info.each do |key,value|
-      string.send key + '=', value
+      string.send key + '=', value if string.respond_to? key.to_sym
     end
+
+    string.docid = docid
+
     string
   end
 
@@ -213,3 +222,12 @@ module Segment
 
 end
 
+module Comment
+  include Segment
+  attr_accessor :comment
+  def self.annotate(text, comment = nil)
+    text.extend Comment
+    text.comment = (comment.nil? ? text : comment)
+    text
+  end
+end
