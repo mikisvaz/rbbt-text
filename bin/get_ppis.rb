@@ -16,11 +16,10 @@ corpus = Corpus.new Rbbt.tmp.corpus["PPIS3"]
 
 docids = corpus.add_pubmed_query("Phospholipidosis", 1000, :abstract)
 
+text = ""
 entities = docids.collect do |docid|
   document = corpus.docid(docid)
   document.genes + document.compounds
+  text += document.text
 end
-
-ddd entities.sort * ", "
-
 

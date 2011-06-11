@@ -1,5 +1,6 @@
+require 'rbbt/ner/annotations/named_entity'
 class Corpus
-  def find_entities_in_docs(entity, doc_ids = nil)
+  def find_entities_in_docs(entity, doc_ids = nil, noload = false)
     case
     when doc_ids.nil?
       docs = find
@@ -9,7 +10,7 @@ class Corpus
       docs = doc_ids.collect{|docid| find_docid(docid)}.flatten
     end
 
-    docs.collect{|doc| doc.find_entities(entity)}.flatten
+    docs.collect{|doc| doc.find_entities(entity, noload)}.flatten
   end
 
   def self.define_entity_ner(entity, sentence, method_name = nil, &block)
@@ -23,6 +24,8 @@ class Corpus
     end
     Corpus.send(:define_method, method_name){find_entities_in_docs(entity)}
     Document.send(:define_method, method_name){find_entities(entity)}
+    Corpus.send(:define_method, "produde_#{method_name}"){find_entities_in_docs(entity, nil, true)}
+    Document.send(:define_method, "produce_#{method_name}"){find_entities(entity, true)}
     Document.send(:define_method, "#{ method_name }_at"){|pos| annotations_at(pos, entity)} 
   end
 end
@@ -43,8 +46,8 @@ class Document
     }.flatten
   end
 
-  def find_entities(entity)
-    corpus.add_annotations(docid, entity) do
+  def find_entities(entity, noload = false)
+    corpus.add_annotations(docid, entity, noload) do
       if ENTITIES.include? entity
         ENTITIES[entity].call self
       else

@@ -1,4 +1,6 @@
 require 'rbbt/annotations/entities/genes'
+require 'rbbt/ner/annotations/token'
+require 'rbbt/ner/annotations/relations'
 
 Corpus.define_entity_ner("PPI:Trigger Term", true, :trigger_terms) do |sentence|
   @@all_trigger_terms ||= Rbbt.share.wordlists.trigger_terms.tsv(:single, :fields => "Trigger_stemmed", :header_hash => "").values

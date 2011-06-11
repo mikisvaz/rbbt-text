@@ -11,9 +11,6 @@ class TestPPI < Test::Unit::TestCase
 
     assert corpus.ppi.any?
 
-    ddd corpus.trigger_terms
-
-
     corpus.ppi.select{|ppi| 
       doc = corpus.docid(ppi.docid)
       sentence = doc.sentences_at(ppi.offset).first

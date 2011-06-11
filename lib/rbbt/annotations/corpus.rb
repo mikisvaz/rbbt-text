@@ -24,7 +24,7 @@ class Corpus
 
     @document_repo   = DocumentRepo.get @corpora_path.document_repo, false
     @annotation_repo = AnnotationRepo.new @corpora_path.annotation_repo
-    @annotation_repo.no_follow = true
+    @annotation_repo.unnamed = true
   end
 
   #{{{ Documents
@@ -84,8 +84,8 @@ class Corpus
     annotation
   end
 
-  def add_annotations(docid, type, &block)
-    @annotation_repo.add_annotations(docid, type, &block).collect{|annotation| load_segment(annotation)}
+  def add_annotations(docid, type, noload = false, &block)
+    @annotation_repo.add_annotations(docid, type, noload, &block).collect{|annotation| load_segment(annotation) unless noload}
   end
 
   def annotations_at(docid, pos, type = nil)
@@ -94,6 +94,10 @@ class Corpus
 
   def annotations
     @annotation_repo.to_s
+  end
+
+  def clear_annotations(*args)
+    annotation_repo.clear_annotations(*args)
   end
 end
 

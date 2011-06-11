@@ -34,25 +34,30 @@ class TokenTrieNER < NER
   #{{{ Process dictionary
 
   class Code
-    attr_accessor :value, :type
-    def initialize(value, type = nil)
-      @value = value
+    attr_accessor :code, :type
+    def initialize(code, type = nil)
+      @code = code
       @type = type
     end
 
     def to_s
-      [type, value] * ":"
+      [type, code] * ":"
     end
   end
 
-  def self.index_for_tokens(tokens, code, type = nil)
+  def self.index_for_tokens(tokens, code, type = nil, slack = nil)
     if tokens.empty?
       {:END => [Code.new(code, type)]}
     else
-      {tokens.shift => index_for_tokens(tokens, code, type)}
+      head = tokens.shift
+      if (slack.nil? or not slack.call(head))
+        {head => index_for_tokens(tokens, code, type, slack)}
+      else
+        res = {head => index_for_tokens(tokens.dup, code, type, slack)}.merge(index_for_tokens(tokens, code, type, slack))
+      end
     end
   end
-  
+
   def self.merge(index1, index2)
     index2.each do |key, new_index2|
       case
@@ -68,39 +73,71 @@ class TokenTrieNER < NER
     end
   end
 
-  def self.process(hash, type = nil)
+  def self.process(hash, type = nil, slack = nil)
     index = {}
     hash.each do |code, names|
-      names.flatten.each do |name|
+      names = Array === names ? names : [names]
+      names.flatten unless Token === names.first.first
+      names.each do |name|
         next if name.empty? or name.length < 2
-        tokens = tokenize name
+        tokens = Array === name ? name : tokenize(name) 
 
-        merge(index, index_for_tokens(tokens, code, type)) unless tokens.empty?
+        merge(index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
       end
     end
     index
   end
 
   #{{{ Matching
- 
-  def self.find(index, tokens, longest_match = true)
-    return nil unless index.include? tokens.first
+  
+  def self.follow(index, head)
+    res = nil
 
+    index.each do |key,value|
+      case
+      when (String === key and key == head)
+        res = value
+        break
+      when (Proc === key and key.call(head))
+        res = value
+        break
+      end
+    end
+
+    res
+  end
+  
+  def self.find_fail(index, tokens, head, longest_match, slack, first)
+    if slack and not first and not head.nil? and slack.call(head) 
+      matches = find(index, tokens, longest_match, slack, false) # Recursion
+      if not matches.nil?
+        matches.last.unshift head
+        return matches
+      end
+    end
+
+    tokens.unshift head
+    return nil
+  end
+ 
+  def self.find(index, tokens, longest_match = true, slack = nil, first = true)
     head = tokens.shift
-    next_index = index[head]
+    return find_fail(index, tokens, head, longest_match, slack, first) if follow(index, head).nil?
+
+    next_index = follow(index,head)
 
     if tokens.empty?
       if next_index.include? :END
         return [next_index[:END], [head]]
       else
-        tokens.unshift head
-        return nil
+        return find_fail(index, tokens, head, longest_match, slack, first)
       end
     else
 
       return [next_index[:END], [head]] if next_index.include?(:END) and not longest_match
 
-      matches = find(next_index, tokens, longest_match)
+      matches = find(next_index, tokens, longest_match, slack, false) # Recursion
+
       if not matches.nil?
         matches.last.unshift head
         return matches
@@ -108,8 +145,7 @@ class TokenTrieNER < NER
       
       return [next_index[:END], [head]] if next_index.include?(:END)
 
-      tokens.unshift head
-      return nil
+      return find_fail(index, tokens, head, longest_match, slack, first)
     end
   end
 
@@ -118,20 +154,22 @@ class TokenTrieNER < NER
     match_offset = match_tokens.first.offset
     match_tokens.each{|t| 
       match << " " * (t.offset - (match_offset + match.length)) if t.offset > (match_offset + match.length)
-      match << t.original
+      match << (t.respond_to?(:original) ? t.original : t)
     }
 
     NamedEntity.annotate(match, match_tokens.first.offset, type, codes)
   end
 
-  attr_accessor :index, :longest_match, :type
-  def initialize(file, type = nil, options = {})
-    options = Misc.add_defaults options, :flatten => true, :longest_match => true
+  attr_accessor :index, :longest_match, :type, :slack
+  def initialize(file, type = nil, slack = nil, options = {})
+    options = Misc.add_defaults options, :longest_match => true
     @longest_match = options.delete :longest_match
 
     file = [file] unless Array === file
     @index = {}
-    file.each do |f| TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(f, options), type)) end
+    file.each do |f| 
+      merge(f, type)
+    end
   end
 
   def merge(new, type = nil)
@@ -141,22 +179,22 @@ class TokenTrieNER < NER
     when Hash === new
       TokenTrieNER.merge(@index, new)
     when TSV === new
-      TokenTrieNER.merge(@index, TokenTrieNER.process(new,type))
+      TokenTrieNER.merge(@index, TokenTrieNER.process(new, type, slack))
     when String === new
-      TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(new, :flatten => true), type))
+      TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(new, :flat), type, slack))
     end
   end
 
   def match(text)
-    tokens = TokenTrieNER.tokenize text
+    tokens = Array === text ? text : TokenTrieNER.tokenize(text)
 
     matches = []
     while tokens.any?
-      new_matches = TokenTrieNER.find(@index, tokens, longest_match) 
+      new_matches = TokenTrieNER.find(@index, tokens, longest_match, slack) 
 
       if new_matches
         codes, match_tokens = new_matches
-        matches << TokenTrieNER.make_match(match_tokens, codes.collect{|c| c.type}, codes.collect{|c| c.value})
+        matches << TokenTrieNER.make_match(match_tokens, codes.collect{|c| c.type}, codes.collect{|c| c.code})
       else
         tokens.shift
       end

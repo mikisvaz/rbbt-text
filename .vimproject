@@ -14,6 +14,14 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
   ner=rbbt/ner{
    annotations.rb
+   annotations=annotations{
+    transformed.rb
+    named_entity.rb
+    annotated.rb
+    token.rb
+    relations.rb
+   }
+
    NER.rb
 
    abner.rb
@@ -45,6 +53,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     genes.rb
    }
    relationships=relationships{
+    patterns.rb
     ppi.rb
    }
   }
@@ -58,6 +67,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    ChemicalTagger
    StanfordParser
    Geniass
+   Gdep
   }
   rnorm=rnorm{
   }

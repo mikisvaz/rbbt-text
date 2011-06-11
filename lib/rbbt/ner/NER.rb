@@ -1,18 +1,19 @@
 require 'rbbt/ner/annotations'
+require 'rbbt/ner/annotations/named_entity'
 
 class NER
-  def entities(text, overlap = true, *args)
+  def entities(text, protect = false, *args)
     case
     when Array === text
       text.collect do |element|
-        matches = entities(element, overlap, *args)
+        matches = entities(element, protect, *args)
         matches.each{|match|
-          match.offset += element.offset if match.offset
+          match.offset += element.offset if match.offset and element.offset
         }
         matches
       end.flatten
-    when (Annotated === text and not overlap)
-      entities(text.split, overlap, *args)
+    when (Annotated === text and protect)
+      entities(text.split(true), protect, *args)
     else
       match(text, *args)
     end

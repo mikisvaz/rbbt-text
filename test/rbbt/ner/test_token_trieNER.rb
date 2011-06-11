@@ -19,7 +19,7 @@ class TestTokenTrieNER < Test::Unit::TestCase
     tokens = %w(a b c)
     index = {'a' => {'b' => {'c' => {:END => [TokenTrieNER::Code.new('CODE')]}}}}
 
-    assert_equal 'CODE', TokenTrieNER.merge({}, TokenTrieNER.index_for_tokens(tokens, 'CODE'))['a']['b']['c'][:END].first.value
+    assert_equal 'CODE', TokenTrieNER.merge({}, TokenTrieNER.index_for_tokens(tokens, 'CODE'))['a']['b']['c'][:END].first.code
   end
 
   def test_process
@@ -30,7 +30,7 @@ C2;11;22;3 3;bb
 
     TmpFile.with_file(lexicon) do |file|
 
-      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat))
+      index = TokenTrieNER.process(TSV.new(file, :flat, :sep => ';'))
 
       assert_equal ['AA', 'aa', 'bb', '11', '22', '3'].sort, index.keys.sort
       assert_equal [:END], index['aa'].keys
@@ -49,18 +49,18 @@ C2;11;22;3 3;bb
     TmpFile.with_file(lexicon) do |file|
       index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat ))
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).first.collect{|c| c.value}.include?   'C1'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).first.collect{|c| c.code}.include?   'C1'
       assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), true).first.collect{|c| c.value}.include?    'C1'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), true).first.collect{|c| c.code}.include?    'C1'
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), true).first.collect{|c| c.value}.include?  'C1'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), true).first.collect{|c| c.code}.include?  'C1'
       assert_equal %w(bb b), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), true).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), false).first.collect{|c| c.value}.include? 'C2'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), false).first.collect{|c| c.code}.include? 'C2'
       assert_equal %w(bb), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), false).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb asdf'), false).first.collect{|c| c.value}.include?   'C2'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb asdf'), false).first.collect{|c| c.code}.include?   'C2'
     end
   end
 
@@ -71,11 +71,53 @@ C2;11;22;3 3;bb
     EOF
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.new(file, nil, :sep => ';')
+      index = TokenTrieNER.new(TSV.new(file, :flat, :sep => ';'))
 
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end
 
+  def test_slack
+    lexicon =<<-EOF
+C1;aa;AA;bb cc cc b
+C2;11;22;3 3;bb
+    EOF
+
+    TmpFile.with_file(lexicon) do |file|
+      index = TokenTrieNER.new({})
+      index.slack = Proc.new{|t| t =~ /^c*$/}
+
+      index.merge TSV.new(file, :flat, :sep => ';')
+
+      require 'pp'
+
+      assert index.match(' aaaaa 3 cc 3').select{|m| m.code.include? 'C2'}.any?
+      assert index.match(' bb cc b').select{|m| m.code.include? 'C1'}.any?
+      assert index.match(' bb b').select{|m| m.code.include? 'C1'}.any?
+    end
+  end
+
+  def test_own_tokens
+    lexicon =<<-EOF
+C1;aa;AA;bb cc cc b
+C2;11;22;3 3;bb
+    EOF
+
+    TmpFile.with_file(lexicon) do |file|
+      index = TokenTrieNER.new({})
+      index.slack = Proc.new{|t| t =~ /^c*$/}
+
+      index.merge TSV.new(file, :flat, :sep => ';')
+
+      assert index.match(Token.tokenize('3 cc 3')).select{|m| m.code.include? 'C2'}.any?
+    end
+  end
+
+  def test_proc_index
+    index = TokenTrieNER.new({})
+    index.merge({ "aa" => {Proc.new{|c| c == 'c'} => {:END  => [TokenTrieNER::Code.new(:entity, :C1)]}}})
+
+    assert index.match(Token.tokenize('3 cc 3 aa c ddd')).select{|m| m.code.include? :entity}.any?
+  end
 end
 

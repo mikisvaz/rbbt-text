@@ -18,6 +18,5 @@ class Document
   def annotations_at(pos, type)
     corpus.annotations_at(docid, pos, type)
   end
-
 end
 

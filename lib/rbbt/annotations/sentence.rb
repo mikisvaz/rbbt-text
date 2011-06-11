@@ -8,4 +8,5 @@ class Sentence
   def initialize(segment)
     @segment = segment
   end
+
 end
