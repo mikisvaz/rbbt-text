@@ -77,7 +77,7 @@ class TokenTrieNER < NER
     index = {}
     hash.each do |code, names|
       names = Array === names ? names : [names]
-      names.flatten unless Token === names.first.first
+      names.flatten unless names.first and Token === names.first.first
       names.each do |name|
         next if name.empty? or name.length < 2
         tokens = Array === name ? name : tokenize(name) 
