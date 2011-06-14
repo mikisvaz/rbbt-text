@@ -54,7 +54,13 @@ class PatternRelExt
 
     index.each do |key,next_index|
       if Hash === next_index
-        new[transform_key(key)] = transform_index(next_index)
+        new_key = transform_key(key)
+        if Proc === new_key
+          new[:PROCS] ||= {}
+          new[:PROCS][new_key] = transform_index(next_index)
+        else
+          new[new_key] = transform_index(next_index)
+        end
       else
         new[transform_key(key)] = next_index
       end
@@ -83,7 +89,7 @@ class PatternRelExt
     end
 
     PatternRelExt.prepare_chunk_patterns(new_token_trie, tokenized_patterns)
-    token_trie.slack = Proc.new{|t| ddd "Slacking #{ t }";  t.type != 'O'}
+    token_trie.slack = Proc.new{|t| t.type != 'O'}
 
     sentence_chunks = NLP.gdep_chunk_sentences(sentences)
     sentences.zip(sentence_chunks).collect do |sentence, chunks|

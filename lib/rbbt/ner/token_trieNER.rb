@@ -93,22 +93,21 @@ class TokenTrieNER < NER
   def self.follow(index, head)
     res = nil
 
-    index.each do |key,value|
-      case
-      when (String === key and key == head)
-        res = value
-        break
-      when (Proc === key and key.call(head))
-        res = value
-        break
-      end
+    if index.include? head
+      return index[head]
     end
 
-    res
+    return nil unless index.include? :PROCS
+
+    index[:PROCS].each do |key,value|
+      return value if key.call(head)
+    end
+
+    nil
   end
   
   def self.find_fail(index, tokens, head, longest_match, slack, first)
-    if slack and not first and not head.nil? and slack.call(head) 
+    if Proc === slack and not first and not head.nil? and slack.call(head) 
       matches = find(index, tokens, longest_match, slack, false) # Recursion
       if not matches.nil?
         matches.last.unshift head

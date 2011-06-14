@@ -36,8 +36,5 @@ class TestPatternRelExt < Test::Unit::TestCase
 
     assert_equal "TP53 found in cultivated cells interacts with CDK5", 
       PatternRelExt.new.chunk_patterns([text], "NP[entity:Gene] VP[stem:interacts] with NP[entity:Gene]").first.first
-
-
-    PatternRelExt.new.chunk_patterns([text], "NP[entity:Gene] VP[entity:Interactor_Cues] with NP[entity:Gene]").first.first
   end
 end

@@ -115,7 +115,7 @@ C2;11;22;3 3;bb
 
   def test_proc_index
     index = TokenTrieNER.new({})
-    index.merge({ "aa" => {Proc.new{|c| c == 'c'} => {:END  => [TokenTrieNER::Code.new(:entity, :C1)]}}})
+    index.merge({ "aa" => {:PROCS => {Proc.new{|c| c == 'c'} => {:END  => [TokenTrieNER::Code.new(:entity, :C1)]}}}})
 
     assert index.match(Token.tokenize('3 cc 3 aa c ddd')).select{|m| m.code.include? :entity}.any?
   end
