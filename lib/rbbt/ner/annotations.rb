@@ -91,7 +91,7 @@ module Segment
   end
 
   def self.clean_sort(segments)
-    sorted = sort(segments)
+    sorted = sort(segments).reject{|s| s.offset.nil?}
     overlaps = overlaps(sorted)
     overlaps.each do |s|
       sorted.delete s
