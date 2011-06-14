@@ -38,17 +38,17 @@ diagnostic setting.
 
     repo.read
 
-    assert_equal @@comment, repo.segments_for(@@text, @@docid).select{|s| s.respond_to? :comment}.first.comment
+    assert_equal @@comment, repo.filtered_segments(@@text, @@docid).select{|s| s.respond_to? :comment}.first.comment
 
-    assert repo.segments_for(@@text, @@docid).select{|s|
+    assert repo.filtered_segments(@@text, @@docid).select{|s|
       s.respond_to? :comment
     }.any?
 
-    assert repo.segments_at(@@text, @@docid, 100, "Sentences").select{|s|
+    assert repo.segments_at(@@text, 100, @@docid, "Sentences").select{|s|
       s.docid != @@docid
     }.empty?
 
-    assert repo.segments_at(@@text, @@docid, 100, "Sentences").select{|s|
+    assert repo.segments_at(@@text, 100, @@docid, "Sentences").select{|s|
       s =~ /Atypical/
     }.any?
   end
@@ -66,6 +66,6 @@ diagnostic setting.
     repo.add_segment(@@docid, "Source", Comment.annotate(@@comment))
 
     #- basic
-    assert 1, repo.find_annotation_ids(nil, "Source")
+    assert 1, repo.filtered_annotations(nil, "Source")
   end
 end

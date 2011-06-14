@@ -26,7 +26,7 @@ class Corpus
     Document.send(:define_method, method_name){find_entities(entity)}
     Corpus.send(:define_method, "produde_#{method_name}"){find_entities_in_docs(entity, nil, true)}
     Document.send(:define_method, "produce_#{method_name}"){find_entities(entity, true)}
-    Document.send(:define_method, "#{ method_name }_at"){|pos| annotations_at(pos, entity)} 
+    Document.send(:define_method, "#{ method_name }_at"){|pos| segments_at(pos, entity)} 
   end
 end
 

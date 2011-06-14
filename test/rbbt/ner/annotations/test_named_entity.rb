@@ -7,6 +7,8 @@ class TestClass < Test::Unit::TestCase
   def test_info
     a = "test"
     a.extend NamedEntity
+    assert(! a.info.keys.include?("offset"))
+    a.offset = 10
     assert a.info.keys.include? "offset"
   end
 end

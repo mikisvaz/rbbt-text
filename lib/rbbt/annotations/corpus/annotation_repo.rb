@@ -124,13 +124,13 @@ class AnnotationRepo < TSV
     values.collect{|annotation| load_segment(text, annotation)}
   end
 
-  def filtered_annotations(docid, type)
+  def filtered_annotations(docid = nil, type = nil)
     with_filter(docid, type) do
       values
     end
   end
 
-  def filtered_segments(text,docid, type)
+  def filtered_segments(text, docid = nil, type = nil)
     with_filter(docid, type) do
       segments(text)
     end
@@ -147,8 +147,8 @@ class AnnotationRepo < TSV
   end
 
   def segments_at(text, pos, docid = nil, type = nil)
-    with_filter(docid, pos) do
-      range_index("Start", "End")[pos].collect{|annotation| load_segment(text, annotation)}
+    with_filter(docid, type) do
+      range_index("Start", "End")[pos].collect{|annotation| load_segment(text, self[annotation])}
     end
   end
 

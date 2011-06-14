@@ -18,5 +18,10 @@ class Document
   def annotations_at(pos, type)
     corpus.annotations_at(pos, docid, type)
   end
+
+  def segments_at(pos, type)
+    corpus.segments_at(pos, docid, type)
+  end
+
 end
 
