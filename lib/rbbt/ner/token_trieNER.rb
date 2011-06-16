@@ -115,17 +115,17 @@ class TokenTrieNER < NER
       end
     end
 
-    tokens.unshift head
+    tokens.back
     return nil
   end
  
   def self.find(index, tokens, longest_match = true, slack = nil, first = true)
-    head = tokens.shift
+    head = tokens.next
     return find_fail(index, tokens, head, longest_match, slack, first) if follow(index, head).nil?
 
     next_index = follow(index,head)
 
-    if tokens.empty?
+    if not tokens.left?
       if next_index.include? :END
         return [next_index[:END], [head]]
       else
@@ -184,18 +184,55 @@ class TokenTrieNER < NER
     end
   end
 
+  module EnumeratedArray
+    attr_accessor :pos
+    def self.extended(array)
+      array.pos = 0
+    end
+
+    def last?
+      @pos == length - 1
+    end
+
+    def advance
+      @pos += 1
+    end
+
+    def back
+      @pos -= 1
+    end
+
+    def next
+      e = self[@pos]
+      advance
+      e 
+    end
+
+    def peek
+      self[@pos]
+    end
+
+    def left?
+      @pos < length
+    end
+
+  end
+
   def match(text)
     tokens = Array === text ? text : TokenTrieNER.tokenize(text)
 
+    tokens.extend EnumeratedArray
+    tokens.pos = 0
+
     matches = []
-    while tokens.any?
+    while tokens.left?
       new_matches = TokenTrieNER.find(@index, tokens, longest_match, slack) 
 
       if new_matches
         codes, match_tokens = new_matches
         matches << TokenTrieNER.make_match(match_tokens, codes.collect{|c| c.type}, codes.collect{|c| c.code})
       else
-        tokens.shift
+        tokens.advance
       end
     end
 

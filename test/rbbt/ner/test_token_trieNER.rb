@@ -49,18 +49,18 @@ C2;11;22;3 3;bb
     TmpFile.with_file(lexicon) do |file|
       index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat ))
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).first.collect{|c| c.code}.include?   'C1'
-      assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), false).last
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).first.collect{|c| c.code}.include?   'C1'
+      assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf'), true).first.collect{|c| c.code}.include?    'C1'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), true).first.collect{|c| c.code}.include?    'C1'
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), true).first.collect{|c| c.code}.include?  'C1'
-      assert_equal %w(bb b), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), true).last
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf').extend(TokenTrieNER::EnumeratedArray), true).first.collect{|c| c.code}.include?  'C1'
+      assert_equal %w(bb b), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf').extend(TokenTrieNER::EnumeratedArray), true).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), false).first.collect{|c| c.code}.include? 'C2'
-      assert_equal %w(bb), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf'), false).last
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf').extend(TokenTrieNER::EnumeratedArray), false).first.collect{|c| c.code}.include? 'C2'
+      assert_equal %w(bb), TokenTrieNER.find(index, TokenTrieNER.tokenize('bb b asdf').extend(TokenTrieNER::EnumeratedArray), false).last
 
-      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb asdf'), false).first.collect{|c| c.code}.include?   'C2'
+      assert TokenTrieNER.find(index, TokenTrieNER.tokenize('bb asdf').extend(TokenTrieNER::EnumeratedArray), false).first.collect{|c| c.code}.include? 'C2'
     end
   end
 
@@ -88,8 +88,6 @@ C2;11;22;3 3;bb
       index.slack = Proc.new{|t| t =~ /^c*$/}
 
       index.merge TSV.new(file, :flat, :sep => ';')
-
-      require 'pp'
 
       assert index.match(' aaaaa 3 cc 3').select{|m| m.code.include? 'C2'}.any?
       assert index.match(' bb cc b').select{|m| m.code.include? 'C1'}.any?
