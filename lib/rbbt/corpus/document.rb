@@ -45,7 +45,7 @@ class Document
       info = Misc.process_to_hash(fields) do |fields| annotation.values_at *fields.collect{|f| f.downcase} end
     end
 
-    Segment.load(text, start, eend, info, docid)
+    Segment.load(text, start, eend, info, @docid)
   end
 
   def self.tsv(segments, fields = nil)
@@ -78,8 +78,8 @@ class Document
       def load_with_persistence_#{entity}
         fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
 
-        annotations = Persistence.persist("#{ entity }", :Entity, :tsv,
-                        :persistence_dir => @persistence_dir) do
+        annotations = Persistence.persist("#{ entity }", :Entity, :tsv_string,
+                        :persistence_file => File.join(@persistence_dir, "#{ entity }")) do
 
           tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
           if fields.nil?
@@ -219,7 +219,7 @@ class Document
   end
 
   def segment_index(name)
-    @segment_indeces[name] ||= Segment.index(self.send(name), persistence_dir.nil? ? :memory : File.join(persistence_dir, name))
+    @segment_indeces[name] ||= Segment.index(self.send(name), persistence_dir.nil? ? :memory : File.join(persistence_dir, name + '.range'))
   end
 
   def load_into(segment, *annotations)

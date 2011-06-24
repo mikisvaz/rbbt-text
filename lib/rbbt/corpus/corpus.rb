@@ -17,13 +17,17 @@ class Corpus
     @persistence_dir = File.join(@corpora_path, "annotations")
   end
 
+  def persistence_for(docid)
+    File.join(persistence_dir, docid)
+  end
+
   def document(namespace, id, type, hash)
     docid = [namespace, id, type, hash] * ":"
-    Document.new(persistence_dir, docid, @document_repo[docid])
+    Document.new(persistence_for(docid), docid, @document_repo[docid])
   end
 
   def docid(docid)
-    Document.new(persistence_dir, docid, @document_repo[docid])
+    Document.new(persistence_for(docid), docid, @document_repo[docid])
   end
 
   def add_document(text, namespace, id, type = nil)
@@ -33,13 +37,13 @@ class Corpus
 
   def find(namespace=nil, id = nil, type = nil, hash = nil)
     @document_repo.find(namespace, id, type, hash).collect{|docid|
-      Document.new(persistence_dir, docid, @document_repo[docid])
+      Document.new(persistence_for(docid), docid, @document_repo[docid])
     }
   end
 
   def find_docid(docid)
     @document_repo.find_docid(docid).collect{|docid|
-      Document.new(self, docid, @document_repo[docid])
+      Document.new(persistence_for(docid), docid, @document_repo[docid])
     }
   end
 
