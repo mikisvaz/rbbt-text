@@ -4,11 +4,12 @@ require 'json'
 
 class Document
 
-  attr_accessor :text, :annotations, :segment_indeces, :persistence_dir
-  def initialize(persistence_dir = nil)
+  attr_accessor :text, :docid, :annotations, :segment_indeces, :persistence_dir
+  def initialize(persistence_dir = nil, docid = nil)
     @annotations = {}
     @segment_indeces = {}
     @persistence_dir = persistence_dir unless persistence_dir.nil?
+    @docid = docid unless docid.nil?
   end
 
   def self.save_segment(segment, fields = nil)
@@ -52,6 +53,39 @@ class Document
 
   TSV_REPOS = {}
   FIELDS_FOR_ENTITY_PERSISTENCE = {}
+  def self.persist(entity, fields = nil)
+
+    if not fields.nil?
+      fields = [fields] if not Array === fields
+      fields = fields.collect{|f| f.to_s}
+      FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields unless fields.nil?
+    end
+
+    self.class_eval <<-EOC
+      def load_with_persistence_#{entity}
+        fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
+
+        annotations = Persistence.persist("#{ entity }", :Entity, :tsv,
+                        :persistence_dir => @persistence_dir) do
+
+          tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
+          if fields.nil?
+            tsv.fields += ["Info"]
+          else
+            tsv.fields += fields
+          end
+
+          segments = produce_#{entity}
+          segments.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
+
+          tsv
+        end
+
+        annotations.collect{|id, annotation| Document.load_segment(text, annotation, fields)}
+      end
+          EOC
+  end
+
   def self.persist_in_tsv(entity, tsv, fields = nil)
     TSV_REPOS[entity.to_s] = tsv
 
@@ -85,8 +119,9 @@ class Document
       end
       EOC
   end
-
-  def self.persist(entity, fields = nil)
+  
+  def self.persist_in_global_tsv(entity, tsv, fields = nil, doc_field = "Document ID", entity_field = "Entity Type")
+    TSV_REPOS[entity.to_s] = tsv
 
     if not fields.nil?
       fields = [fields] if not Array === fields
@@ -98,9 +133,7 @@ class Document
       def load_with_persistence_#{entity}
         fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
 
-        annotations = Persistence.persist("#{ entity }", :Entity, :tsv,
-                        :persistence_dir => @persistence_dir) do
-
+        if not TSV_REPOS["#{ entity }"].include? "#{ entity }"
           tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
           if fields.nil?
             tsv.fields += ["Info"]
@@ -108,16 +141,37 @@ class Document
             tsv.fields += fields
           end
 
-          segments = produce_#{entity}
-          segments.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
+          produce_#{entity}.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
 
-          tsv
+          tsv.add_field "#{ doc_field }" do
+            @docid
+          end
+
+          tsv.add_field "#{ entity_field }" do
+            "#{ entity }"
+          end
+
+          TSV_REPOS["#{ entity }"].write
+          TSV_REPOS["#{ entity }"].merge!(tsv)
+          TSV_REPOS["#{ entity }"].read
         end
 
-        annotations.collect{|id, annotation| Document.load_segment(text, annotation, fields)}
+        data = TSV_REPOS["#{ entity }"]
+        data.filter
+        data.add_filter("field:#{ doc_field }", @docid)
+        data.add_filter("field:#{ entity_field }", "#{ entity }")
+
+        segments = []
+        data.each{|id, annotation| segments << Document.load_segment(text, annotation, fields)}
+
+        data.pop_filter
+        data.pop_filter
+
+        segments
       end
-          EOC
+      EOC
   end
+
 
   def self.define(entity, &block)
     send :define_method, "produce_#{entity}", &block
