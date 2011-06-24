@@ -67,7 +67,8 @@ class Banner < NER
       mention = $1
       mention.sub!(/^\s*/,'')
       mention.sub!(/\s*$/,'')
-      NamedEntity.annotate(mention, text.index(mention), 'GENE')
+      offset = text.index(mention)
+      NamedEntity.annotate(mention, offset, 'GENE')
       mention
     }
     res

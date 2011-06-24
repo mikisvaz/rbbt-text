@@ -5,8 +5,16 @@ require 'json'
 require 'set'
 
 class AnnotationRepo < TSV
-  attr_accessor :filter_dir
-  def initialize(path_to_db, filter_dir = nil)
+
+  module EmptySegmentListToken
+    include Segment
+    def self.annotate(string)
+      string.extend EmptySegmentListToken
+    end
+  end
+
+  attr_accessor :filter_dir, :range_dir
+  def initialize(path_to_db, filter_dir = nil, range_dir = nil)
     if File.exists? path_to_db
       super TCHash.get(path_to_db, false, TCHash::StringArraySerializer)
     else
@@ -20,6 +28,7 @@ class AnnotationRepo < TSV
     end
     filter
     @filter_dir = filter_dir || path_to_db + ".filters"
+    @range_dir = range_dir || path_to_db + ".ranges"
   end
 
   def with_filter(docid = nil, type = nil)
@@ -32,6 +41,13 @@ class AnnotationRepo < TSV
     res
   end
 
+  def clean(docid = nil, type = nil)
+    with_filter(docid, type) do 
+      keys.each do |key| self.delete key end
+    end
+    reset_filters
+  end
+
   def filtered_ids(docid = nil, type = nil)
     with_filter(docid, type) do keys end
   end
@@ -41,7 +57,9 @@ class AnnotationRepo < TSV
   end
 
   def clear_filters
-    Dir.glob(File.join(filter_dir, "*")).each do |file| TCHash.get(file).close; FileUtils.rm file end if filter_dir
+    Dir.glob(File.join(filter_dir, "*")).each do |file| TCHash.get(file).close; TCHash::CONNECTIONS.delete(file); FileUtils.rm file end if filter_dir
+    
+    Dir.glob(File.join(range_dir, "*")).each do |file| FixWidthTable.get(file).close; FixWidthTable::CONNECTIONS.delete(file); FileUtils.rm file end if range_dir
   end
 
   def add_comment(docid, type, comment)
@@ -62,8 +80,9 @@ class AnnotationRepo < TSV
   end
 
   def produce_segments(docid, type, &block)
+    Log.medium("Producing '#{ type }' for '#{ docid }'")
     segments = block.call 
-    segments = [Segment.annotate("NO-ANNOTATIONS-FOUND", nil, docid)] if segments.empty?
+    segments = [EmptySegmentListToken.annotate("")] if segments.empty?
 
     begin
       write
@@ -81,6 +100,7 @@ class AnnotationRepo < TSV
 
   def updated_segments(docid, type, &block)
     read
+    Log.low("Finding '#{ type }' annotations for '#{ docid }'")
     annotation_ids = filtered_ids(docid, type)
 
     return annotation_ids if annotation_ids.any?
@@ -91,7 +111,7 @@ class AnnotationRepo < TSV
                  self.values_at(*annotation_ids)
                end 
 
-    segments.reject{|segment| segment == "NO-ANNOTATIONS-FOUND"}
+    segments.reject{|segment| EmptySegmentListToken === segment}
   end
 
   def clear_annotations(docid = nil, type = nil)
@@ -120,8 +140,12 @@ class AnnotationRepo < TSV
     Segment.load(text, start, eend, JSON.parse(info), docid)
   end
 
+  def segment_for(text, annotation_id)
+    load_segment(text, self[annotation_id])
+  end
+
   def segments(text)
-    values.collect{|annotation| load_segment(text, annotation)}
+    values.reject{|annotation|  annotation[2].nil? or annotation[2].empty? }.collect{|annotation| load_segment(text, annotation)}
   end
 
   def filtered_annotations(docid = nil, type = nil)
@@ -136,19 +160,23 @@ class AnnotationRepo < TSV
     end
   end
 
-  def annotations_at(pos, docid = nil, type = nil)
+  def annotation_index(docid = nil, type = nil)
     with_filter(docid, type) do
       if keys.any?
-        range_index("Start", "End")[pos] 
+        range_index("Start", "End", :persistence_dir => range_dir) 
       else
-        []
+        Array.new([])
       end
     end
   end
 
+  def annotations_at(pos, docid = nil, type = nil)
+    annotation_index(docid, type)[pos]
+  end
+
   def segments_at(text, pos, docid = nil, type = nil)
     with_filter(docid, type) do
-      range_index("Start", "End")[pos].collect{|annotation| load_segment(text, self[annotation])}
+      range_index("Start", "End", :persistence_dir => range_dir)[pos].collect{|annotation| load_segment(text, self[annotation])}
     end
   end
 

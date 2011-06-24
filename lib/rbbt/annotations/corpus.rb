@@ -16,7 +16,7 @@ class Corpus
                    when corpora_path.nil?
                      Rbbt.corpora
                    when (not Resource::Path === corpora_path)
-                     Path.path(corpora_path)
+                     Resource::Path.path(corpora_path)
                    else
                      corpora_path
                    end
@@ -80,14 +80,26 @@ class Corpus
     @annotation_repo.updated_segments(docid, type, &block)
   end
 
+  def load_segment(text, annotation)
+    @annotation_repo.load_segment(text, annotation)
+  end
+
+  def segment_for(text, annotation_id)
+    @annotation_repo.segment_for(text, annotation_id)
+  end
+
   def segments(docid, type, &block)
     @annotation_repo.updated_segments(docid, type, &block)
     text = docid(docid).text
     @annotation_repo.filtered_segments(text, docid, type)
   end
 
+  def annotation_index(docid, type = nil)
+    @annotation_repo.annotation_index(docid, type)
+  end
+
   def annotations_at(pos, docid, type = nil)
-    @annotation_repo.annotations_at(pos, docid, type)
+    annotation_index(pos, docid, type)
   end
 
   def segments_at(pos, docid, type = nil)
@@ -107,9 +119,24 @@ class Corpus
     annotation_repo.clear_annotations(*args)
   end
 
-  def dump_annotations(docid = nil, type = nil)
-    annotation_repo.dump(docid, type)
+  def dump_annotations(docid = nil, type = nil, text = false)
+    return annotation_repo.dump(docid, type) unless text
+    annotation_repo.filtered_annotations(docid, type).collect do |annotation|
+      docid = annotation.first
+      text = docid(docid).text
+      segment = load_segment(text, annotation)
+      puts (annotation.dup.unshift segment) * "\t"
+    end * "\n"
   end
+
+  def clean(docid = nil, type = nil)
+    restore = ! annotation_repo.write?
+    annotation_repo.write
+    annotation_repo.clean(docid, type)
+    annotation_repo.clear_filters
+    annotation_repo.read if restore
+  end
+
 end
 
 Corpus.define_entity_ner("Sentences", false) do |doc| NLP.geniass_sentence_splitter(doc.text) end

@@ -77,9 +77,9 @@ class TokenTrieNER < NER
     index = {}
     hash.each do |code, names|
       names = Array === names ? names : [names]
-      names.flatten unless names.first and Token === names.first.first
+      names.flatten! if Array === names.first and not Token === names.first.first
       names.each do |name|
-        next if name.empty? or name.length < 2
+        next if name.empty? or (String === name and name.length < 2)
         tokens = Array === name ? name : tokenize(name) 
 
         merge(index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
@@ -107,7 +107,7 @@ class TokenTrieNER < NER
   end
   
   def self.find_fail(index, tokens, head, longest_match, slack, first)
-    if Proc === slack and not first and not head.nil? and slack.call(head) 
+    if Proc === slack and not first and not head.nil? and tokens.left? and slack.call(head) 
       matches = find(index, tokens, longest_match, slack, false) # Recursion
       if not matches.nil?
         matches.last.unshift head
@@ -121,9 +121,11 @@ class TokenTrieNER < NER
  
   def self.find(index, tokens, longest_match = true, slack = nil, first = true)
     head = tokens.next
-    return find_fail(index, tokens, head, longest_match, slack, first) if follow(index, head).nil?
+    
+    next_index = follow(index, head)
 
-    next_index = follow(index,head)
+
+    return find_fail(index, tokens, head, longest_match, slack, first) if next_index.nil?
 
     if not tokens.left?
       if next_index.include? :END

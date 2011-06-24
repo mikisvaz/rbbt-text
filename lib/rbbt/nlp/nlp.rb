@@ -6,11 +6,11 @@ require 'rbbt/ner/annotations'
 require 'rbbt/ner/annotations/annotated'
 require 'digest/md5'
 
+
 module NLP
+
   extend LocalPersist
-
-  self.local_persistence_dir = Resource.caller_lib_dir(__FILE__)
-
+  self.local_persistence_dir = '/tmp/crap'
 
   #Rbbt.software.opt.StanfordParser.define_as_install Rbbt.share.install.software.StanfordParser.find
   #Rbbt.software.opt.StanfordParser.produce
@@ -130,7 +130,6 @@ module NLP
         if vp.nil?
           vp = chunk
         else
-          ddd "Joining #{ chunk } to #{ vp * " : "}"
           vp << chunk
           vp.annotations.concat chunk.annotations
         end
@@ -146,12 +145,15 @@ module NLP
 
   def self.gdep_chunks(sentence, segment_list)
     chunks = []
+
     chunk_start = "B"[0]
     chunk_inside = "I"[0]
+
     last = GdepToken.annotate("LW")
+
     chunk_segments = []
     segment_list.each do |segment|
-      if segment.chunk[0] == chunk_inside
+      if segment.chunk[0] == chunk_inside and not segment.offset.nil?
         chunk_segments << segment
       else
         if chunk_segments.any?
@@ -161,7 +163,12 @@ module NLP
           GdepChunk.annotate(chunk, cstart, last.chunk.sub(/^.-/,''), chunk_segments)
           chunks << chunk
         end
-        chunk_segments = [segment]
+
+        if segment.offset.nil?
+          chunk_segments = []
+        else
+          chunk_segments = [segment]
+        end
       end
       last = segment
     end
@@ -177,6 +184,7 @@ module NLP
       out = local_persist(Digest::MD5.hexdigest(input), :Sentences, :string) do
         CMD.cmd("cd #{Rbbt.software.opt.Gdep.find}; ./gdep #{ fin }").read
       end
+
       out.split(/^$/).collect do |sentence|
         tokens = sentence.split(/\n/).collect do |line|
           next if line.empty?
@@ -195,7 +203,7 @@ module NLP
     sentences = Array === sentences ? sentences : [sentences]
     NLP.gdep_parse_sentences(sentences).zip(sentences).collect do |segment_list, sentence|
       chunk_list = NLP.gdep_chunks(sentence, segment_list)
-      new_chunk_list = NLP.merge_vp_chunks(chunk_list)
+      NLP.merge_vp_chunks(chunk_list)
     end
   end
 end

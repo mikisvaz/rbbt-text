@@ -5,7 +5,7 @@ module Token
   attr_accessor :original
   def self.annotate(string, offset = nil, original = nil)
     string.extend Token
-    string.offset   = offset
+    string.offset   = offset unless offset.nil?
     string.original = original || string.dup
     string
   end

@@ -13,7 +13,7 @@ class NER
         matches
       end.flatten
     when (Annotated === text and protect)
-      entities(text.split(true), protect, *args)
+      entities(text.split_segments(true), protect, *args)
     else
       match(text, *args)
     end

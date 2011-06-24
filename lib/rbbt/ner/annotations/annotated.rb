@@ -7,7 +7,7 @@ module Annotated
     string
   end
 
-  def split(skip_segments = false)
+  def split_segments(skip_segments = false)
     Segment.split(self, @annotations, skip_segments)
   end
 end

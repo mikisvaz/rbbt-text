@@ -15,6 +15,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   ner=rbbt/ner{
    annotations.rb
    annotations=annotations{
+    commented.rb
     transformed.rb
     named_entity.rb
     annotated.rb
@@ -26,11 +27,14 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
 
    abner.rb
    banner.rb
+
    oscar3.rb
    oscar4.rb
    chemical_tagger.rb
+
    regexpNER.rb
    token_trieNER.rb
+   patterns.rb
 
    rnorm.rb
    rnorm=rnorm{

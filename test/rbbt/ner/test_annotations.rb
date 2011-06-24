@@ -4,13 +4,14 @@ require 'rbbt/ner/annotations/named_entity'
 require 'rbbt/ner/annotations/transformed'
 
 class TestClass < Test::Unit::TestCase
-  def _test_info
+  def test_info
     a = "test"
     a.extend NamedEntity
+    a.offset = 10
     assert a.info.keys.include? "offset"
   end
 
-  def _test_segment_type
+  def test_segment_type
     a = "test"
     a.extend NamedEntity
     assert a.segment_types.include? "NamedEntity"

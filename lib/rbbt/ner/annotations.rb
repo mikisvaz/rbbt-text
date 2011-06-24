@@ -55,7 +55,6 @@ module Segment
     string
   end
 
-
   # {{{ Sorting and splitting
 
   def self.sort(segments, inline = true)
@@ -71,7 +70,7 @@ module Segment
         when (not a.range.include? b.offset and not b.range.include? a.offset)
           a.offset <=> b.offset
         else
-          b.length <=> a.length
+          a.length <=> b.length
         end
       end.reverse
     else
@@ -183,10 +182,10 @@ module Segment
     pre_offset = 0
     parts.each do |part|
       offset = text.index part
-      raise "Part not found in text: #{ part }" if offset.nil?
+      next if offset.nil?
       Segment.annotate(part, pre_offset + offset)
-      pre_offset += offset
-      text = text[offset..-1]
+      pre_offset += offset + part.length - 1
+      text = text[(offset + part.length - 1)..-1]
     end
   end
 

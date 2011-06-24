@@ -6,14 +6,14 @@ module NamedEntity
 
   def self.annotate(string, offset = nil, type = nil, code = nil, score = nil)
     string.extend NamedEntity
-    string.offset = offset
-    string.type  = type
-    string.code  = code
-    string.score = score
+    string.offset = offset unless offset.nil?
+    string.type  = type unless type.nil?
+    string.code  = code unless code.nil?
+    string.score = score unless score.nil?
     string
   end
 
-  def to_s
+  def report
     <<-EOF
 String: #{ self }
 Offset: #{ offset.inspect }
@@ -26,9 +26,9 @@ Score: #{score.inspect}
   def html
     text = <<-EOF
 <span class='Entity'\
-#{type.nil? ? "" : " attr-entity-type='#{type}'"}\
-#{code.nil?  ? "" : " attr-entity-type='#{Array === code ? code * " " : code}'"}\
-#{score.nil? ? "" : " attr-entity-type='#{Array === score ? score * " " : score}'"}\
+#{type.nil? ? "" : " attr-entity-type='#{Array === type ? type * " " : type}'"}\
+#{code.nil?  ? "" : " attr-entity-code='#{Array === code ? code * " " : code}'"}\
+#{score.nil? ? "" : " attr-entity-score='#{Array === score ? score * " " : score}'"}\
 >#{ self }</span>
     EOF
     text.chomp
