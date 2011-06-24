@@ -1,5 +1,6 @@
 require 'rbbt/ner/annotations'
 require 'rbbt/ner/annotations/named_entity'
+require 'rbbt/ner/annotations/annotated'
 
 class NER
   def entities(text, protect = false, *args)

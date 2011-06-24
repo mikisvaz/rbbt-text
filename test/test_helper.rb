@@ -6,7 +6,7 @@ require 'rbbt'
 require 'rbbt/util/persistence'
 require 'rbbt/util/tmpfile'
 require 'rbbt/util/log'
-require 'rbbt/annotations/corpus/document_repo'
+require 'rbbt/corpus/document_repo'
 
 class Test::Unit::TestCase
   def test_datafile(file)

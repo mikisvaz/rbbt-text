@@ -4,12 +4,25 @@ require 'json'
 
 class Document
 
-  attr_accessor :text, :docid, :annotations, :segment_indeces, :persistence_dir
-  def initialize(persistence_dir = nil, docid = nil)
+  attr_accessor :text, :docid, :namespace, :id, :type, :hash, :annotations, :segment_indeces, :persistence_dir
+  def initialize(persistence_dir = nil, docid = nil, text = nil)
     @annotations = {}
     @segment_indeces = {}
     @persistence_dir = persistence_dir unless persistence_dir.nil?
-    @docid = docid unless docid.nil?
+    if not docid.nil?
+      @docid = docid 
+      update_docid
+    end
+    @text = text unless text.nil?
+  end
+
+  def update_docid
+    @namespace, @id, @type, @hash = docid.split(":", -1)
+  end
+
+  def docid=(docid)
+    @docid = docid 
+    update_docid
   end
 
   def self.save_segment(segment, fields = nil)
@@ -32,7 +45,7 @@ class Document
       info = Misc.process_to_hash(fields) do |fields| annotation.values_at *fields.collect{|f| f.downcase} end
     end
 
-    Segment.load(text, start, eend, info)
+    Segment.load(text, start, eend, info, docid)
   end
 
   def self.tsv(segments, fields = nil)
@@ -197,6 +210,11 @@ class Document
 
         entities
       end
+
+      def #{entity}_at(pos)
+        segment_index("#{ entity }")[pos]
+      end
+
     EOC
   end
 

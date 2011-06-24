@@ -1,12 +1,11 @@
 require 'rbbt/util/misc'
 require 'tokyocabinet'
 
-ddd "FUCK"
 class DocumentRepo < TokyoCabinet::BDB
   class OpenError < StandardError;end
   class KeyFormatError < StandardError;end
 
-  CONNECTIONS = {}
+  CONNECTIONS = {} unless defined? CONNECTIONS
 
   def self.get(path, write = false)
 
