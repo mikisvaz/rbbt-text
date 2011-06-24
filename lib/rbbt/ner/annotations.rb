@@ -21,11 +21,10 @@ module Segment
 
   def id
     new = info.dup
-    new.delete :docid
-    Digest::MD5.hexdigest(Misc.hash2string(new) << self)
+    Digest::MD5.hexdigest(Misc.hash2string(new) << self << (offset || 0).to_s)
   end
  
-  SKIP = %w(docid)
+  SKIP = %w(docid offset)
   def info
     equal_ascii = "="[0]
     info = {}
@@ -38,7 +37,7 @@ module Segment
 
   def self.load(text, start, eend, info, docid = nil)
     string = text[start.to_i..eend.to_i] if start and eend
-    string ||= ""
+    string ||= info[:literal]
     string.extend Segment
 
     # add types
@@ -51,6 +50,7 @@ module Segment
     end
 
     string.docid = docid
+    string.offset = start.to_i
 
     string
   end
