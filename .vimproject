@@ -42,6 +42,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     tokens.rb
    }
   }
+  corpus=rbbt/corpus{
+   document.rb
+  }
   annotations=rbbt/annotations{
    corpus=corpus{
     annotation_repo.rb

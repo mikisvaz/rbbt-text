@@ -201,18 +201,23 @@ module Segment
     end
   end
 
-  def self.index(segments)
-    value_size = 0
+  def self.index(segments, persistence_file = :memory)
 
-    index_data = segments.collect{|segment| 
-      next if segment.offset.nil?
-      range = segment.range
-      value_size = [segment.id.length, value_size].max
-      [segment.id, [range.begin, range.end]]
-    }.compact
+    annotation_index = 
+      Persistence.persist("Index", :Index, :fwt, :persistence => (! (persistence_file.nil? or persistence_file == :memory)), :persistence_file => persistence_file, :range => true) do
 
-    annotation_index = FixWidthTable.new(:memory, value_size, true)
-    annotation_index.add_range index_data
+        value_size = 0
+        index_data = segments.collect{|segment| 
+          next if segment.offset.nil?
+          range = segment.range
+          value_size = [segment.id.length, value_size].max
+          [segment.id, [range.begin, range.end]]
+        }.compact
+
+        fwt = FixWidthTable.get :memory, value_size, true
+        fwt.add_range index_data
+        fwt
+      end
 
     data = {}
     segments.each do |segment| data[segment.id] = segment end
