@@ -3,9 +3,9 @@ require 'rbbt/corpus/document'
 require 'test/unit'
 
 $persistence = TSV.new({})
-$tchash_persistence = TCHash.get(Rbbt.tmp.Test.document.persistence.find(:user), Persistence::TSV::TSVSerializer)
-$global_persistence = TSV.new(TCHash.get(Rbbt.tmp.Test.global.persistence.find(:user), Persistence::TSV::TSVSerializer), :key => "ID", :fields => [ "Start", "End", "Info","Document ID", "Entity Type"])
-$tchash_global_persistence = TSV.new(TCHash.get(Rbbt.tmp.Test.global.persistence.find(:user), Persistence::TSV::TSVSerializer), :key => "ID", :fields => [ "Start", "End", "Info","Document ID", "Entity Type"])
+$tchash_persistence = TCHash.get(Rbbt.tmp.test.document.persistence.find(:user), true, Persistence::TSV::TSVSerializer)
+$global_persistence = TSV.new({}, :key => "ID", :fields => [ "Start", "End", "Info","Document ID", "Entity Type"])
+$tchash_global_persistence = TSV.new(TCHash.get(Rbbt.tmp.test.global.persistence.find(:user), true, Persistence::TSV::StringArraySerializer), :key => "ID", :fields => [ "Start", "End", "Info","Document ID", "Entity Type"])
 
 class Document
   define :sentences do 
@@ -33,15 +33,20 @@ class Document
     Token.tokenize(text).select{|tok| tok.length % 2 == 0}
   end
 
+  define :missing do
+    []
+  end
+
   define :tokens_again do
     raise "This should be here already"
   end
 
   persist :sentences
-  persist_in_tsv :tokens, $persistence
+  persist_in_tsv :tokens
   persist_in_tsv :long_words, $tchash_persistence, :Literal
   persist_in_global_tsv :short_words, $global_persistence
   persist_in_global_tsv :even_words, $tchash_global_persistence
+  persist_in_global_tsv :missing, $tchash_global_persistence
 end
 
 class TestDocument < Test::Unit::TestCase
@@ -182,7 +187,7 @@ another sentence.
       doc.text = text * 10
       doc.docid = "FOOF"
       doc.short_words
-      doc.even_words
+      doc.sentences
 
       doc = Document.new(dir)
       doc.text = text * 10
