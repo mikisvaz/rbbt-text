@@ -33,6 +33,41 @@ class TokenTrieNER < NER
 
   #{{{ Process dictionary
 
+  module EnumeratedArray
+    attr_accessor :pos
+    def self.extended(array)
+      array.pos = 0
+    end
+
+    def last?
+      @pos == length - 1
+    end
+
+    def advance
+      @pos += 1
+    end
+
+    def back
+      @pos -= 1
+    end
+
+    def next
+      e = self[@pos]
+      advance
+      e 
+    end
+
+    def peek
+      self[@pos]
+    end
+
+    def left?
+      @pos < length
+    end
+
+  end
+
+
   class Code
     attr_accessor :code, :type
     def initialize(code, type = nil)
@@ -75,7 +110,8 @@ class TokenTrieNER < NER
 
   def self.process(hash, type = nil, slack = nil)
     index = {}
-    hash.each do |code, names|
+
+    hash.through do |code, names|
       names = Array === names ? names : [names]
       names.flatten! if Array === names.first and not Token === names.first.first
       names.each do |name|
@@ -180,44 +216,19 @@ class TokenTrieNER < NER
     when Hash === new
       TokenTrieNER.merge(@index, new)
     when TSV === new
+      old_unnamed = new.unnamed
+      old_monitor = new.monitor
+      new.unnamed = true
+      new.monitor = true
       TokenTrieNER.merge(@index, TokenTrieNER.process(new, type, slack))
+      new.unnamed = old_unnamed
+      new.monitor = old_monitor
     when String === new
-      TokenTrieNER.merge(@index, TokenTrieNER.process(TSV.new(new, :flat), type, slack))
+      new = TSV.new(new, :flat)
+      new.unnamed = true
+      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
+      TokenTrieNER.merge(@index, TokenTrieNER.process(new, type, slack))
     end
-  end
-
-  module EnumeratedArray
-    attr_accessor :pos
-    def self.extended(array)
-      array.pos = 0
-    end
-
-    def last?
-      @pos == length - 1
-    end
-
-    def advance
-      @pos += 1
-    end
-
-    def back
-      @pos -= 1
-    end
-
-    def next
-      e = self[@pos]
-      advance
-      e 
-    end
-
-    def peek
-      self[@pos]
-    end
-
-    def left?
-      @pos < length
-    end
-
   end
 
   def match(text)
