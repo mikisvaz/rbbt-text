@@ -8,4 +8,105 @@ name='Gdep'
 url="http://people.ict.usc.edu/~sagae/parser/gdep/gdep-beta2.tgz"
 
 
-install_src "$name" "$url"
+get_pkg "$name" "$url"
+uncompress_pkg "$name"
+
+cd "$(echo $OPT_BUILD_DIR/`ls $OPT_BUILD_DIR |head -n 1`)" 
+
+pwd > /tmp/pwd
+ls > /tmp/ls
+
+cat >> Makefile <<'EOF'
+libgdep.so: $(OBJS) ksdep.h
+	$(CPP) -o libgdep.so $(CFLAGS) $(OBJS) -shared
+EOF
+
+make gdep
+make libgdep.so
+
+mkdir lib
+mv libgdep.so lib
+
+build "$name" "$extra"
+
+cd "$OPT_BUILD_DIR/$name"
+
+mkdir ruby
+cat > ruby/extconf.rb <<'EOF'
+require 'mkmf-rice'
+dir_config('gdep')
+have_library('gdep')
+create_makefile('Gdep')
+EOF
+
+cat > ruby/Gdep.cpp <<'EOF'
+#include "rice/Class.hpp"
+#include "rice/String.hpp"
+
+#include <stdio.h>
+#include <fstream>
+#include <map>
+#include <list>
+#include <iostream>
+#include <sstream>
+#include "../maxent.h"
+#include "../common.h"
+
+using namespace Rice;
+using namespace std;
+void init_morphdic();
+extern void load_ne_models();
+string bidir_postag(const string & s, const vector<ME_Model> & vme, const vector<ME_Model> & cvme, bool dont_tokenize);
+
+
+vector<ME_Model> vme(16);
+vector<ME_Model> vme_chunking(16);
+bool gdep_loaded = false;
+
+void load_gdep()
+{
+  init_morphdic();
+
+  for (int i = 0; i < 16; i++) {
+    char buf[1000];
+    sprintf(buf, "./models_medline/model.bidir.%d", i);
+    vme[i].load_from_file(buf);
+  }
+
+
+  for (int i = 0; i < 8; i +=2 ) {
+    char buf[1000];
+    sprintf(buf, "./models_chunking/model.bidir.%d", i);
+    vme_chunking[i].load_from_file(buf);
+  }
+
+  load_ne_models();
+
+  gdep_loaded = true;
+}
+
+bool gdep_is_loaded(){
+  return gdep_loaded;
+}
+
+string tag(string line){
+  return(bidir_postag(line, vme, vme_chunking, false));
+}
+
+extern "C"
+void Init_Gdep()
+{
+  Class rb_cGdep =
+    define_class("Gdep")
+    .define_method("load_gdep", &load_gdep)
+    .define_method("tag", &tag)
+    .define_method("gdep_is_loaded", &gdep_is_loaded);
+}
+EOF
+
+cd ruby
+ruby extconf.rb --with-gdep-dir="$OPT_DIR/$name"  
+make
+
+
+

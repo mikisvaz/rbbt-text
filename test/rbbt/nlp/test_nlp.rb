@@ -18,18 +18,18 @@ diagnostic setting.
 
 class TestClass < Test::Unit::TestCase
 
-  def test_sentences
+  def test_1sentences
     text =<<-EOF
 This is a 
 sentence. This is
-another sentence.
+another sentence. 
     EOF
 
     assert_equal 2, NLP.geniass_sentence_splitter(text).length
     assert_equal "This is a \nsentence. ", NLP.geniass_sentence_splitter(text).first
   end
 
-  def test_gdep_parse_sentences
+  def test_2gdep_parse_sentences
     text =<<-EOF
 Atypical teratoid/rhabdoid tumors (AT/RTs)
 are highly aggressive brain
@@ -37,7 +37,7 @@ tumors of early childhood poorly
 responding to therapy.
     EOF
 
-    NLP.gdep_parse_sentences([text, text]).zip([text,text]).each do |segment_list, sentence|
+    NLP.gdep_parse_sentences_extension([text, text]).zip([text,text]).each do |segment_list, sentence|
       segment_list.each do |segment|
         assert_equal sentence[segment.range], segment
       end
@@ -52,13 +52,13 @@ tumors of early childhood poorly
 responding to therapy.
     EOF
 
-    NLP.gdep_parse_sentences([text, text]).zip([text,text]).each do |segment_list, sentence|
+    NLP.gdep_parse_sentences_extension([text, text]).zip([text,text]).each do |segment_list, sentence|
       chunk_list = NLP.gdep_chunks(sentence, segment_list)
       chunk_list.each do |segment|
         assert_equal sentence[segment.range], segment
       end
 
-      assert chunk_list.select{|c| c =~ /rhabdoid/}.first.annotations.include? "tumors"
+      assert chunk_list.select{|c| c =~ /rhabdoid/}.first.parts.include? "tumors"
     end
  
   end
@@ -71,7 +71,7 @@ tumors of early childhood poorly
 responding to therapy.
     EOF
 
-    NLP.gdep_parse_sentences([text, text]).zip([text,text]).each do |segment_list, sentence|
+    NLP.gdep_parse_sentences_extension([text, text]).zip([text,text]).each do |segment_list, sentence|
       chunk_list = NLP.gdep_chunks(sentence, segment_list)
       new_chunk_list = NLP.merge_vp_chunks(chunk_list)
       
@@ -79,9 +79,9 @@ responding to therapy.
         assert_equal sentence[segment.range], segment
       end
 
-      assert new_chunk_list.select{|c| c.type == "VP"}.first.annotations.include? "found"
-      assert new_chunk_list.select{|c| c.type == "VP"}.first.annotations.include? "to"
-      assert new_chunk_list.select{|c| c.type == "VP"}.first.annotations.include? "be"
+      assert new_chunk_list.select{|c| c.type == "VP"}.first.parts.include? "found"
+      assert new_chunk_list.select{|c| c.type == "VP"}.first.parts.include? "to"
+      assert new_chunk_list.select{|c| c.type == "VP"}.first.parts.include? "be"
     end
   end
 end

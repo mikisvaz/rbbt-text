@@ -23,17 +23,25 @@ class PatternRelExt
     when key =~ /(.*)\[entity:(.*)\]/
       chunk_type, chunk_value = $1, $2
       annotation_types = chunk_value.split(",")
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and (chunk.annotations.collect{|a| a.type}.flatten & annotation_types).any? }
+      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+        (chunk.annotations.values.flatten.select{|a| NamedEntity === a}.collect{|a| a.type.to_s}.flatten & annotation_types).any? }
+
     when key =~ /(.*)\[code:(.*)\]/
       chunk_type, chunk_value = $1, $2
       annotation_codes = chunk_value.split(",")
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and (chunk.annotations.collect{|a| a.code}.flatten & annotation_codes).any? }
+      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+        (chunk.annotations.values.flatten.select{|a| NamedEntity === a}.collect{|a| a.code}.flatten & annotation_codes).any? }
+
     when key =~ /(.*)\[stem:(.*)\]/
       chunk_type, chunk_value = $1, $2
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and chunk.split(/\s+/).select{|w| w.stem == chunk_value.stem}.any?}
+      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+        chunk.split(/\s+/).select{|w| w.stem == chunk_value.stem}.any?}
+
     when key =~ /(.*)\[(.*)\]/
       chunk_type, chunk_value = $1, $2
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and chunk.annotations.select{|a| a == chunk_value}.any?}
+      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+        chunk.parts.values.select{|a| a == chunk_value}.any?}
+
     else
       key
     end
@@ -59,7 +67,7 @@ class PatternRelExt
     new
   end
 
-  def self.prepare_chunk_patterns(token_trie, patterns)
+  def self.prepare_chunk_patterns(token_trie, patterns, type = nil)
     token_trie.merge(transform_index(TokenTrieNER.process(patterns)), type)
   end
 
@@ -98,7 +106,7 @@ class PatternRelExt
       end
     end
 
-    PatternRelExt.prepare_chunk_patterns(new_token_trie, tokenized_patterns)
+    PatternRelExt.prepare_chunk_patterns(new_token_trie, tokenized_patterns, type)
     token_trie.slack = slack || Proc.new{|t| t.type != 'O'}
   end
 

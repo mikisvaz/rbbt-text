@@ -11,6 +11,11 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
   nlp=rbbt/nlp{
    nlp.rb
+   gdep=gdep{
+   }
+   genia=genia{
+    sentence_splitter.rb
+   }
   }
   ner=rbbt/ner{
    annotations.rb

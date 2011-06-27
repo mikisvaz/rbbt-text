@@ -6,7 +6,7 @@ module Segment
       self.module_eval do 
         define_method "extended" do |object|
           object.segment_types ||= []
-          object.segment_types << self.to_s
+          object.segment_types << self.to_s unless object.segment_types.include? self.to_s
         end
       end
     end
@@ -173,9 +173,13 @@ module Segment
     offset + length - 1
   end
 
-  def range
+  def range(container_offset = nil)
     raise "No offset specified" if offset.nil?
-    (offset..self.end)
+    if container_offset.nil?
+      (offset..self.end)
+    else
+      ((offset - container_offset)..(self.end - container_offset))
+    end
   end
 
   def self.align(text, parts)

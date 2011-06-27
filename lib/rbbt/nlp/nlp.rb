@@ -4,6 +4,7 @@ require 'rbbt/util/persistence'
 require 'rbbt/util/resource'
 require 'rbbt/ner/annotations'
 require 'rbbt/ner/annotations/annotated'
+require 'rbbt/nlp/genia/sentence_splitter'
 require 'digest/md5'
 
 
@@ -107,16 +108,15 @@ module NLP
 
   module GdepChunk
     include Segment
-    include Annotated
 
-    attr_accessor :type
+    attr_accessor :type, :parts
 
-    def self.annotate(string, offset = nil, type = nil, annotations = nil)
+    def self.annotate(string, offset = nil, type = nil, parts = nil)
       string.extend GdepChunk
 
       string.offset = offset
       string.type = type
-      string.annotations = annotations
+      string.parts = parts
       
       string
     end
@@ -131,7 +131,7 @@ module NLP
           vp = chunk
         else
           vp << chunk
-          vp.annotations.concat chunk.annotations
+          vp.parts.concat chunk.parts
         end
       else
         new_chunks << vp if not vp.nil?
@@ -181,7 +181,7 @@ module NLP
 
     input = sentences.collect{|sentence| sentence.gsub(/\n/, NEW_LINE_MASK)} * "\n"
     sentence_tokens = TmpFile.with_file(input) do |fin|
-      out = local_persist(Digest::MD5.hexdigest(input), :Sentences, :string) do
+      out = local_persist(Digest::MD5.hexdigest(input), :Chunks, :string) do
         CMD.cmd("cd #{Rbbt.software.opt.Gdep.find}; ./gdep #{ fin }").read
       end
 
@@ -199,9 +199,36 @@ module NLP
     end
   end
 
+
+  def self.gdep_parse_sentences_extension(sentences)
+    require Rbbt.software.opt.Gdep.ruby["Gdep.so"].find
+    gdep = Gdep.new
+    if not gdep.gdep_is_loaded
+      Misc.in_dir Rbbt.software.opt.Gdep.find do
+        gdep.load_gdep 
+      end
+    end
+
+    sentences = Array === sentences ? sentences : [sentences]
+
+    sentence_tokens = sentences.collect{|sentence|
+      Gdep.new.tag(sentence).split(/\n/).collect do |line|
+        next if line.empty?
+        token, lemma, pos, chunk = line.split(/\t/)
+        GdepToken.annotate(token, nil, nil, lemma, chunk, pos)
+        token
+      end.compact
+    }
+
+    sentences.zip(sentence_tokens).collect do |sentence, tokens|
+      Segment.align(sentence, tokens)
+      tokens
+    end
+  end
+
   def self.gdep_chunk_sentences(sentences)
     sentences = Array === sentences ? sentences : [sentences]
-    NLP.gdep_parse_sentences(sentences).zip(sentences).collect do |segment_list, sentence|
+    NLP.gdep_parse_sentences_extension(sentences).zip(sentences).collect do |segment_list, sentence|
       chunk_list = NLP.gdep_chunks(sentence, segment_list)
       NLP.merge_vp_chunks(chunk_list)
     end

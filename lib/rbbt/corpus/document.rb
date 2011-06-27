@@ -281,5 +281,7 @@ class Document
         self
       end.class_eval "def #{ name }; @annotations['#{ name }']; end"
     end
+
+    segment
   end
 end
