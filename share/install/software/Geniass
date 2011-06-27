@@ -21,6 +21,9 @@ libgeniass.so: maxent.o  blmvm.o
 	$(CXX) $(CFLAGS) -o $@ -shared $^
 EOF
 
+cat Makefile| sed 's/\(CFLAGS\s*=\)/\1 -fPIC/' > /tmp/clean.Makefile
+mv /tmp/clean.Makefile Makefile
+
 make geniass
 make libgeniass.so
 

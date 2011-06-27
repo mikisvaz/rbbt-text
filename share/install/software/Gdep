@@ -21,6 +21,9 @@ libgdep.so: $(OBJS) ksdep.h
 	$(CPP) -o libgdep.so $(CFLAGS) $(OBJS) -shared
 EOF
 
+cat Makefile| sed 's/\(CFLAGS\s*=\)/\1 -fPIC/' > /tmp/clean.Makefile
+mv /tmp/clean.Makefile Makefile
+
 make gdep
 make libgdep.so
 
