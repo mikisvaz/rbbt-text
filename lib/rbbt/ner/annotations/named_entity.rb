@@ -1,8 +1,8 @@
 require 'rbbt/ner/annotations'
 
 module NamedEntity 
+  attr_accessor :type, :code, :score, :segment_types
   include Segment
-  attr_accessor :type, :code, :score
 
   def self.annotate(string, offset = nil, type = nil, code = nil, score = nil)
     string.extend NamedEntity

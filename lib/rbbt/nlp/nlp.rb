@@ -109,7 +109,7 @@ module NLP
   module GdepChunk
     include Segment
 
-    attr_accessor :type, :parts
+    attr_accessor :type, :parts, :segment_types
 
     def self.annotate(string, offset = nil, type = nil, parts = nil)
       string.extend GdepChunk

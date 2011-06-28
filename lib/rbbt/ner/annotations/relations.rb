@@ -1,8 +1,8 @@
 require 'rbbt/ner/annotations'
 
 module Relationship
+  attr_accessor :terms, :segment_types
   include Segment
-  attr_accessor :terms
   def self.annotate(string, offset = nil, terms = nil)
     string.extend PPI
     string.offset = offset unless offset.nil?

@@ -1,12 +1,14 @@
 module Segment 
-  attr_accessor :offset, :docid, :segment_types
+  attr_accessor :offset, :docid
 
   def self.included(base)
-    class << base
-      self.module_eval do 
-        define_method "extended" do |object|
-          object.segment_types ||= []
-          object.segment_types << self.to_s unless object.segment_types.include? self.to_s
+    if base.instance_methods.include? "segment_types"
+      class << base
+        self.module_eval do 
+          define_method "extended" do |object|
+            object.segment_types ||= []
+            object.segment_types << self.to_s unless object.segment_types.include? self.to_s
+          end
         end
       end
     end
@@ -173,13 +175,18 @@ module Segment
     offset + length - 1
   end
 
-  def range(container_offset = nil)
+  def range_in(container)
     raise "No offset specified" if offset.nil?
-    if container_offset.nil?
-      (offset..self.end)
+    if Segment === container 
+      ((offset - container.offset)..(self.end - container.offset))
     else
-      ((offset - container_offset)..(self.end - container_offset))
+      ((offset - container)..(self.end - container))
     end
+  end
+
+  def range
+    raise "No offset specified" if offset.nil?
+    (offset..self.end)
   end
 
   def self.align(text, parts)

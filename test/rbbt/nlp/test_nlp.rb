@@ -18,7 +18,7 @@ diagnostic setting.
 
 class TestClass < Test::Unit::TestCase
 
-  def test_1sentences
+  def test_sentences
     text =<<-EOF
 This is a 
 sentence. This is
@@ -29,7 +29,7 @@ another sentence.
     assert_equal "This is a \nsentence. ", NLP.geniass_sentence_splitter(text).first
   end
 
-  def test_2gdep_parse_sentences
+  def test_gdep_parse_sentences
     text =<<-EOF
 Atypical teratoid/rhabdoid tumors (AT/RTs)
 are highly aggressive brain

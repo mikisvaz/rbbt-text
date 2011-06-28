@@ -37,6 +37,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
 
    regexpNER.rb
    token_trieNER.rb
+   ngram_prefix_dictionary.rb
    patterns.rb
 
    rnorm.rb
