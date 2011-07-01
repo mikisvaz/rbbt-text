@@ -87,8 +87,8 @@ module NLP
   end
 
   module GdepToken
-    include Segment
     attr_accessor :num, :token, :lemma, :chunk, :pos, :bio, :link, :dep
+    include Segment
 
     def self.annotate(token, offset = nil, num = nil, lemma = nil, chunk = nil, pos = nil, bio = nil, link = nil, dep = nil)
       token.extend GdepToken
@@ -107,9 +107,8 @@ module NLP
   end
 
   module GdepChunk
-    include Segment
-
     attr_accessor :type, :parts, :segment_types
+    include Segment
 
     def self.annotate(string, offset = nil, type = nil, parts = nil)
       string.extend GdepChunk

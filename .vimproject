@@ -54,25 +54,6 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
     pubmed.rb
    }
   }
-  annotations=rbbt/annotations{
-   corpus.rb
-   corpus=corpus{
-    annotation_repo.rb
-    document_repo.rb
-    pubmed.rb
-   }
-
-   document.rb
-   sentence.rb
-   entities.rb
-   entities=entities{
-    genes.rb
-   }
-   relationships=relationships{
-    patterns.rb
-    ppi.rb
-   }
-  }
  }
  share=share{
   software=install/software filter="*"{

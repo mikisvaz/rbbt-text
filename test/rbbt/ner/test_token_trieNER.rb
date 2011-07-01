@@ -10,13 +10,13 @@ class TestTokenTrieNER < Test::Unit::TestCase
     assert_equal 10, TokenTrieNER.tokenize('123456789 12345').last.offset
     assert_equal 0, TokenTrieNER.tokenize('123456789 12345').first.offset
 
-
     text = '123456789 12345'
     assert_equal '12345', text[TokenTrieNER.tokenize('123456789 12345').last.range]
   end
 
   def test_merge
     tokens = %w(a b c)
+    tokens.extend TokenTrieNER::EnumeratedArray
     index = {'a' => {'b' => {'c' => {:END => [TokenTrieNER::Code.new('CODE')]}}}}
 
     assert_equal 'CODE', TokenTrieNER.merge({}, TokenTrieNER.index_for_tokens(tokens, 'CODE'))['a']['b']['c'][:END].first.code
@@ -30,7 +30,7 @@ C2;11;22;3 3;bb
 
     TmpFile.with_file(lexicon) do |file|
 
-      index = TokenTrieNER.process(TSV.new(file, :flat, :sep => ';'))
+      index = TokenTrieNER.process({}, TSV.new(file, :flat, :sep => ';'))
 
       assert_equal ['AA', 'aa', 'bb', '11', '22', '3'].sort, index.keys.sort
       assert_equal [:END], index['aa'].keys
@@ -47,7 +47,7 @@ C2;11;22;3 3;bb
 
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.process(TSV.new(file, :sep => ';', :type => :flat ))
+      index = TokenTrieNER.process({}, TSV.new(file, :sep => ';', :type => :flat ))
 
       assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).first.collect{|c| c.code}.include?   'C1'
       assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).last
@@ -71,8 +71,9 @@ C2;11;22;3 3;bb
     EOF
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.new(TSV.new(file, :flat, :sep => ';'))
+      index = TokenTrieNER.new("test", TSV.new(file, :flat, :sep => ';'))
 
+      index.match(' asdfa dsf asdf aa asdfasdf ')
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end
@@ -117,5 +118,20 @@ C2;11;22;3 3;bb
 
     assert index.match(Token.tokenize('3 cc 3 aa c ddd')).select{|m| m.code.include? :entity}.any?
   end
+
+  def test_persistence
+    lexicon =<<-EOF
+C1;aa;AA;bb b
+C2;11;22;3 3;bb
+    EOF
+
+    TmpFile.with_file(lexicon) do |file|
+      index = TokenTrieNER.new("test", TSV.new(file, :flat, :sep => ';'), :persistence => true)
+
+      index.match(' asdfa dsf asdf aa asdfasdf ')
+      assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
+    end
+  end
+
 end
 

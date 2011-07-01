@@ -151,6 +151,8 @@ class Document
 
         annotations = repo["#{entity}"]
 
+        repo.close
+
         annotations.collect{|id, annotation| Document.load_segment(text, annotation, fields)}
       end
       EOC

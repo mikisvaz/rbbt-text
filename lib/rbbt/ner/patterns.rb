@@ -68,7 +68,7 @@ class PatternRelExt
   end
 
   def self.prepare_chunk_patterns(token_trie, patterns, type = nil)
-    token_trie.merge(transform_index(TokenTrieNER.process(patterns)), type)
+    token_trie.merge(transform_index(TokenTrieNER.process({}, patterns)), type)
   end
 
   attr_accessor :token_trie, :type

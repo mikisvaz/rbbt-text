@@ -7,7 +7,6 @@ class CueIndex
 
   class LexiconMissingError < StandardError; end
 
-
   def define(name, *args, &block)
     @rules << [name,block]
     nil

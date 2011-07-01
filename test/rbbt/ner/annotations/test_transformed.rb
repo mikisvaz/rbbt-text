@@ -106,6 +106,27 @@ class TestClass < Test::Unit::TestCase
     end
   end
 
+  def test_html_with_offset
+    a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
+    Segment.annotate(a, 10)
+
+    gene1 = "TP53"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1 
+    gene1.offset += 10
+    gene1.type = "Gene"
+
+    gene2 = "CDK5R1"
+    gene2.extend NamedEntity
+    gene2.offset = a.index gene2
+    gene2.offset += 10
+    gene2.type = "Protein"
+
+    Transformed.with_transform(a, [gene1,gene2], Proc.new{|e| e.html}) do 
+      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein'>CDK5R1</span> protein", a
+    end
+  end
+
   def test_overlap
     a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
 
@@ -127,6 +148,28 @@ class TestClass < Test::Unit::TestCase
         assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Expanded Gene'><span class='Entity' attr-entity-type='Gene'>TP53</span> gene</span> and the CDK5R1 protein", a
       end
     end
+  end
+
+  def test_cascade_with_overlap_ignored
+    a = "This sentence mentions the HDL-C gene and the CDK5R1 protein"
+
+    gene1 = "HDL-C"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1
+    gene1.type = "Gene"
+
+    gene2 = "-"
+    gene2.extend NamedEntity
+    gene2.offset = a.index gene2
+    gene2.type = "Dash"
+
+    Transformed.with_transform(a, [gene1], Proc.new{|e| e.html}) do 
+      one = a.dup
+      Transformed.with_transform(a, [gene2], Proc.new{|e| e.html}) do 
+        assert_equal one, a
+      end
+    end
+
   end
 end
 

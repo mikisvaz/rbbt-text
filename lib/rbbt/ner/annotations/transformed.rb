@@ -30,7 +30,7 @@ module Transformed
     # order
     transformation_offset_differences.reverse.each do |trans_diff|
       acc = 0
-      trans_diff.reverse.each do |offset, diff|
+      trans_diff.reverse.each do |offset, diff, orig_length, trans_length|
         break if offset >=  pos
         acc += diff 
       end
@@ -70,42 +70,56 @@ module Transformed
     self[transformed_pos]
   end
 
+  def conflict?(segment_range)
+    return false if @transformation_offset_differences.nil? or @transformation_offset_differences.empty?
+    transformation_offset_difference = @transformation_offset_differences.last
+
+    transformation_offset_difference.each do |info|
+      offset, diff, orig_length, trans_length = info
+      return true if segment_range.begin > offset and segment_range.begin < offset + trans_length or
+      segment_range.end   > offset and segment_range.end   < offset + trans_length
+    end
+
+    return false
+  end
+
   def replace(segments, replacement = nil, &block)
     replacement ||= block
     raise "No replacement given" if replacement.nil?
     transformation_offset_differences = []
     transformation_original = []
 
-    Segment.clean_sort(segments).each do |segment|
-      new_range = self.transform_range(segment.range)
-      original = self[new_range]
-      original_offset = segment.offset
+    Segment.clean_sort(segments).reverse.each do |segment|
+      untransformed_segment_range_here= segment.range_in(self)
+      transformed_segment_range  = self.transform_range(untransformed_segment_range_here)
+      next if conflict?(transformed_segment_range)
 
+      text_before_transform = self[transformed_segment_range]
 
       case
       when String === replacement
-        text = replacement
+        transformed_text = replacement
       when Proc === replacement
 
         # Prepare segment with new text
-        save_segment = segment.dup
+        save_segment_text = segment.dup
         save_offset = segment.offset
-        segment.replace original
-        segment.offset = new_range.begin
+        segment.replace text_before_transform
+        segment.offset = transformed_segment_range.begin
 
-        text = replacement.call segment
+        transformed_text = replacement.call segment
 
         # Restore segment with original text
-        segment.replace save_segment
+        segment.replace save_segment_text
         segment.offset = save_offset
       else
         raise "Replacemente not String nor Proc"
       end
-      diff = segment.length - text.length
-      self[new_range] = text
+      diff = segment.length - transformed_text.length
+      self[transformed_segment_range] = transformed_text
 
-      transformation_offset_differences << [segment.offset, diff, original.length, text.length]
-      transformation_original << original
+      transformation_offset_differences << [untransformed_segment_range_here.begin, diff, text_before_transform.length, transformed_text.length]
+      transformation_original << text_before_transform
     end
 
     @transformation_offset_differences ||= []

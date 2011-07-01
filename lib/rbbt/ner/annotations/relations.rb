@@ -9,4 +9,17 @@ module Relationship
     string.terms = terms unless terms.nil?
     string
   end
+
+  def html
+    text = <<-EOF
+<span class='Relationship'\
+>#{ self }</span>
+    EOF
+    text.chomp
+  end
+
+  def html_with_entities(*types)
+    annotations.values_at(*types).each do |segments|
+    end
+  end
 end

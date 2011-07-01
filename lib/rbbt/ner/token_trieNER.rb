@@ -7,26 +7,40 @@ require 'rbbt/ner/NER'
 class TokenTrieNER < NER
   def self.clean(token)
     if token.length > 3
-      token.downcase
+      token.downcase.sub(/-/,'')
     else
       token
     end
   end
 
-  def self.prepare_token(token, start)
-    Token.annotate(clean(token), start, token)
+  def self.prepare_token(token, start, extend_to_token = true, no_clean = false)
+    if no_clean
+      if extend_to_token
+        Token.annotate(clean(token), start, token)
+      else
+        clean(token)
+      end
+    else
+      if extend_to_token
+        Token.annotate(clean(token), start, token)
+      else
+        token
+      end
+    end
   end
 
-  def self.tokenize(text, split_at = /\s|(\(|\)|[-."':,])/, start = 0)
+  def self.tokenize(text, extend_to_token = true, split_at = nil, no_clean = false, start = 0)
+    split_at = /\s|(\(|\)|[-."':,])/ if split_at.nil?
 
     tokens = []
     while matchdata = text.match(split_at)
-      tokens << prepare_token(matchdata.pre_match, start) unless matchdata.pre_match.empty?
-      tokens << prepare_token(matchdata.captures.first, start + matchdata.begin(1)) if matchdata.captures.any? and not matchdata.captures.first.empty?
+      tokens << prepare_token(matchdata.pre_match, start, extend_to_token, no_clean) unless matchdata.pre_match.empty?
+      tokens << prepare_token(matchdata.captures.first, start + matchdata.begin(1), extend_to_token, no_clean) if matchdata.captures.any? and not matchdata.captures.first.empty?
       start += matchdata.end(0)
       text = matchdata.post_match
     end
-    tokens << prepare_token(text, start) unless text.empty?
+     
+    tokens << prepare_token(text, start, extend_to_token) unless text.empty?
 
     tokens
   end
@@ -81,46 +95,66 @@ class TokenTrieNER < NER
   end
 
   def self.index_for_tokens(tokens, code, type = nil, slack = nil)
-    if tokens.empty?
+    if not tokens.left?
       {:END => [Code.new(code, type)]}
     else
-      head = tokens.shift
+      head = tokens.next
       if (slack.nil? or not slack.call(head))
-        {head => index_for_tokens(tokens, code, type, slack)}
+        res = {head => index_for_tokens(tokens, code, type, slack)}
       else
-        res = {head => index_for_tokens(tokens.dup, code, type, slack)}.merge(index_for_tokens(tokens, code, type, slack))
+        res = {head => index_for_tokens(tokens, code, type, slack)}.merge(index_for_tokens(tokens, code, type, slack))
       end
+      tokens.back
+      res
     end
   end
 
   def self.merge(index1, index2)
+    index1.write if index1.respond_to? :write
     index2.each do |key, new_index2|
       case
       when key == :END
-        index1[:END] ||= []
-        index1[:END] += new_index2.reject{|new| index1[:END].collect{|e| e.to_s }.include? new.to_s }
-        index1[:END].uniq!
+        end1 = index1[:END] || []
+        end1 += new_index2.reject{|new| end1.collect{|e| e.to_s }.include? new.to_s }
+        end1.uniq!
+        index1[:END] = end1
       when index1.include?(key)
-        merge(index1[key], new_index2)
+        index1[key] = merge(index1[key], new_index2)
       else
         index1[key] = new_index2
       end
     end
+    index1.read if index1.respond_to? :read
+
+    index1
   end
 
-  def self.process(hash, type = nil, slack = nil)
-    index = {}
+  def self.process(index, hash, type = nil, slack = nil, split_at = nil, no_clean = false)
 
-    hash.through do |code, names|
+    chunk_size = hash.size / 100
+    items_in_chunk = 0
+    tmp_index = {}
+    hash.send(hash.respond_to?(:through)? :through : :each) do |code, names|
       names = Array === names ? names : [names]
       names.flatten! if Array === names.first and not Token === names.first.first
       names.each do |name|
         next if name.empty? or (String === name and name.length < 2)
-        tokens = Array === name ? name : tokenize(name) 
 
-        merge(index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
+        tokens = Array === name ? name : tokenize(name, false, split_at, no_clean) 
+        tokens.extend EnumeratedArray
+
+        tmp_index = merge(tmp_index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
+        items_in_chunk += 1
+
+        if items_in_chunk > chunk_size
+          index = merge(index, tmp_index)
+          tmp_index = {}
+          items_in_chunk = 0
+        end
       end
     end
+    index = merge(index, tmp_index)
+
     index
   end
 
@@ -133,7 +167,7 @@ class TokenTrieNER < NER
       return index[head]
     end
 
-    return nil unless index.include? :PROCS
+    return nil unless (not TCHash === index ) and index.include? :PROCS
 
     index[:PROCS].each do |key,value|
       return value if key.call(head)
@@ -197,15 +231,28 @@ class TokenTrieNER < NER
     NamedEntity.annotate(match, match_tokens.first.offset, type, codes)
   end
 
-  attr_accessor :index, :longest_match, :type, :slack
-  def initialize(file, type = nil, slack = nil, options = {})
-    options = Misc.add_defaults options, :longest_match => true
+  attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean
+  def initialize(type = nil, file = nil, options = {})
+    options = Misc.add_defaults options, :longest_match => true, :no_clean => false, :slack => nil, :split_at => nil,
+      :persistence => false
+    @slack = slack
     @longest_match = options.delete :longest_match
+    @split_at = options.delete :split_at
+    @no_clean = options.delete :no_clean
 
+    file = [] if file.nil?
     file = [file] unless Array === file
-    @index = {}
-    file.each do |f| 
-      merge(f, type)
+    @index = Persistence.persist(file, :TokenTRIE, :tsv, options) do |file, options, filename, persistecen_file|
+      if persistecen_file.nil?
+        @index = {}
+      else
+        FileUtils.mkdir_p File.dirname(persistecen_file) unless File.exists? File.dirname(persistecen_file)
+        @index = TCHash.get persistecen_file, true, :marshal
+      end
+      file.each do |f| 
+        merge(f, type)
+      end
+      @index
     end
   end
 
@@ -219,20 +266,20 @@ class TokenTrieNER < NER
       old_unnamed = new.unnamed
       old_monitor = new.monitor
       new.unnamed = true
-      new.monitor = true
-      TokenTrieNER.merge(@index, TokenTrieNER.process(new, type, slack))
+      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
+      TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
       new.unnamed = old_unnamed
       new.monitor = old_monitor
     when String === new
       new = TSV.new(new, :flat)
       new.unnamed = true
       new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
-      TokenTrieNER.merge(@index, TokenTrieNER.process(new, type, slack))
+      TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
     end
   end
 
   def match(text)
-    tokens = Array === text ? text : TokenTrieNER.tokenize(text)
+    tokens = Array === text ? text : TokenTrieNER.tokenize(text, true, split_at, no_clean)
 
     tokens.extend EnumeratedArray
     tokens.pos = 0
@@ -253,4 +300,3 @@ class TokenTrieNER < NER
   end
 
 end
-

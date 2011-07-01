@@ -74,18 +74,19 @@ module Segment
         else
           a.length <=> b.length
         end
-      end.reverse
+      end
     else
       segments.sort_by do |segment| segment.offset || 0 end.reverse
     end
   end
 
   def self.overlaps(sorted_segments)
-    last = 0
+
+    last = nil
     overlaped = []
     sorted_segments.reverse.each do |segment| 
-      overlaped << segment if segment.range.begin < last
-      last = segment.range.end
+      overlaped << segment if (not last.nil?) and segment.range.end > last 
+      last = segment.range.begin
     end
 
     overlaped
@@ -175,18 +176,21 @@ module Segment
     offset + length - 1
   end
 
-  def range_in(container)
-    raise "No offset specified" if offset.nil?
-    if Segment === container 
-      ((offset - container.offset)..(self.end - container.offset))
-    else
-      ((offset - container)..(self.end - container))
-    end
-  end
-
   def range
     raise "No offset specified" if offset.nil?
     (offset..self.end)
+  end
+
+  def range_in(container = nil)
+    raise "No offset specified" if offset.nil?
+    case
+    when (Segment === container and not container.offset.nil?)
+      ((offset - container.offset)..(self.end - container.offset))
+    when Integer === container
+      ((offset - container)..(self.end - container))
+    else
+      range
+    end
   end
 
   def self.align(text, parts)
