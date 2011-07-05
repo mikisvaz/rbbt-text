@@ -8,12 +8,12 @@ require 'rbbt/nlp/nlp'
 require 'stemmer'
 
 class PatternRelExt
-  def self.simple_pattern(sentence, patterns)
+  def self.simple_pattern(sentence, patterns, type = nil)
     patterns = Array === patterns ? patterns : [patterns]
-    token_trie = TokenTrieNER.new({})
+    type ||= "Simple Pattern"
+    regexpNER = RegExpNER.new type => patterns.collect{|p| /#{p}/}
     Transformed.with_transform(sentence, sentence.annotations, Proc.new{|s| s.type.to_s.upcase}) do |sentence|
-      token_trie.merge(TSV.new({:pattern => [patterns]}))
-      token_trie.entities(sentence)
+      regexpNER.entities(sentence)
     end
   end
 
@@ -24,13 +24,13 @@ class PatternRelExt
       chunk_type, chunk_value = $1, $2
       annotation_types = chunk_value.split(",")
       Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
-        (chunk.annotations.values.flatten.select{|a| NamedEntity === a}.collect{|a| a.type.to_s}.flatten & annotation_types).any? }
+        ((Hash === chunk.annotations ? chunk.annotations.values.flatten : chunk.annotations).flatten.select{|a| NamedEntity === a}.collect{|a| a.type.to_s}.flatten & annotation_types).any? }
 
     when key =~ /(.*)\[code:(.*)\]/
       chunk_type, chunk_value = $1, $2
       annotation_codes = chunk_value.split(",")
       Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
-        (chunk.annotations.values.flatten.select{|a| NamedEntity === a}.collect{|a| a.code}.flatten & annotation_codes).any? }
+        ((Hash === chunk.annotations ? chunk.annotations.values.flatten : chunk.annotations).select{|a| NamedEntity === a}.collect{|a| a.code}.flatten & annotation_codes).any? }
 
     when key =~ /(.*)\[stem:(.*)\]/
       chunk_type, chunk_value = $1, $2

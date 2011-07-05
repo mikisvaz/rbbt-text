@@ -218,6 +218,8 @@ module Segment
 
   def self.index(segments, persistence_file = :memory)
 
+    segments = segments.values.flatten if Hash === segments
+
     annotation_index = 
       Persistence.persist("Index", :Index, :fwt, :persistence => (! (persistence_file.nil? or persistence_file == :memory)), :persistence_file => persistence_file, :range => true) do
 

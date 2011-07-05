@@ -32,7 +32,7 @@ class TestPatternRelExt < Test::Unit::TestCase
     interaction = "interacts"
     NamedEntity.annotate(interaction, text.index(interaction), "Interaction")
 
-    Annotated.annotate(text, [gene1, gene2, interaction])
+    Annotated.annotate(text, {:entities => [gene1, gene2, interaction]})
 
     assert_equal "TP53 found in cultivated cells interacts with CDK5", 
       PatternRelExt.new("NP[entity:Gene] VP[stem:interacts] with NP[entity:Gene]").match_sentences([text]).first.first
@@ -50,7 +50,7 @@ class TestPatternRelExt < Test::Unit::TestCase
     disease = "colon cancer"
     NamedEntity.annotate(disease, text.index(disease), "disease")
 
-    Annotated.annotate(text, [drug, disease])
+    Annotated.annotate(text, {:entitites => [drug, disease]})
 
     assert_equal "thiazolidinediones in patients with an increased risk of colon cancer", 
       PatternRelExt.new("NP[entity:Chemical Mention] NP[stem:risk] NP[entity:disease]").match_sentences([text]).first.first

@@ -33,10 +33,19 @@ class Abner < NER
     types = res[1]
     strings = res[0]
 
+    global_offset = 0
     strings.zip(types).collect do |mention, type| 
       mention = mention.to_s; 
       offset = text.index(mention)
-      NamedEntity.annotate(mention, offset, type.to_s)
+      if offset.nil?
+        NamedEntity.annotate(mention, nil, type.to_s)
+      else
+        NamedEntity.annotate(mention, offset + global_offset, type.to_s)
+        text = text[offset + mention.length..-1]
+        global_offset += offset + mention.length
+      end
+
+      mention
     end
   end
 
