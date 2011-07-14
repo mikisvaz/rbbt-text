@@ -18,13 +18,13 @@ class TokenTrieNER < NER
       if extend_to_token
         Token.annotate(clean(token), start, token)
       else
-        clean(token)
+        token
       end
     else
       if extend_to_token
         Token.annotate(clean(token), start, token)
       else
-        token
+        clean(token)
       end
     end
   end

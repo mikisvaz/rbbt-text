@@ -81,7 +81,7 @@ C2;11;22;3 3;bb
   def test_slack
     lexicon =<<-EOF
 C1;aa;AA;bb cc cc b
-C2;11;22;3 3;bb
+C2;11;22;3 3;bb;bbbb
     EOF
 
     TmpFile.with_file(lexicon) do |file|
@@ -93,6 +93,7 @@ C2;11;22;3 3;bb
       assert index.match(' aaaaa 3 cc 3').select{|m| m.code.include? 'C2'}.any?
       assert index.match(' bb cc b').select{|m| m.code.include? 'C1'}.any?
       assert index.match(' bb b').select{|m| m.code.include? 'C1'}.any?
+      assert index.match(' BBBB b').select{|m| m.code.include? 'C2'}.any?
     end
   end
 
