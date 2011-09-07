@@ -16,10 +16,10 @@ module NLP
   #Rbbt.software.opt.StanfordParser.define_as_install Rbbt.share.install.software.StanfordParser.find
   #Rbbt.software.opt.StanfordParser.produce
 
-  Rbbt.software.opt.Geniass.define_as_install Rbbt.share.install.software.Geniass.find
+  Rbbt.claim Rbbt.software.opt.Geniass, :install, Rbbt.share.install.software.Geniass.find
   Rbbt.software.opt.Geniass.produce
 
-  Rbbt.software.opt.Gdep.define_as_install Rbbt.share.install.software.Gdep.find
+  Rbbt.claim Rbbt.software.opt.Gdep, :install, Rbbt.share.install.software.Gdep.find
   Rbbt.software.opt.Gdep.produce
 
   NEW_LINE_MASK = "\t\t \t  \t"
