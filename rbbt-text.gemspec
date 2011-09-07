@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rbbt-text}
-  s.version = "0.5.0"
+  s.version = "0.6.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2011-07-05}
+  s.date = %q{2011-09-07}
   s.default_executable = %q{get_ppis.rb}
   s.description = %q{Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
@@ -24,12 +24,6 @@ Gem::Specification.new do |s|
     "lib/rbbt/corpus/sources/pubmed.rb",
     "lib/rbbt/ner/NER.rb",
     "lib/rbbt/ner/abner.rb",
-    "lib/rbbt/ner/annotations.rb",
-    "lib/rbbt/ner/annotations/annotated.rb",
-    "lib/rbbt/ner/annotations/named_entity.rb",
-    "lib/rbbt/ner/annotations/relations.rb",
-    "lib/rbbt/ner/annotations/token.rb",
-    "lib/rbbt/ner/annotations/transformed.rb",
     "lib/rbbt/ner/banner.rb",
     "lib/rbbt/ner/chemical_tagger.rb",
     "lib/rbbt/ner/ngram_prefix_dictionary.rb",
@@ -40,6 +34,12 @@ Gem::Specification.new do |s|
     "lib/rbbt/ner/rnorm.rb",
     "lib/rbbt/ner/rnorm/cue_index.rb",
     "lib/rbbt/ner/rnorm/tokens.rb",
+    "lib/rbbt/ner/segment.rb",
+    "lib/rbbt/ner/segment/named_entity.rb",
+    "lib/rbbt/ner/segment/relationship.rb",
+    "lib/rbbt/ner/segment/segmented.rb",
+    "lib/rbbt/ner/segment/token.rb",
+    "lib/rbbt/ner/segment/transformed.rb",
     "lib/rbbt/ner/token_trieNER.rb",
     "lib/rbbt/nlp/genia/sentence_splitter.rb",
     "lib/rbbt/nlp/nlp.rb",
@@ -58,29 +58,33 @@ Gem::Specification.new do |s|
   ]
   s.homepage = %q{http://github.com/mikisvaz/rbbt-util}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.6.2}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{Text mining tools for the Ruby Bioinformatics Toolkit (rbbt)}
-  s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/annotations/test_transformed.rb", "test/rbbt/ner/annotations/test_named_entity.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_annotations.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/corpus/test_corpus.rb", "test/rbbt/corpus/test_document.rb"]
+  s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/corpus/test_corpus.rb", "test/rbbt/corpus/test_document.rb"]
 
   if s.respond_to? :specification_version then
+    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<rbbt-util>, [">= 0"])
+      s.add_runtime_dependency(%q<rbbt-util>, [">= 4.0.0"])
       s.add_runtime_dependency(%q<stemmer>, [">= 0"])
       s.add_runtime_dependency(%q<libxml-ruby>, [">= 0"])
       s.add_runtime_dependency(%q<json>, [">= 0"])
+      s.add_runtime_dependency(%q<rjb>, [">= 0"])
     else
-      s.add_dependency(%q<rbbt-util>, [">= 0"])
+      s.add_dependency(%q<rbbt-util>, [">= 4.0.0"])
       s.add_dependency(%q<stemmer>, [">= 0"])
       s.add_dependency(%q<libxml-ruby>, [">= 0"])
       s.add_dependency(%q<json>, [">= 0"])
+      s.add_dependency(%q<rjb>, [">= 0"])
     end
   else
-    s.add_dependency(%q<rbbt-util>, [">= 0"])
+    s.add_dependency(%q<rbbt-util>, [">= 4.0.0"])
     s.add_dependency(%q<stemmer>, [">= 0"])
     s.add_dependency(%q<libxml-ruby>, [">= 0"])
     s.add_dependency(%q<json>, [">= 0"])
+    s.add_dependency(%q<rjb>, [">= 0"])
   end
 end
 
