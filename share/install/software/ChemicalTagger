@@ -5,7 +5,7 @@ RBBT_SOFTWARE_DIR="$2"
 source "$INSTALL_HELPER_FILE"
 
 name='ChemicalTagger'
-url="https://bitbucket.org/lh359/chemicaltagger/downloads/chemicalTagger-1.0-jar-with-dependencies.jar"
+url="https://bitbucket.org/wwmm/chemicaltagger/downloads/chemicalTagger-1.0.2-jar-with-dependencies.jar"
 
 PKG_DIR=`opt_dir $name`
 [ -d $PKG_DIR ] || mkdir -p $PKG_DIR
@@ -41,12 +41,14 @@ class RbbtChemicalTagger{
         ArrayList tokens = new ArrayList();
         ArrayList molecules = new ArrayList();
         ArrayList new_tokens = new ArrayList();
+
         tokens.add(tree);
         while (tokens.size() > 0){
             for(int tree_i = 0; tree_i < tokens.size(); tree_i++){
                 Tree subtree = (Tree) tokens.get(tree_i);
                 int type = subtree.getType();
-                if (type == 78){
+
+                if (type == 84){
                     molecules.add(subtree.getChild(0));
                 }else{
                     for(int tree_j = 0; tree_j < subtree.getChildCount(); tree_j++){
@@ -78,4 +80,4 @@ EOF
 env |grep JAVA
 
 
-(env CLASSPATH="$OPT_JAR_DIR/ChemicalTagger.jar:$CLASSPATH" /home/mvazquezg/software/opt/java/jdk/bin/javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class) || (rm "$PKG_DIR/ChemicalTagger.jar" && rmdir $PKG_DIR)
+(env CLASSPATH="$OPT_JAR_DIR/ChemicalTagger.jar:$CLASSPATH" javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class) || (rm "$PKG_DIR/ChemicalTagger.jar" && rmdir $PKG_DIR)

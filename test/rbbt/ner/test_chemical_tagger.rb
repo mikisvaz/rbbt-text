@@ -10,7 +10,7 @@ class TestChemicalTagger < Test::Unit::TestCase
       ner = ChemicalTagger.new
       str  = "Alternatively, rearrangement of O-(w-haloalkyl)esters 34 of 2-carboethoxy-N-hydroxypyridine-2-selone affords azonianaphthalenium halides 37 in 79% yield"
       mentions = ner.match(str, "CM", false)
-      
+
       good_mentions = ["2-carboethoxy-N-hydroxypyridine-2-selone", "O-(w-haloalkyl)esters"]
 
       good_mentions.each{|mention| 
