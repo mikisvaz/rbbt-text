@@ -16,14 +16,13 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    }
   }
   ner=rbbt/ner{
-   annotations.rb
-   annotations=annotations{
-    commented.rb
-    transformed.rb
+   segment.rb
+   segment=segment{
     named_entity.rb
-    annotated.rb
     token.rb
-    relations.rb
+    segmented.rb
+    transformed.rb
+    relationship.rb
    }
 
    NER.rb

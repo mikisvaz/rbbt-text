@@ -1,17 +1,9 @@
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 
 module NamedEntity 
-  attr_accessor :type, :code, :score, :segment_types
+  extend Annotation
   include Segment
-
-  def self.annotate(string, offset = nil, type = nil, code = nil, score = nil)
-    string.extend NamedEntity
-    string.offset = offset unless offset.nil?
-    string.type  = type unless type.nil?
-    string.code  = code unless code.nil?
-    string.score = score unless score.nil?
-    string
-  end
+  self.annotation :type, :code, :score
 
   def report
     <<-EOF

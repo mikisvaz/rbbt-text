@@ -1,7 +1,7 @@
-require 'rbbt-util'
-require 'rbbt/util/tsv'
-require 'rbbt/ner/annotations'
-require 'rbbt/ner/annotations/token'
+require 'rbbt'
+require 'rbbt/tsv'
+require 'rbbt/ner/segment'
+require 'rbbt/ner/segment/token'
 require 'rbbt/ner/NER'
 
 class TokenTrieNER < NER
@@ -16,13 +16,13 @@ class TokenTrieNER < NER
   def self.prepare_token(token, start, extend_to_token = true, no_clean = false)
     if no_clean
       if extend_to_token
-        Token.annotate(clean(token), start, token)
+        Token.setup(clean(token), start, token)
       else
         token
       end
     else
       if extend_to_token
-        Token.annotate(clean(token), start, token)
+        Token.setup(clean(token), start, token)
       else
         clean(token)
       end
@@ -137,6 +137,11 @@ class TokenTrieNER < NER
     hash.send(hash.respond_to?(:through)? :through : :each) do |code, names|
       names = Array === names ? names : [names]
       names.flatten! if Array === names.first and not Token === names.first.first
+
+      if names.empty?
+        names.unshift code unless TSV === hash and not (hash.fields.nil? or hash.fields.empty?)
+      end
+
       names.each do |name|
         next if name.empty? or (String === name and name.length < 2)
 
@@ -167,7 +172,7 @@ class TokenTrieNER < NER
       return index[head]
     end
 
-    return nil unless (not TCHash === index ) and index.include? :PROCS
+    return nil unless (not TokyoCabinet::HDB === index ) and index.include? :PROCS
 
     index[:PROCS].each do |key,value|
       return value if key.call(head)
@@ -225,16 +230,16 @@ class TokenTrieNER < NER
     match_offset = match_tokens.first.offset
     match_tokens.each{|t| 
       match << " " * (t.offset - (match_offset + match.length)) if t.offset > (match_offset + match.length)
-      match << (t.respond_to?(:original) ? t.original : t)
+      match << ((t.respond_to?(:original) and not t.original.nil?) ? t.original : t)
     }
 
-    NamedEntity.annotate(match, match_tokens.first.offset, type, codes)
+    NamedEntity.setup(match, match_tokens.first.offset, type, codes)
   end
 
   attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean
   def initialize(type = nil, file = nil, options = {})
     options = Misc.add_defaults options, :longest_match => true, :no_clean => false, :slack => nil, :split_at => nil,
-      :persistence => false
+      :persist => false
     @slack = slack
     @longest_match = options.delete :longest_match
     @split_at = options.delete :split_at
@@ -242,16 +247,15 @@ class TokenTrieNER < NER
 
     file = [] if file.nil?
     file = [file] unless Array === file
-    @index = Persistence.persist(file, :TokenTRIE, :tsv, options) do |file, options, filename, persistecen_file|
-      if persistecen_file.nil?
-        @index = {}
-      else
-        FileUtils.mkdir_p File.dirname(persistecen_file) unless File.exists? File.dirname(persistecen_file)
-        @index = TCHash.get persistecen_file, true, :marshal
-      end
+    persist_options = Misc.pull_keys options, :persist
+    @index = Persist.persist_tsv(file, options, persist_options) do |data|
+      data.serializer = :marshal if data.respond_to? :serializer and data.serializer == :type
+
+      @index = data
       file.each do |f| 
         merge(f, type)
       end
+
       @index
     end
   end
@@ -259,10 +263,10 @@ class TokenTrieNER < NER
   def merge(new, type = nil)
     case
     when TokenTrieNER === new
+      Log.debug "TokenTrieNER merging other TokenTrieNER"
       TokenTrieNER.merge(@index, new.index)
-    when Hash === new
-      TokenTrieNER.merge(@index, new)
     when TSV === new
+      Log.debug "TokenTrieNER merging TSV"
       old_unnamed = new.unnamed
       old_monitor = new.monitor
       new.unnamed = true
@@ -270,8 +274,12 @@ class TokenTrieNER < NER
       TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
       new.unnamed = old_unnamed
       new.monitor = old_monitor
+    when Hash === new
+      Log.debug "TokenTrieNER merging Hash"
+      TokenTrieNER.merge(@index, new)
     when String === new
-      new = TSV.new(new, :flat)
+      Log.debug "TokenTrieNER merging file: #{ new }"
+      new = TSV.open(new, :flat)
       new.unnamed = true
       new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
       TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)

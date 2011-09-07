@@ -1,3 +1,4 @@
+require 'rbbt/ner/segment'
 module NLP
   def self.returnFeatures(prevWord, delimiter, nextWord)
     if nextWord.match(/__ss__/)
@@ -206,7 +207,7 @@ module NLP
     offsets.collect do |s,e|
       sentence = text[s..e]
       next if sentence.nil?
-      Segment.annotate sentence, s
+      Segment.setup sentence, s
       sentence
     end
 

@@ -1,11 +1,11 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
 class ChemicalTagger < NER
-  Rbbt.software.opt.ChemicalTagger.define_as_install Rbbt.share.install.software.ChemicalTagger.find
+  Rbbt.claim Rbbt.software.opt.ChemicalTagger, :install, Rbbt.share.install.software.ChemicalTagger.find
 
   Rjb::load(nil, jvmargs = ['-Xms128m','-Xmx2048m'])
 
@@ -24,7 +24,7 @@ class ChemicalTagger < NER
 
     matches.collect do |mention|
       offset = text.index mention
-      NamedEntity.annotate mention, offset, "Chemical Mention", nil, nil
+      NamedEntity.setup mention, offset, "Chemical Mention", nil, nil
     end
   end
 

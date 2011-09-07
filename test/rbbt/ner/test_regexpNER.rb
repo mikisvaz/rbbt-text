@@ -55,12 +55,13 @@ class TestRegExpNER < Test::Unit::TestCase
     assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
     assert_equal :this, matches.select{|m| m.type == :this}[0].type
 
-    Annotated.annotate(sentence)
+    Segmented.setup(sentence)
     ner_this = RegExpNER.new({:this => /this/})
     ner_that = RegExpNER.new({:that => /that/})
-    sentence.annotations += ner_this.entities(sentence)
-    sentence.annotations += ner_that.entities(sentence)
-    matches = sentence.annotations
+    sentence.segments ||= []
+    sentence.segments += ner_this.entities(sentence)
+    sentence.segments += ner_that.entities(sentence)
+    matches = sentence.segments
 
     assert_equal ["this", "this", "that"].sort, matches.sort
     assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset

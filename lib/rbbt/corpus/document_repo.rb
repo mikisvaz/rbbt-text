@@ -1,69 +1,89 @@
 require 'rbbt/util/misc'
 require 'tokyocabinet'
 
-class DocumentRepo < TokyoCabinet::BDB
+module DocumentRepo
   class OpenError < StandardError;end
   class KeyFormatError < StandardError;end
 
-  CONNECTIONS = {} unless defined? CONNECTIONS
-
-  def self.get(path, write = false)
-
-    if !File.exists?(path) or not CONNECTIONS.include? path
-      CONNECTIONS[path] = self.new(path, true)
-    end
-
-    d = CONNECTIONS[path] 
-    
-    if write and not d.write?
-      d.write
-    else
-      d.read if d.write?
-    end
-
-    d
-  end
-
-
-  alias original_open open
-  def open(write = false)
+  TC_CONNECTIONS = {}
+  def self.open_tokyocabinet(path, write)
+    write = true if not File.exists?(path)
     flags = (write ? TokyoCabinet::BDB::OWRITER | TokyoCabinet::BDB::OCREAT : TokyoCabinet::BDB::OREADER)
 
-    FileUtils.mkdir_p File.dirname(@path_to_db) unless File.exists?(File.dirname(@path_to_db))
-    if !self.original_open(@path_to_db, flags)
-      ecode = self.ecode
-      raise OpenError, "Open error: #{self.errmsg(ecode)}. Trying to open file #{@path_to_db}"
+    FileUtils.mkdir_p File.dirname(path) unless File.exists?(File.dirname(path))
+
+    database = TC_CONNECTIONS[path] ||= TokyoCabinet::BDB.new
+    database.close
+
+    if !database.open(path, flags)
+      ecode = database.ecode
+      raise "Open error: #{database.errmsg(ecode)}. Trying to open file #{path}"
     end
 
-    @write = write
+    class << database
+      attr_accessor :writable, :persistence_path
 
-  end
+      def read
+        return if not @writable
+        self.close
+        if !self.open(@persistence_path, TokyoCabinet::BDB::OREADER)
+          ecode = self.ecode
+          raise "Open error: #{self.errmsg(ecode)}. Trying to open file #{@persistence_path}"
+        end
+        @writable = false
+        self
+      end
 
-  def write?
-    @write
-  end
+      def write
+        return if @writable
+        self.close
+        if !self.open(@persistence_path, TokyoCabinet::BDB::OWRITER | TokyoCabinet::BDB::OCREAT)
+          ecode = self.ecode
+          raise "Open error: #{self.errmsg(ecode)}. Trying to open file #{@persistence_path}"
+        end
+        @writable = true
+        self
+      end
 
-  def write
-    self.close
-    self.open(true)
-  end
+      def write?
+        @writable
+      end
 
-  def read
-    self.close
-    self.open(false)
-  end
+      def collect
+        res = []
+        each do |key, value|
+          res << if block_given?
+                   yield key, value
+          else
+            [key, value]
+          end
+        end
+        res
+      end
 
-  def initialize(path, write = false)
-    super()
+      def delete(key)
+        out(key)
+      end
 
-    @path_to_db = path
+      def values_at(*keys)
+        keys.collect do |key|
+          self[key]
+        end
+      end
 
-    if write || ! File.exists?(@path_to_db)
-      self.setcache(100000) or raise "Error setting cache"
-      self.open(true)
-    else
-      self.open(false)
+      def merge!(hash)
+        hash.each do |key,values|
+          self[key] = values
+        end
+      end
+
     end
+
+    database.persistence_path ||= path
+
+    database.extend DocumentRepo
+
+    database
   end
 
   def docid2fields(docid)
@@ -79,9 +99,10 @@ class DocumentRepo < TokyoCabinet::BDB
   end
 
   def add(text, namespace, id, type, hash)
-    write unless write?
+    write
     docid = fields2docid(namespace, id, type, hash)
     self[docid] = text unless self.include? docid
+    read
     docid
   end
 

@@ -7,17 +7,26 @@ class Corpus
     @corpora_path = case
                    when corpora_path.nil?
                      Rbbt.corpora
-                   when (not Resource::Path === corpora_path)
-                     Resource::Path.path(corpora_path)
+                   when (not Path === corpora_path)
+                     Path.setup(corpora_path)
                    else
                      corpora_path
                    end
 
-    @document_repo   = DocumentRepo.get @corpora_path.document_repo, false
+    @corpora_path = @corpora_path.find
     @persistence_dir = File.join(@corpora_path, "annotations")
-    @global_annotations = TSV.new(TCHash.get(File.join(@persistence_dir, "global_annotations"), :list), :list, :key => "ID", :fields => [ "Start", "End", "Info","Document ID", "Entity Type"])
-    @global_annotations.unnamed = true
-  end
+
+    Misc.lock(@persistence_dir) do
+      @global_annotations = TSV.setup(Persist.open_tokyocabinet(File.join(@persistence_dir, "global_annotations"), false, :list), :key => "ID", :fields => ["Start", "End", "JSON", "Document ID", "Entity Type"])
+      @global_annotations.unnamed = true
+      @global_annotations.close
+    end
+ 
+    Misc.lock(@corpora_path.document_repo) do
+      @document_repo   = DocumentRepo.open_tokyocabinet @corpora_path.document_repo, false
+    end
+
+ end
 
   def persistence_for(docid)
     File.join(persistence_dir, docid)

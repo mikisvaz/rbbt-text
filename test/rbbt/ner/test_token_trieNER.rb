@@ -30,7 +30,7 @@ C2;11;22;3 3;bb
 
     TmpFile.with_file(lexicon) do |file|
 
-      index = TokenTrieNER.process({}, TSV.new(file, :flat, :sep => ';'))
+      index = TokenTrieNER.process({}, TSV.open(file, :flat, :sep => ';'))
 
       assert_equal ['AA', 'aa', 'bb', '11', '22', '3'].sort, index.keys.sort
       assert_equal [:END], index['aa'].keys
@@ -47,7 +47,7 @@ C2;11;22;3 3;bb
 
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.process({}, TSV.new(file, :sep => ';', :type => :flat ))
+      index = TokenTrieNER.process({}, TSV.open(file, :sep => ';', :type => :flat ))
 
       assert TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).first.collect{|c| c.code}.include?   'C1'
       assert_equal %w(aa), TokenTrieNER.find(index, TokenTrieNER.tokenize('aa asdf').extend(TokenTrieNER::EnumeratedArray), false).last
@@ -71,9 +71,8 @@ C2;11;22;3 3;bb
     EOF
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.new("test", TSV.new(file, :flat, :sep => ';'))
+      index = TokenTrieNER.new("test", TSV.open(file, :flat, :sep => ';'))
 
-      index.match(' asdfa dsf asdf aa asdfasdf ')
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end
@@ -88,7 +87,7 @@ C2;11;22;3 3;bb;bbbb
       index = TokenTrieNER.new({})
       index.slack = Proc.new{|t| t =~ /^c*$/}
 
-      index.merge TSV.new(file, :flat, :sep => ';')
+      index.merge TSV.open(file, :flat, :sep => ';')
 
       assert index.match(' aaaaa 3 cc 3').select{|m| m.code.include? 'C2'}.any?
       assert index.match(' bb cc b').select{|m| m.code.include? 'C1'}.any?
@@ -107,7 +106,7 @@ C2;11;22;3 3;bb
       index = TokenTrieNER.new({})
       index.slack = Proc.new{|t| t =~ /^c*$/}
 
-      index.merge TSV.new(file, :flat, :sep => ';')
+      index.merge TSV.open(file, :flat, :sep => ';')
 
       assert index.match(Token.tokenize('3 cc 3')).select{|m| m.code.include? 'C2'}.any?
     end
@@ -127,9 +126,8 @@ C2;11;22;3 3;bb
     EOF
 
     TmpFile.with_file(lexicon) do |file|
-      index = TokenTrieNER.new("test", TSV.new(file, :flat, :sep => ';'), :persistence => true)
+      index = TokenTrieNER.new("test", TSV.open(file, :flat, :sep => ';'), :persistence => true)
 
-      index.match(' asdfa dsf asdf aa asdfasdf ')
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end

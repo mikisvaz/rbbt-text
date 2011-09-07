@@ -1,4 +1,4 @@
-require 'rbbt-util'
+require 'rbbt'
 require 'rbbt/util/misc'
 require 'rbbt/util/simpleDSL'
 
@@ -47,7 +47,7 @@ class CueIndex
   
   def load(file, max_candidates = 50)
     @indexes = Array.new(@rules.size){Hash.new}
-    data = TSV.new(file, :flat)
+    data = TSV.open(file, :flat)
     data.each{|code, values|
       values.each{|value|
         cues(value).each_with_index{|cue_list,i|

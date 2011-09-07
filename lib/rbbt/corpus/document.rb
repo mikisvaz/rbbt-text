@@ -1,19 +1,21 @@
-require 'rbbt/ner/annotations'
-require 'rbbt/util/tsv'
-require 'rbbt/util/resource'
+require 'rbbt/ner/segment'
+require 'rbbt/ner/segment/segmented'
+require 'rbbt/tsv'
+require 'rbbt/resource/path'
+require 'rbbt/persist/tsv'
 require 'rbbt/util/misc'
 require 'json'
 
 class Document
 
-  attr_accessor :text, :docid, :namespace, :id, :type, :hash, :annotations, :segment_indeces, :persistence_dir, :global_persistence
-  def initialize(persistence_dir = nil, docid = nil, text = nil, global_persistence = nil)
-    @annotations = {}
+  attr_accessor :text, :docid, :namespace, :id, :type, :hash, :segments, :segment_indeces, :persist_dir, :global_persistence
+  def initialize(persist_dir = nil, docid = nil, text = nil, global_persistence = nil)
+    @segments = {}
     @segment_indeces = {}
 
-    if not persistence_dir.nil?
-      @persistence_dir = persistence_dir
-      @persistence_dir = Resource::Path.path(@persistence_dir) if not Resource::Path == @persistence_dir
+    if not persist_dir.nil?
+      @persist_dir = persist_dir
+      @persist_dir = Path.setup(@persist_dir) if not Path == @persist_dir
     end
 
     @global_persistence = global_persistence
@@ -34,45 +36,6 @@ class Document
     update_docid
   end
 
-  def self.save_segment(segment, fields = nil)
-    if fields.nil?
-      eend = case segment.offset; when nil; nil; when -1; -1; else segment.end; end
-      [segment.offset, eend, segment.info.to_json]
-    else
-      eend = case segment.offset; when nil; nil; when -1; -1; else segment.end; end
-      info = segment.info
-      info["literal"] = segment.to_s.gsub(/\s/,' ')
-      info.extend IndiferentHash
-      [segment.offset, eend].concat info.values_at(*fields.collect{|f| f.downcase}).collect{|v| Array === v ? v * "|" : v}
-    end
-  end
-
-  def self.load_segment(text, annotation, fields = nil)
-    if fields.nil?
-      start, eend, info = annotation.values_at 0,1,2
-      info = JSON.parse(info)
-    else
-      start, eend = annotation.values_at 0,1
-      info = Misc.process_to_hash(fields) do |fields| annotation.values_at(*fields.collect{|f| f.downcase}).collect{|v| v.index("|").nil? ? v : v.split("|")} end
-    end
-
-    Segment.load(text, start, eend, info, @docid)
-  end
-
-  def self.tsv(segments, fields = nil)
-    tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
-    if fields.nil?
-      tsv.fields += ["Info"]
-    else
-      tsv.fields += fields
-    end
-
-    segments.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
-
-    tsv
-  end
-
-
   #{{{ PERSISTENCE
 
   TSV_REPOS = {}
@@ -82,30 +45,28 @@ class Document
     if not fields.nil?
       fields = [fields] if not Array === fields
       fields = fields.collect{|f| f.to_s}
-      FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields unless fields.nil?
+      FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields
     end
 
     self.class_eval <<-EOC
-      def load_with_persistence_#{entity}
+      def load_with_persistence_#{entity}(raw = false)
         fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
 
-        annotations = Persistence.persist("#{ entity }", :Entity, :tsv_string,
-                        :persistence_file => File.join(@persistence_dir, "#{ entity }")) do
+        tsv_file = File.join(@persist_dir.find, "#{ entity }")
 
-          tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
-          if fields.nil?
-            tsv.fields += ["Info"]
-          else
-            tsv.fields += fields
-          end
+        return nil if raw == :check and File.exists? tsv_file
 
+        annotations = Persist.persist("Entity[#{ entity }]", :tsv, :file => tsv_file) do 
           segments = produce_#{entity}
-          segments.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
-
-          tsv
+          tsv = Segment.tsv(segments, fields)
         end
 
-        annotations.collect{|id, annotation| Document.load_segment(text, annotation, fields)}
+        return annotations if raw
+
+        annotations.unnamed = true
+        annotations.collect{|id, annotation| 
+          Segment.load_tsv_values(text, annotation, annotations.fields)
+        }
       end
           EOC
   end
@@ -125,47 +86,43 @@ class Document
     end
 
     self.class_eval <<-EOC
-      def load_with_persistence_#{entity}
+      def load_with_persistence_#{entity}(raw = false)
         repo = TSV_REPOS["#{ entity }"]
         if repo.nil?
-          raise "No persistence file or persistencr dir for persist_in_tsv" if persistence_dir.nil?
-          repo = TCHash.get(persistence_dir.annotations_by_type.find, TCHash::TSVSerializer)
+          raise "No persistence file or persistence dir for persist_in_tsv" if persist_dir.nil?
+          repo = Persist.open_tokyocabinet(persist_dir.annotations_by_type.find, true, :marshal_tsv)
         end
-
 
         fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
-
         if not repo.include? "#{ entity }"
-          tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
-          if fields.nil?
-            tsv.fields += ["Info"]
-          else
-            tsv.fields += fields
-          end
-
-          produce_#{entity}.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
+          segments = produce_#{entity}
           repo.write
-          repo["#{entity}"] = tsv
+          repo["#{entity}"] = Segment.tsv(segments, fields)
           repo.read
+        else
+          if raw == :check
+            repo.close
+            return nil
+          end
         end
 
+        
         annotations = repo["#{entity}"]
 
         repo.close
 
-        annotations.collect{|id, annotation| Document.load_segment(text, annotation, fields)}
+
+        return annotations if raw
+
+        annotations.unnamed = true
+        annotations.collect{|id, annotation| 
+          Segment.load_tsv_values(text, annotation, annotations.fields)
+        }
       end
-      EOC
+    EOC
   end
   
   def self.persist_in_global_tsv(entity, tsv = nil, fields = nil, doc_field = nil, entity_field = nil)
-    if not tsv.nil? and not tsv.respond_to?(:keys)
-      entity_field = doc_field if doc_field
-      doc_field = fields if fields
-      fields = tsv if tsv
-      tsv = nil
-    end
-
     doc_field ||= "Document ID" 
     entity_field ||= "Entity Type"
 
@@ -174,34 +131,34 @@ class Document
     if not fields.nil?
       fields = [fields] if not Array === fields
       fields = fields.collect{|f| f.to_s}
-      FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields unless fields.nil?
+    else
+      fields = nil
     end
 
+    FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields 
+
     self.class_eval <<-EOC
-      def load_with_persistence_#{entity}
+      def load_with_persistence_#{entity}(raw = false)
         fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
 
-        data = TSV_REPOS["#{ entity }"]
+        data = TSV_REPOS["#{ entity }"] || @global_persistence
 
-        if data.nil?
-          data = global_persistence
-        end
+        data.read true
+
+        fields = data.fields if fields.nil? and data.respond_to? :fields
+
 
         data.filter
         data.add_filter("field:#{ doc_field }", @docid)
         data.add_filter("field:#{ entity_field }", "#{ entity }")
+        keys = data.keys
+        data.pop_filter
+        data.pop_filter
 
-        if data.keys.empty?
-          tsv = TSV.new({}, :list, :key => "ID", :fields => %w(Start End))
-          if fields.nil?
-            tsv.fields += ["Info"]
-          else
-            tsv.fields += fields
-          end
-
+        if keys.empty?
           segments = produce_#{entity}
-          segments << Segment.annotate("No #{entity} found in document #{ @docid }", -1) if segments.empty?
-          segments.each{|segment| tsv[segment.id] = Document.save_segment(segment, fields) unless segment.offset.nil?}
+          segments << Segment.setup("No #{entity} found in document #{ @docid }", -1) if segments.empty?
+          tsv = Segment.tsv(segments, *fields.reject{|f| ["#{doc_field}", "#{entity_field}", "Start", "End", "annotation_types"].include? f})
 
           tsv.add_field "#{ doc_field }" do
             @docid
@@ -211,16 +168,31 @@ class Document
             "#{ entity }"
           end
 
-          data.write
-          data.merge!(tsv)
+          data.add_filter("field:#{ doc_field }", @docid)
+          data.add_filter("field:#{ entity_field }", "#{ entity }")
+          data.write true
+          keys = tsv.collect do |key, value|
+            data[key] = value
+            key
+          end
+          data.pop_filter
+          data.pop_filter
           data.read
+        else
+          if raw == :check
+            data.close
+            return nil
+          end
         end
 
-        segments = []
-        data.each{|id, annotation| segments << Document.load_segment(text, annotation, fields) unless annotation[1].to_i == -1}
+        return data.values if raw
 
-        data.pop_filter
-        data.pop_filter
+        start_pos = data.identify_field "Start"
+        segments = data.values_at(*keys).collect{|annotation| 
+            pos = annotation[start_pos]
+            Segment.load_tsv_values(text, annotation, data.fields) unless [-1, "-1", [-1], ["-1"]].include? pos
+         }.compact
+        data.close
 
         segments
       end
@@ -232,21 +204,21 @@ class Document
     send :define_method, "produce_#{entity}", &block
 
     self.class_eval <<-EOC
-      def load_#{entity}
-        return if annotations.include? "#{ entity }"
-        if self.respond_to?("load_with_persistence_#{entity}") and not @persistence_dir.nil?
-          annotations["#{entity}"] = load_with_persistence_#{entity}
+      def load_#{entity}(raw = false)
+        return if segments.include? "#{ entity }"
+        if self.respond_to?("load_with_persistence_#{entity}") and not @persist_dir.nil?
+          segments["#{entity}"] = load_with_persistence_#{entity}(raw)
         else
-          annotations["#{ entity }"] = produce_#{entity}
+          segments["#{ entity }"] = produce_#{entity}
         end
       end
 
-      def #{entity}
+      def #{entity}(raw = false)
         begin
-          entities = annotations["#{ entity }"]
+          entities = segments["#{ entity }"]
           if entities.nil?
-            load_#{entity}
-            entities = annotations["#{ entity }"]
+            load_#{entity}(raw)
+            entities = segments["#{ entity }"]
           end
         end
 
@@ -254,34 +226,35 @@ class Document
       end
 
       def #{entity}_at(pos, persist = false)
-        segment_index("#{ entity }", persist ? File.join(@persistence_dir, 'ranges') : nil)[pos]
+        segment_index("#{ entity }", persist ? File.join(@persist_dir, 'ranges') : nil)[pos]
       end
 
     EOC
   end
 
-  def segment_index(name, persistence_dir = nil)
-    @segment_indeces[name] ||= Segment.index(self.send(name), persistence_dir.nil? ? :memory : File.join(persistence_dir, name + '.range'))
+  def segment_index(name, persist_dir = nil)
+    @segment_indeces[name] ||= Segment.index(self.send(name), persist_dir.nil? ? :memory : File.join(persist_dir, name + '.range'))
   end
 
   def load_into(segment, *annotations)
     options = annotations.pop if Hash === annotations.last
     options ||= {}
-    if options[:persist] and not @persistence_dir.nil?
-      persistence_dir = File.join(@persistence_dir, 'ranges')
+
+    if options[:persist] and not @persist_dir.nil?
+      persist_dir = File.join(@persist_dir, 'ranges')
     else
-      persistence_dir = nil
+      persist_dir = nil
     end
 
-    segment.extend Annotated
-    segment.annotations ||= {}
+    Segmented.setup(segment, {})
     annotations.collect do |name|
       name = name.to_s
-      annotations = segment_index(name, persistence_dir)[segment.range]
-      segment.annotations[name] = annotations
+      index = segment_index(name, persist_dir)
+      annotations = index[segment.range]
+      segment.segments[name] = annotations
       class << segment
         self
-      end.class_eval "def #{ name }; @annotations['#{ name }']; end"
+      end.class_eval "def #{ name }; @segments['#{ name }']; end"
     end
 
     segment

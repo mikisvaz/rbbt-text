@@ -1,4 +1,4 @@
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/simpleDSL'
 
@@ -23,7 +23,7 @@ class RegExpNER < NER
       end
 
       if match and not match.empty?
-        NamedEntity.annotate(match, start + pre.length, type)
+        NamedEntity.setup(match, start + pre.length, type)
         matches << match
       end
 
@@ -86,6 +86,7 @@ class RegExpNER < NER
 
   def match(text)
     matches = RegExpNER.match_regexp_hash(text, @regexps)
+    matches
   end
 
 end

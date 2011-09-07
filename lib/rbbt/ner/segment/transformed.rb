@@ -1,7 +1,16 @@
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 module Transformed
   attr_accessor :transformation_offset_differences, :transformation_original
 
+  def self.transform(text, segments, replacement = nil, &block)
+    require 'rbbt/util/misc'
+
+    text.extend Transformed
+    text.replace(segments, replacement, &block)
+
+    text
+  end
+ 
   def self.with_transform(text, segments, replacement)
     require 'rbbt/util/misc'
 
@@ -14,16 +23,7 @@ module Transformed
 
     text.restore(segments, true)
   end
- 
-  def self.transform(text, segments, replacement = nil, &block)
-    require 'rbbt/util/misc'
 
-    text.extend Transformed
-    text.replace(segments, replacement, &block)
-
-    text
-  end
- 
   def transform_pos(pos)
     return pos if transformation_offset_differences.nil?
     # tranformation_offset_differences are assumed to be sorted in reverse

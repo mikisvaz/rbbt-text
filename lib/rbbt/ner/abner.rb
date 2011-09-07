@@ -1,13 +1,14 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
+require 'rbbt/resource'
 require 'rbbt/ner/NER'
 
 # Offers a Ruby interface to the Abner Named Entity Recognition Package
 # in Java Abner[http://www.cs.wisc.edu/~bsettles/abner/].
 class Abner < NER
 
-  Rbbt.software.opt.ABNER.define_as_install Rbbt.share.install.software.ABNER.find
+  Rbbt.claim Rbbt.software.opt.ABNER, :install, Rbbt.share.install.software.ABNER.find
 
   @@JFile   = Rjb::import('java.io.File')
   @@Tagger  = Rjb::import('abner.Tagger')
@@ -38,9 +39,9 @@ class Abner < NER
       mention = mention.to_s; 
       offset = text.index(mention)
       if offset.nil?
-        NamedEntity.annotate(mention, nil, type.to_s)
+        NamedEntity.setup(mention, nil, type.to_s)
       else
-        NamedEntity.annotate(mention, offset + global_offset, type.to_s)
+        NamedEntity.setup(mention, offset + global_offset, type.to_s)
         text = text[offset + mention.length..-1]
         global_offset += offset + mention.length
       end

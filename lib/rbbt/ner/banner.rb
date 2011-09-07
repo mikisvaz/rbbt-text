@@ -1,13 +1,13 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 require 'rbbt/ner/NER'
 
 # Offers a Ruby interface to the Banner Named Entity Recognition Package
 # in Java. Banner[http://banner.sourceforge.net/].
 class Banner < NER
 
-  Rbbt.software.opt.BANNER.define_as_install Rbbt.share.install.software.BANNER.find
+  Rbbt.claim Rbbt.software.opt.BANNER, :install, Rbbt.share.install.software.BANNER.find
 
   @@JFile = Rjb::import('java.io.File')
   @@SimpleTokenizer = Rjb::import('banner.tokenization.SimpleTokenizer')
@@ -68,7 +68,7 @@ class Banner < NER
       mention.sub!(/^\s*/,'')
       mention.sub!(/\s*$/,'')
       offset = text.index(mention)
-      NamedEntity.annotate(mention, offset, 'GENE')
+      NamedEntity.setup(mention, offset, 'GENE')
       mention
     }
     res

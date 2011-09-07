@@ -1,6 +1,6 @@
-require 'rbbt/ner/annotations'
-require 'rbbt/ner/annotations/named_entity'
-require 'rbbt/ner/annotations/annotated'
+require 'rbbt/ner/segment'
+require 'rbbt/ner/segment/named_entity'
+require 'rbbt/ner/segment/segmented'
 
 class NER
   def entities(text, protect = false, *args)
@@ -13,7 +13,7 @@ class NER
         }
         matches
       end.flatten
-    when (Annotated === text and protect)
+    when (Segmented === text and protect)
       entities(text.split_segments(true), protect, *args)
     else
       match(text, *args)

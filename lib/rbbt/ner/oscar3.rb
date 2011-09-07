@@ -1,12 +1,12 @@
 require 'rbbt'
 require 'rjb'
 require 'libxml'
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
 class OSCAR3 < NER
-  Rbbt.software.opt.OSCAR3.define_as_install Rbbt.share.install.software.OSCAR3.find
+  Rbbt.claim Rbbt.software.opt.OSCAR3, :install, Rbbt.share.install.software.OSCAR3.find
 
   @@TextToSciXML   = Rjb::import('uk.ac.cam.ch.wwmm.ptclib.scixml.TextToSciXML')
   @@ProcessingDocumentFactory   = Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.document.ProcessingDocumentFactory')
@@ -50,7 +50,7 @@ class OSCAR3 < NER
         next unless type.nil? or type.include? mention_type
         score  = memm ? entities.get(key).to_string.to_f : nil
 
-        NamedEntity.annotate mention, rstart.to_i + offset, mention_type, nil, score
+        NamedEntity.setup mention, rstart.to_i + offset, mention_type, nil, score
         
         mentions << mention unless mentions.collect{|m| m.to_s}.include? mention.to_s
       end

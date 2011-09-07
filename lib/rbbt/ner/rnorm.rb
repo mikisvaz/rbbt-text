@@ -1,7 +1,7 @@
 require 'rbbt/ner/rnorm/cue_index'
 require 'rbbt/ner/rnorm/tokens'
 require 'rbbt/util/open'
-require 'rbbt/util/tsv'
+require 'rbbt/tsv'
 require 'rbbt/sources/entrez'
 require 'rbbt/bow/bow.rb'
 
@@ -89,7 +89,7 @@ class Normalizer
 
 
   def initialize(lexicon, options = {})
-    @synonyms = TSV.new(lexicon, :flat)
+    @synonyms = TSV.open(lexicon, :flat)
 
     @index = CueIndex.new
     @index.load(lexicon, options[:max_candidates])

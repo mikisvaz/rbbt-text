@@ -1,7 +1,7 @@
-require 'rbbt/ner/annotations/named_entity'
-require 'rbbt/ner/annotations/annotated'
-require 'rbbt/ner/annotations/transformed'
-require 'rbbt/ner/annotations/relations'
+require 'rbbt/ner/segment/named_entity'
+require 'rbbt/ner/segment/segmented'
+require 'rbbt/ner/segment/transformed'
+require 'rbbt/ner/segment/relationship'
 require 'rbbt/ner/regexpNER'
 require 'rbbt/ner/token_trieNER'
 require 'rbbt/nlp/nlp'
@@ -12,7 +12,9 @@ class PatternRelExt
     patterns = Array === patterns ? patterns : [patterns]
     type ||= "Simple Pattern"
     regexpNER = RegExpNER.new type => patterns.collect{|p| /#{p}/}
-    Transformed.with_transform(sentence, sentence.annotations, Proc.new{|s| s.type.to_s.upcase}) do |sentence|
+    segments = sentence.segments
+    segments = segments.values.flatten if Hash === segments
+    Transformed.with_transform(sentence, segments, Proc.new{|s| s.type.to_s.upcase}) do |sentence|
       regexpNER.entities(sentence)
     end
   end
@@ -23,23 +25,23 @@ class PatternRelExt
     when key =~ /(.*)\[entity:(.*)\]/
       chunk_type, chunk_value = $1, $2
       annotation_types = chunk_value.split(",")
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
-        ((Hash === chunk.annotations ? chunk.annotations.values.flatten : chunk.annotations).flatten.select{|a| NamedEntity === a}.collect{|a| a.type.to_s}.flatten & annotation_types).any? }
+      Proc.new{|chunk| (chunk_type == "all" or (Array === chunk.type ? chunk.type.include?(chunk_type) : chunk.type == chunk_type)) and 
+        ((Hash === chunk.segments ? chunk.segments.values.flatten : chunk.segments).flatten.select{|a| NamedEntity === a}.collect{|a| a.type.to_s}.flatten & annotation_types).any? }
 
     when key =~ /(.*)\[code:(.*)\]/
       chunk_type, chunk_value = $1, $2
       annotation_codes = chunk_value.split(",")
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
-        ((Hash === chunk.annotations ? chunk.annotations.values.flatten : chunk.annotations).select{|a| NamedEntity === a}.collect{|a| a.code}.flatten & annotation_codes).any? }
+      Proc.new{|chunk| (chunk_type == "all" or (Array === chunk.type ? chunk.type.include?(chunk_type) : chunk.type == chunk_type)) and 
+        ((Hash === chunk.segments ? chunk.segments.values.flatten : chunk.segments).select{|a| NamedEntity === a}.collect{|a| a.code}.flatten & annotation_codes).any? }
 
     when key =~ /(.*)\[stem:(.*)\]/
       chunk_type, chunk_value = $1, $2
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+      Proc.new{|chunk| (chunk_type == "all" or (Array === chunk.type ? chunk.type.include?(chunk_type) : chunk.type == chunk_type)) and 
         chunk.split(/\s+/).select{|w| w.stem == chunk_value.stem}.any?}
 
     when key =~ /(.*)\[(.*)\]/
       chunk_type, chunk_value = $1, $2
-      Proc.new{|chunk| (chunk_type == "all" or chunk.type == chunk_type) and 
+      Proc.new{|chunk| (chunk_type == "all" or (Array === chunk.type ? chunk.type.include?(chunk_type) : chunk.type == chunk_type)) and 
         chunk.parts.values.select{|a| a == chunk_value}.any?}
 
     else
@@ -120,9 +122,9 @@ class PatternRelExt
     sentence_chunks = NLP.gdep_chunk_sentences(sentences)
 
     sentences.zip(sentence_chunks).collect do |sentence, chunks|
-      annotation_index = Segment.index(sentence.annotations)
+      annotation_index = Segment.index(sentence.segments)
       chunks.each do |chunk|
-        Annotated.annotate(chunk, annotation_index[chunk.range])
+        Segmented.setup(chunk, annotation_index[chunk.range])
       end
 
       match_chunks(chunks)

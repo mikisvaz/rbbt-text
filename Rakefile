@@ -13,10 +13,11 @@ begin
     gem.files = Dir['lib/**/*.rb','share/**/*']
     gem.test_files = Dir['test/**/test_*.rb']
 
-    gem.add_dependency('rbbt-util')
+    gem.add_dependency('rbbt-util', ">= 4.0.0")
     gem.add_dependency('stemmer')
     gem.add_dependency('libxml-ruby')
     gem.add_dependency('json')
+    gem.add_dependency('rjb')
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new  

@@ -1,12 +1,12 @@
 require 'rbbt'
 require 'rjb'
 require 'libxml'
-require 'rbbt/ner/annotations'
+require 'rbbt/ner/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
 class OSCAR4 < NER
-  Rbbt.software.opt.OSCAR4.define_as_install Rbbt.share.install.software.OSCAR4.find
+  Rbbt.claim Rbbt.software.opt.OSCAR4, :install, Rbbt.share.install.software.OSCAR4.find
 
   Rjb::load(nil, jvmargs = ['-Xms128m','-Xmx2048m'])
   @@OSCAR = Rjb::import('uk.ac.cam.ch.wwmm.oscar.Oscar')
@@ -26,7 +26,7 @@ class OSCAR4 < NER
       mention = entity.getSurface
       result << mention
 
-      NamedEntity.annotate mention, entity.getStart, entity.getType, nil, entity.getNamedEntity.getConfidence
+      NamedEntity.setup mention, entity.getStart, entity.getType, nil, entity.getNamedEntity.getConfidence
     end
 
     result

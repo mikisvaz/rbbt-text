@@ -1,9 +1,9 @@
 require 'rbbt'
 require 'rbbt/util/tmpfile'
-require 'rbbt/util/persistence'
-require 'rbbt/util/resource'
-require 'rbbt/ner/annotations'
-require 'rbbt/ner/annotations/annotated'
+require 'rbbt/persist'
+require 'rbbt/resource'
+require 'rbbt/ner/segment'
+require 'rbbt/ner/segment/segmented'
 require 'rbbt/nlp/genia/sentence_splitter'
 require 'digest/md5'
 
@@ -11,7 +11,7 @@ require 'digest/md5'
 module NLP
 
   extend LocalPersist
-  self.local_persistence_dir = '/tmp/crap'
+  self.local_persist_dir = '/tmp/crap'
 
   #Rbbt.software.opt.StanfordParser.define_as_install Rbbt.share.install.software.StanfordParser.find
   #Rbbt.software.opt.StanfordParser.produce
@@ -81,44 +81,21 @@ module NLP
       sentence = text[s..e]
       next if sentence.nil?
       #sentence.gsub!(NEW_LINE_MASK, "\n")
-      Segment.annotate sentence, s
+      Segment.setup sentence, s
       sentence
     end
   end
 
   module GdepToken
-    attr_accessor :num, :token, :lemma, :chunk, :pos, :bio, :link, :dep
+    extend Annotation
     include Segment
-
-    def self.annotate(token, offset = nil, num = nil, lemma = nil, chunk = nil, pos = nil, bio = nil, link = nil, dep = nil)
-      token.extend GdepToken
-
-      token.offset = offset
-      token.num = num
-      token.lemma = lemma
-      token.chunk = chunk
-      token.pos = pos
-      token.bio = bio
-      token.link = link
-      token.dep = dep
-
-      token
-    end
+    self.annotation :num, :lemma, :chunk, :pos, :bio, :link, :dep
   end
 
   module GdepChunk
-    attr_accessor :type, :parts, :segment_types
+    extend Annotation
     include Segment
-
-    def self.annotate(string, offset = nil, type = nil, parts = nil)
-      string.extend GdepChunk
-
-      string.offset = offset
-      string.type = type
-      string.parts = parts
-      
-      string
-    end
+    self.annotation :type, :parts
   end
 
   def self.merge_vp_chunks(chunk_list)
@@ -148,7 +125,7 @@ module NLP
     chunk_start = "B"[0]
     chunk_inside = "I"[0]
 
-    last = GdepToken.annotate("LW")
+    last = GdepToken.setup("LW")
 
     chunk_segments = []
     segment_list.each do |segment|
@@ -159,7 +136,7 @@ module NLP
           cstart = chunk_segments.first.offset
           cend = chunk_segments.last.end
           chunk = sentence[cstart..cend]
-          GdepChunk.annotate(chunk, cstart, last.chunk.sub(/^.-/,''), chunk_segments)
+          GdepChunk.setup(chunk, cstart, last.chunk.sub(/^.-/,''), chunk_segments)
           chunks << chunk
         end
 
@@ -172,6 +149,15 @@ module NLP
       last = segment
     end
 
+    if chunk_segments.any?
+      cstart = chunk_segments.first.offset
+      cend = chunk_segments.last.end
+      chunk = sentence[cstart..cend]
+      GdepChunk.setup(chunk, cstart, last.chunk.sub(/^.-/,''), chunk_segments)
+      chunks << chunk
+    end
+
+      
     chunks
   end
 
@@ -188,7 +174,7 @@ module NLP
         tokens = sentence.split(/\n/).collect do |line|
           next if line.empty?
           num, token, lemma, chunk, pos, bio, link, dep = line.split(/\t/)
-          GdepToken.annotate(token, nil, num, lemma, chunk, pos, bio, link, dep)
+          GdepToken.setup(token, nil, num, lemma, chunk, pos, bio, link, dep)
         end.compact
       end
     end
@@ -214,7 +200,7 @@ module NLP
       Gdep.new.tag(sentence).split(/\n/).collect do |line|
         next if line.empty?
         token, lemma, pos, chunk = line.split(/\t/)
-        GdepToken.annotate(token, nil, nil, lemma, chunk, pos)
+        GdepToken.setup(token, nil, nil, lemma, chunk, pos)
         token
       end.compact
     }

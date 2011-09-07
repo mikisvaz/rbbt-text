@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rbbt'
-require 'rbbt/util/persistence'
+require 'rbbt/persist'
 require 'rbbt/util/tmpfile'
 require 'rbbt/util/log'
 require 'rbbt/corpus/document_repo'
@@ -15,15 +15,15 @@ class Test::Unit::TestCase
 
   def setup
     FileUtils.mkdir_p Rbbt.tmp.test.persistence.find(:user)
-    Persistence.cachedir = Rbbt.tmp.test.persistence.find :user
+    Persist.cachedir = Rbbt.tmp.test.persistence.find :user
   end
 
   def teardown
     FileUtils.rm_rf Rbbt.tmp.test.find :user
-    TCHash::CONNECTIONS.values.each do |c| c.close end
-    TCHash::CONNECTIONS.clear
-    DocumentRepo::CONNECTIONS.values.each do |c| c.close end
-    DocumentRepo::CONNECTIONS.clear
+    Persist::TC_CONNECTIONS.values.each do |c| c.close end
+    Persist::TC_CONNECTIONS.clear
+    DocumentRepo::TC_CONNECTIONS.values.each do |c| c.close end
+    DocumentRepo::TC_CONNECTIONS.clear
   end
 
 end

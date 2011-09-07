@@ -1,6 +1,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_helper.rb')
-require 'rbbt/ner/annotations/transformed'
-require 'rbbt/ner/annotations/named_entity'
+require 'rbbt/ner/segment/transformed'
+require 'rbbt/ner/segment/named_entity'
 
 class TestClass < Test::Unit::TestCase
   def test_transform
@@ -8,11 +8,11 @@ class TestClass < Test::Unit::TestCase
     original = a.dup
 
     gene1 = "TP53"
-    gene1.extend NamedEntity
+    gene1.extend Segment
     gene1.offset = a.index gene1
 
     gene2 = "CDK5"
-    gene2.extend NamedEntity
+    gene2.extend Segment
     gene2.offset = a.index gene2
 
     assert_equal gene1, a[gene1.range]
@@ -30,7 +30,7 @@ class TestClass < Test::Unit::TestCase
 
 
     gene3 = "GN gene"
-    gene3.extend NamedEntity
+    gene3.extend Segment
     gene3.offset = a.index gene3
 
     assert_equal gene3, a[gene3.range]
@@ -108,7 +108,7 @@ class TestClass < Test::Unit::TestCase
 
   def test_html_with_offset
     a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
-    Segment.annotate(a, 10)
+    Segment.setup(a, 10)
 
     gene1 = "TP53"
     gene1.extend NamedEntity

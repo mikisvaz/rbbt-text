@@ -1,7 +1,8 @@
-require 'rbbt-util'
-require 'rbbt/util/tsv'
-require 'rbbt/ner/annotations'
-require 'rbbt/ner/annotations/token'
+require 'rbbt'
+require 'rbbt/util/misc'
+require 'rbbt/tsv'
+require 'rbbt/ner/segment'
+require 'rbbt/ner/segment/token'
 require 'rbbt/ner/NER'
 require 'inline'
 
@@ -41,9 +42,28 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     end
   end
 
-  def self.process(hash)
+  def self.process_stream(stream)
     index = {}
-    hash.each do |code, names|
+    while line = stream.gets
+      names = line.split(/\t|\|/).select{|n| not n.empty?}.compact
+      code = names.shift
+      
+      names.each do |name|
+        ngram = name[0..2].strip
+        index[ngram] ||= []
+        index[ngram] << [name, code]
+      end
+    end
+    index
+ 
+  end
+
+  def self.process_hash(hash)
+    index = {}
+    hash.monitor = true if hash.respond_to? :monitor
+    hash.unnamed = true if hash.respond_to? :unnamed
+    method = hash.respond_to?(:through)? :through : :each
+    hash.send(method) do |code, names|
       names.each do |name|
         ngram = name[0..2].strip
         index[ngram] ||= []
@@ -94,15 +114,30 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 
   attr_accessor :index, :type
   def initialize(file, type = nil)
-    tsv = TSV.new(file, :flat)
     @type = type
-    tsv.unnamed = true
-    @index = NGramPrefixDictionary.process(tsv)
+    case
+    when (TSV === file or Hash === file)
+      Log.debug("Ngram Prefix Dictionary. Loading of lexicon hash started.")
+      @index = NGramPrefixDictionary.process_hash(file)
+    when Path === file
+      Log.debug("Ngram Prefix Dictionary. Loading of lexicon file started: #{ file }.")
+      @index = NGramPrefixDictionary.process_stream(file.open)
+    when Misc.is_filename?(file)
+      Log.debug("Ngram Prefix Dictionary. Loading of lexicon file started: #{ file }.")
+      @index = NGramPrefixDictionary.process_stream(Open.open(file))
+    when StreamIO === file
+      Log.debug("Ngram Prefix Dictionary. Loading of lexicon stream started.")
+      @index = NGramPrefixDictionary.process_stream(file)
+    else
+      raise "Format of lexicon not understood: #{file.inspect}"
+    end
+
+    Log.debug("Ngram Prefix Dictionary. Loading done.")
   end
 
   def match(text)
     NGramPrefixDictionary.match(index, text).collect{|name, code, offset|
-      NamedEntity.annotate(name, offset, type, code)
+      NamedEntity.setup(name, offset, type, code)
     }
   end
 end
