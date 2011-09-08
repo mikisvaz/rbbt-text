@@ -75,7 +75,6 @@ class RbbtChemicalTagger{
 
 EOF
 
-env |grep JAVA
-
+env | grep JAVA
 
 (env CLASSPATH="$OPT_JAR_DIR/ChemicalTagger.jar:$CLASSPATH" /home/mvazquezg/software/opt/java/jdk/bin/javac /tmp/RbbtChemicalTagger.java && jar uf "$PKG_DIR/ChemicalTagger.jar" -C /tmp RbbtChemicalTagger.class) || (rm "$PKG_DIR/ChemicalTagger.jar" && rmdir $PKG_DIR)
