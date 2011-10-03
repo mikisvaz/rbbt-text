@@ -34,10 +34,12 @@ class Corpus
 
   def document(namespace, id, type, hash)
     docid = [namespace, id, type, hash] * ":"
+    raise "Document '#{ docid }' was not found." unless @document_repo.include? docid
     Document.new(persistence_for(docid), docid, @document_repo[docid], @global_annotations)
   end
 
   def docid(docid)
+    raise "Document '#{ docid }' was not found." unless @document_repo.include? docid
     Document.new(persistence_for(docid), docid, @document_repo[docid], @global_annotations)
   end
 
