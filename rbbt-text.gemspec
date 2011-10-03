@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rbbt-text}
-  s.version = "0.6.0"
+  s.version = "0.6.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = %q{2011-09-07}
+  s.date = %q{2011-10-03}
   s.default_executable = %q{get_ppis.rb}
   s.description = %q{Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc}
   s.email = %q{miguel.vazquez@fdi.ucm.es}
@@ -58,12 +58,11 @@ Gem::Specification.new do |s|
   ]
   s.homepage = %q{http://github.com/mikisvaz/rbbt-util}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.6.2}
   s.summary = %q{Text mining tools for the Ruby Bioinformatics Toolkit (rbbt)}
   s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/corpus/test_corpus.rb", "test/rbbt/corpus/test_document.rb"]
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
