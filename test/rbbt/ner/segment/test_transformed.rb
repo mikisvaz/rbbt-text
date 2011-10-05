@@ -1,9 +1,11 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_helper.rb')
 require 'rbbt/ner/segment/transformed'
 require 'rbbt/ner/segment/named_entity'
+require 'rexml/document'
+require 'rand'
 
 class TestClass < Test::Unit::TestCase
-  def test_transform
+  def tttest_transform
     a = "This sentence mentions the TP53 gene and the CDK5 protein"
     original = a.dup
 
@@ -56,11 +58,13 @@ class TestClass < Test::Unit::TestCase
     Transformed.with_transform(a, [gene1], "GN") do 
       assert_equal original.sub("TP53", 'GN'), a
     end
+
     assert_equal original, a
 
-    Transformed.with_transform(a, [gene1,gene2], "GN") do 
+    Transformed.with_transform(a, [gene1, gene2], "GN") do 
       assert_equal original.gsub(/TP53|CDK5R1/, 'GN'), a
     end
+
     assert_equal original, a
 
     Transformed.with_transform(a, [gene1], "GN") do 
@@ -69,6 +73,7 @@ class TestClass < Test::Unit::TestCase
       end
       assert_equal original.gsub(/TP53/, 'GN'), a
     end
+
     assert_equal original, a
 
     exp1, exp2 = nil, nil
@@ -169,7 +174,37 @@ class TestClass < Test::Unit::TestCase
         assert_equal one, a
       end
     end
-
   end
+
+  def test_error
+    a = "Do not have a diagnosis of another hereditary APC resistance/Factor V Leiden, Protein S or C deficiency, prothrombin gene mutation (G20210A), or acquired (lupus anticoagulant) thrombophilic disorder"
+
+    entity1 = "gene"
+    entity1.extend NamedEntity
+    entity1.offset = a.index entity1
+    entity1.type = "Gene"
+
+    entity2 = "prothrombin gene mutation"
+    entity2.extend NamedEntity
+    entity2.offset = a.index entity2
+    entity2.type = "Mutation"
+
+    entity3 = "Protein S or C"
+    entity3.extend NamedEntity
+    entity3.offset = a.index entity3
+    entity3.type = "Gene"
+
+    entity4 = "prothrombin gene mutation"
+    entity4.extend NamedEntity
+    entity4.offset = a.index entity2
+    entity4.type = "Disease"
+
+
+    Transformed.with_transform(a, [entity1].sort_by{rand}, Proc.new{|e| e.html}) do 
+      Transformed.with_transform(a, [entity3, entity2, entity4].sort_by{rand}, Proc.new{|e| e.html}) do 
+        assert_nothing_raised{REXML::Document.new "<xml>"+ a + "</xml>"}
+      end
+    end
+   end
 end
 

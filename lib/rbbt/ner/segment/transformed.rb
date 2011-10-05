@@ -1,9 +1,9 @@
+require 'rbbt/util/misc'
 require 'rbbt/ner/segment'
+
 module Transformed
-  attr_accessor :transformation_offset_differences, :transformation_original
 
   def self.transform(text, segments, replacement = nil, &block)
-    require 'rbbt/util/misc'
 
     text.extend Transformed
     text.replace(segments, replacement, &block)
@@ -12,7 +12,6 @@ module Transformed
   end
  
   def self.with_transform(text, segments, replacement)
-    require 'rbbt/util/misc'
 
     text.extend Transformed
     text.replace(segments, replacement)
@@ -24,147 +23,148 @@ module Transformed
     text.restore(segments, true)
   end
 
-  def transform_pos(pos)
-    return pos if transformation_offset_differences.nil?
-    # tranformation_offset_differences are assumed to be sorted in reverse
-    # order
-    transformation_offset_differences.reverse.each do |trans_diff|
-      acc = 0
-      trans_diff.reverse.each do |offset, diff, orig_length, trans_length|
-        break if offset >=  pos
-        acc += diff 
+  attr_accessor :transformed_segments, :transformation_stack
+ 
+  def shift(segment_o)
+    begin_shift = 0
+    end_shift = 0
+
+    @transformed_segments.sort_by{|id, info| info.last}.each{|id,info| 
+      pseg_o, diff = info
+
+      case
+        # Before
+      when segment_o.last + end_shift < pseg_o.begin
+        # After
+      when (segment_o.begin + begin_shift > pseg_o.last)
+        begin_shift += diff
+        end_shift += diff
+        # Includes
+      when (segment_o.begin + begin_shift <= pseg_o.begin and segment_o.last + end_shift >= pseg_o.last)
+        end_shift += diff
+        # Inside
+      when (segment_o.begin + begin_shift >= pseg_o.begin and segment_o.last + end_shift <= pseg_o.last)
+        return nil
+        # Overlaps start
+      when (segment_o.begin + begin_shift <= pseg_o.begin and segment_o.last + end_shift <= pseg_o.last)
+        return nil
+        # Overlaps end
+      when (segment_o.begin + begin_shift >= pseg_o.begin and segment_o.last + end_shift >= pseg_o.last)
+        return nil
+     else
+        raise "Unknown overlaps: #{segment_o.inspect} - #{pseg_o.inspect}"
       end
-      pos = pos - acc 
+    }
+
+    [begin_shift, end_shift]
+  end
+
+  def self.sort(segments)
+    segments.compact.sort do |a,b|
+      case
+      when ((a.nil? and b.nil?) or (a.offset.nil? and b.offset.nil?))
+        0
+      when (a.nil? or a.offset.nil?)
+        -1
+      when (b.nil? or b.offset.nil?)
+        +1
+        # Non-overlap
+      when (a.end < b.offset or b.end < a.offset)
+        b.offset <=> a.offset
+        # b includes a
+      when (a.offset >= b.offset and a.end <= b.end)
+        -1
+        # b includes a
+      when (b.offset >= a.offset and b.end <= a.end)
+        +1
+        # Overlap
+      when (a.offset > b.offset and a.end > b.end or b.offset < a.offset and b.end > a.end)
+        a.length <=> b.length
+      else
+        raise "Unexpected case in sort: #{a.range} - #{b.range}"
+      end
     end
-
-    pos
-  end
-
-  def transform_range(range)
-    (transform_pos(range.begin)..transform_pos(range.end))
-  end
-
-  def transformed_set(pos, value)
-    transformed_pos = case
-                when Range === pos
-                  transform_range(pos)
-                when Integer === pos
-                  transform_pos(pos)
-                else
-                  raise "Text position not understood '#{pos.inspect}'. Not Range or Integer"
-                end
-
-    self[transformed_pos] = value
-  end
-
-  def transformed_get(pos)
-    transformed_pos = case
-                when Range === pos
-                  transform_range(pos)
-                when Integer === pos
-                  transform_pos(pos)
-                else
-                  raise "Text position not understood '#{pos.inspect}'. Not Range or Integer"
-                end
-
-    self[transformed_pos]
-  end
-
-  def conflict?(segment_range)
-    return false if @transformation_offset_differences.nil? or @transformation_offset_differences.empty?
-    transformation_offset_difference = @transformation_offset_differences.last
-
-    transformation_offset_difference.each do |info|
-      offset, diff, orig_length, trans_length = info
-      return true if segment_range.begin > offset and segment_range.begin < offset + trans_length or
-      segment_range.end   > offset and segment_range.end   < offset + trans_length
-    end
-
-    return false
   end
 
   def replace(segments, replacement = nil, &block)
-    replacement ||= block
-    raise "No replacement given" if replacement.nil?
-    transformation_offset_differences = []
-    transformation_original = []
+    @transformed_segments ||= {}
+    @transformation_stack ||= []
+    stack = []
 
-    Segment.clean_sort(segments).reverse.each do |segment|
-      untransformed_segment_range_here= segment.range_in(self)
-      transformed_segment_range  = self.transform_range(untransformed_segment_range_here)
-      next if conflict?(transformed_segment_range)
+    Transformed.sort(segments).each do |segment|
+      shift = shift segment.range
 
-      text_before_transform = self[transformed_segment_range]
+      next if shift.nil?
+
+      shift_begin, shift_end = shift
+
+      text_offset = self.respond_to?(:offset)? self.offset : 0
+      updated_begin = segment.offset + shift_begin - text_offset
+      updated_end   = segment.range.last + shift_end - text_offset
+
+      updated_range = (updated_begin..updated_end)
+
+      updated_text = self[updated_begin..updated_end]
+
+      original_text = segment.dup
+      segment.replace updated_text
 
       case
+      when block_given?
+        new =  block.call(segment)
       when String === replacement
-        transformed_text = replacement
+        new = replacement
       when Proc === replacement
-
-        # Prepare segment with new text
-        save_segment_text = segment.dup
-        save_offset = segment.offset
-        segment.replace text_before_transform
-        segment.offset = transformed_segment_range.begin
-
-        transformed_text = replacement.call segment
-
-        # Restore segment with original text
-        segment.replace save_segment_text
-        segment.offset = save_offset
-      else
-        raise "Replacemente not String nor Proc"
+        new = replacement.call(segment)
       end
-      diff = segment.length - transformed_text.length
-      self[transformed_segment_range] = transformed_text
 
-      transformation_offset_differences << [untransformed_segment_range_here.begin, diff, text_before_transform.length, transformed_text.length]
-      transformation_original << text_before_transform
+      diff = new.length - segment.length
+
+      self[updated_begin..updated_end] = new
+
+      @transformed_segments[segment.object_id] = [segment.range, diff, updated_text, updated_range, @transformed_segments.size]
+
+      segment.replace original_text
+      stack << segment.object_id
     end
-
-    @transformation_offset_differences ||= []
-    @transformation_offset_differences << transformation_offset_differences
-    @transformation_original ||= []
-    @transformation_original << transformation_original
+    @transformation_stack << stack
   end
 
-  def restore(segments = nil, first_only = false)
-    stop = false
-    while self.transformation_offset_differences.any? and not stop
-      transformation_offset_differences = self.transformation_offset_differences.pop
-      transformation_original           = self.transformation_original.pop
-
-      ranges = transformation_offset_differences.collect do |offset,diff,orig_length,rep_length|
-        (offset..(offset + rep_length - 1))
-      end
-
-      ranges.zip(transformation_original).reverse.each do |range,text|
-        self.transformed_set(range, text)
-      end
-
-      stop = true if first_only
-
-      next if segments.nil?
-
-      segment_ranges = segments.each do |segment|
-        r = segment.range
-
-        s = r.begin
-        e = r.end
-        sdiff = 0
-        ediff = 0
-        transformation_offset_differences.reverse.each do |offset,diff,orig_length,rep_length|
-          sdiff += diff if offset < s
-          ediff += diff if offset + rep_length - 1 < e
-        end
-
-        segment.offset = s + sdiff
-        segment.replace self[(s+sdiff)..(e + ediff)]
-      end
+  def fix_segment(segment, range, diff)
+    case
+      # Before
+    when segment.end < range.begin
+      # After
+    when segment.offset > range.end + diff
+      segment.offset -= diff
+      # Includes
+    when (segment.offset <= range.begin and segment.end >= range.end + diff)
+      segment.replace self[segment.offset..segment.end - diff]
+    else
+      raise "Segment Overlaps"
     end
+  end
 
-    segments
+  def restore(segments, first_only = false)
+    return segments if @transformation_stack.empty?
+
+    if first_only
+      @transformation_stack.pop.reverse.each do |id|
+        orig_range, diff, text, range = @transformed_segments.delete id
+
+        new_range = (range.begin..range.last + diff)
+        self[new_range] = text
+        segments.each do |segment|
+          next unless Segment === segment
+          fix_segment(segment, range, diff)
+        end if Array === segments
+      end
+      segments
+    else
+      while @transformation_stack.any?
+        restore(segments, true)
+      end
+      segments
+    end
   end
 end
-
-
