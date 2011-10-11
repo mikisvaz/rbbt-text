@@ -110,7 +110,7 @@ class TokenTrieNER < NER
   end
 
   def self.merge(index1, index2)
-    index1.write if index1.respond_to? :write
+    index1.write if index1.respond_to? :write and not index1.write?
     index2.each do |key, new_index2|
       case
       when key == :END
@@ -119,7 +119,8 @@ class TokenTrieNER < NER
         end1.uniq!
         index1[:END] = end1
       when index1.include?(key)
-        index1[key] = merge(index1[key], new_index2)
+        new = merge(index1[key], new_index2)
+        index1[key] = new
       else
         index1[key] = new_index2
       end
@@ -148,7 +149,10 @@ class TokenTrieNER < NER
         tokens = Array === name ? name : tokenize(name, false, split_at, no_clean) 
         tokens.extend EnumeratedArray
 
-        tmp_index = merge(tmp_index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
+        token_index = index_for_tokens(tokens, code, type, slack)
+
+        tmp_index = merge(tmp_index, token_index) unless tokens.empty?
+
         items_in_chunk += 1
 
         if items_in_chunk > chunk_size
@@ -268,12 +272,11 @@ class TokenTrieNER < NER
     when TSV === new
       Log.debug "TokenTrieNER merging TSV"
       old_unnamed = new.unnamed
-      old_monitor = new.monitor
       new.unnamed = true
-      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
+      #new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
       TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
       new.unnamed = old_unnamed
-      new.monitor = old_monitor
+      #new.monitor = old_monitor
     when Hash === new
       Log.debug "TokenTrieNER merging Hash"
       TokenTrieNER.merge(@index, new)
@@ -281,7 +284,7 @@ class TokenTrieNER < NER
       Log.debug "TokenTrieNER merging file: #{ new }"
       new = TSV.open(new, :flat)
       new.unnamed = true
-      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
+      #new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
       TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
     end
   end
