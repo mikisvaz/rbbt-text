@@ -99,7 +99,8 @@ module DocumentRepo
   end
 
   def add(text, namespace, id, type, hash)
-    write
+    read
+    write unless write?
     docid = fields2docid(namespace, id, type, hash)
     self[docid] = text unless self.include? docid
     read

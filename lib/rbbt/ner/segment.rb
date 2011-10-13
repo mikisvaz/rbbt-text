@@ -297,8 +297,11 @@ module Segment
   end
 
   def self.load_tsv(tsv)
-    tsv.collect do |id, values|
-      Annotated.load_tsv_values(id, values, tsv.fields)
+    fields = tsv.fields
+    tsv.with_unnamed do
+      tsv.collect do |id, values|
+        Annotated.load_tsv_values(id, values, fields)
+      end
     end
   end
 

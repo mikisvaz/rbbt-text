@@ -148,7 +148,9 @@ class Document
         fields = data.fields if fields.nil? and data.respond_to? :fields
 
 
-        data.filter
+        if data.respond_to? :persistence_path and String === data.persistence_path
+          data.filter(data.persistence_path + '.filters')
+        end
         data.add_filter("field:#{ doc_field }", @docid)
         data.add_filter("field:#{ entity_field }", "#{ entity }")
         keys = data.keys
@@ -157,7 +159,7 @@ class Document
 
         if keys.empty?
           segments = produce_#{entity}
-          segments << Segment.setup("No #{entity} found in document #{ @docid }", -1) if segments.empty?
+          segments << Segment.setup("No #{entity} found in document " + @docid.to_s, -1) if segments.empty?
           tsv = Segment.tsv(segments, *fields.reject{|f| ["#{doc_field}", "#{entity_field}", "Start", "End", "annotation_types"].include? f})
 
           tsv.add_field "#{ doc_field }" do
@@ -178,6 +180,7 @@ class Document
           data.pop_filter
           data.pop_filter
           data.read
+
         else
           if raw == :check
             data.close

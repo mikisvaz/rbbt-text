@@ -267,22 +267,22 @@ class TokenTrieNER < NER
       TokenTrieNER.merge(@index, new.index)
     when TSV === new
       Log.debug "TokenTrieNER merging TSV"
-      old_unnamed = new.unnamed
-      old_monitor = new.monitor
-      new.unnamed = true
-      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
-      TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
-      new.unnamed = old_unnamed
-      new.monitor = old_monitor
+      new.with_unnamed do
+        new.with_monitor({:step => 1000, :desc => "Processing TSV into TokenTrieNER"}) do
+          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
+        end
+      end
     when Hash === new
       Log.debug "TokenTrieNER merging Hash"
       TokenTrieNER.merge(@index, new)
     when String === new
       Log.debug "TokenTrieNER merging file: #{ new }"
       new = TSV.open(new, :flat)
-      new.unnamed = true
-      new.monitor = {:step => 1000, :desc => "Processing TSV into TokenTrieNER"}
-      TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
+      new.with_unnamed do
+        new.with_monitor({:step => 1000, :desc => "Processing TSV into TokenTrieNER"}) do
+          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
+        end
+      end
     end
   end
 

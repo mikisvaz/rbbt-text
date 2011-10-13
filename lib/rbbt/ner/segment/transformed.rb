@@ -92,6 +92,7 @@ module Transformed
     stack = []
 
     Transformed.sort(segments).each do |segment|
+      next if segment.offset.nil?
       shift = shift segment.range
 
       next if shift.nil?
