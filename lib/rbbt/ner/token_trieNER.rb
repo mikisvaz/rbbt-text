@@ -110,7 +110,7 @@ class TokenTrieNER < NER
   end
 
   def self.merge(index1, index2)
-    index1.write if index1.respond_to? :write
+    index1.write if index1.respond_to? :write and not index1.write?
     index2.each do |key, new_index2|
       case
       when key == :END
@@ -119,7 +119,8 @@ class TokenTrieNER < NER
         end1.uniq!
         index1[:END] = end1
       when index1.include?(key)
-        index1[key] = merge(index1[key], new_index2)
+        new = merge(index1[key], new_index2)
+        index1[key] = new
       else
         index1[key] = new_index2
       end
@@ -148,7 +149,10 @@ class TokenTrieNER < NER
         tokens = Array === name ? name : tokenize(name, false, split_at, no_clean) 
         tokens.extend EnumeratedArray
 
-        tmp_index = merge(tmp_index, index_for_tokens(tokens, code, type, slack)) unless tokens.empty?
+        token_index = index_for_tokens(tokens, code, type, slack)
+
+        tmp_index = merge(tmp_index, token_index) unless tokens.empty?
+
         items_in_chunk += 1
 
         if items_in_chunk > chunk_size
