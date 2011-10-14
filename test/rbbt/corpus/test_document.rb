@@ -2,7 +2,19 @@ require File.join(File.expand_path(File.dirname(__FILE__)), '../../test_helper.r
 require 'rbbt/corpus/document'
 require 'test/unit'
 
+module TokenEntity
+  extend Annotation
+  include Segment
+  self.annotation :original
+end
 class Document
+
+  def tokenize(text)
+    Token.tokenize(text).collect do |token|
+      TokenEntity.setup(token.dup, token.offset, token.original)
+    end
+  end
+
   define :sentences do 
     require 'rbbt/nlp/nlp'
     NLP.geniass_sentence_splitter(text)
@@ -10,22 +22,22 @@ class Document
 
   define :tokens do
     require 'rbbt/ner/segment/token'
-    Token.tokenize(text)
+    tokenize(text)
   end
  
   define :long_words do
     require 'rbbt/ner/segment/token'
-    Token.tokenize(text).select{|tok| tok.length > 5}
+    tokenize(text).select{|tok| tok.length > 5}
   end
 
   define :short_words do
     require 'rbbt/ner/segment/token'
-    Token.tokenize(text).select{|tok| tok.length < 5}
+    tokenize(text).select{|tok| tok.length < 5}
   end
  
   define :even_words do
     require 'rbbt/ner/segment/token'
-    Token.tokenize(text).select{|tok| tok.length % 2 == 0}
+    tokenize(text).select{|tok| tok.length % 2 == 0}
   end
 
   define :missing do
@@ -110,7 +122,7 @@ another sentence.
       doc = Document.new(dir)
       doc.text = text
 
-      sentence = doc.sentences.last
+      sentence = doc.sentences.sort_by{|sentence| sentence.offset}.last
       doc.load_into sentence, :tokens 
 
       assert_equal 5, sentence.tokens.length
@@ -134,7 +146,7 @@ another sentence.
       doc = Document.new(dir)
       doc.text = text
 
-      sentence = doc.sentences.last
+      sentence = doc.sentences.sort_by{|sentence| sentence.offset}.last
       Misc.benchmark(1) do
         doc = Document.new(dir)
         doc.text = text
@@ -166,7 +178,7 @@ another sentence.
       doc = Document.new(dir)
       doc.text = text * 10
 
-      sentence = doc.sentences.last
+      sentence = doc.sentences.sort_by{|sentence| sentence.offset}.last
 
       doc.load_into sentence, :tokens, :long_words
 
@@ -178,9 +190,9 @@ another sentence.
       doc = Document.new(dir)
       doc.text = text * 10
       doc.sentences
-      assert_equal sentence, doc.sentences.last
+      assert_equal sentence, doc.sentences.sort_by{|sentence| sentence.offset}.last
 
-      sentence = doc.sentences.last
+      sentence = doc.sentences.sort_by{|sentence| sentence.offset}.last
       doc.load_into sentence, :tokens, :long_words
 
       assert_equal 2, sentence.long_words.length
@@ -211,7 +223,7 @@ another sentence.
       doc.text = text * 10
       doc.docid = "TEST"
 
-      sentence = doc.sentences.last
+      sentence = doc.sentences.sort_by{|sentence| sentence.offset}.last
 
       doc.load_into sentence, :tokens, :long_words, :short_words, :even_words
 

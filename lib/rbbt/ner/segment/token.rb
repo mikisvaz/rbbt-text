@@ -10,9 +10,21 @@ module Token
     text.original = original
     text
   end
+  
+  def info
+    {:original => original, :offset => offset}
+  end
+
+  def id
+    Misc.hash2md5 info.merge :self => self
+  end
+
+  def end
+    offset + self.length - 1
+  end
 
   def range
-    (offset..offset + length - 1)
+    (offset..self.end)
   end
 
   def self.tokenize(text, split_at = /\s|(\(|\)|[-."':,])/, start = 0)
