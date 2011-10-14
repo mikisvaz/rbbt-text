@@ -2,9 +2,18 @@ require 'rbbt/annotations'
 require 'rbbt/ner/segment'
 
 module Token
-  extend Annotation
-  include Segment
-  self.annotation :original
+  attr_accessor :original, :offset
+
+  def self.setup(text, start, original = nil)
+    text.extend Token
+    text.offset = start
+    text.original = original
+    text
+  end
+
+  def range
+    (offset..offset + length - 1)
+  end
 
   def self.tokenize(text, split_at = /\s|(\(|\)|[-."':,])/, start = 0)
 
