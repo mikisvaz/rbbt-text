@@ -90,6 +90,7 @@ class Dictionary::TF_IDF
        @terms[term].to_f / num_docs * Math::log(1.0/df_value)
       ]
     }
+
     if limit
       Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
     else
