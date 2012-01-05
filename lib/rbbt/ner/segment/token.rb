@@ -2,7 +2,11 @@ require 'rbbt/annotations'
 require 'rbbt/ner/segment'
 
 module Token
-  attr_accessor :original, :offset
+  attr_accessor :offset, :original
+  
+  def self.all_annotations
+    [:offset, :original]
+  end
 
   def self.setup(text, start, original = nil)
     text.extend Token
