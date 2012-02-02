@@ -1,9 +1,11 @@
 require 'rbbt/ner/segment'
+require 'rbbt/entity'
 
 module NamedEntity 
-  extend Annotation
+  extend Entity
   include Segment
-  self.annotation :type, :code, :score
+
+  self.annotation :type, :code, :score, :docid
 
   def report
     <<-EOF

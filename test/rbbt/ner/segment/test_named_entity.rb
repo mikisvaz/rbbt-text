@@ -4,7 +4,7 @@ require 'rbbt/ner/segment/named_entity'
 
 class TestClass < Test::Unit::TestCase
   def test_info
-    a = "test"
+    a = ["test"]
     NamedEntity.setup a
     assert(! a.info.keys.include?(:code))
     a.code = 10
