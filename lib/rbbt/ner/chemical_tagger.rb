@@ -7,7 +7,7 @@ require 'rbbt/util/log'
 class ChemicalTagger < NER
   Rbbt.claim Rbbt.software.opt.ChemicalTagger, :install, Rbbt.share.install.software.ChemicalTagger.find
 
-  Rjb::load(nil, jvmargs = ['-Xms128m','-Xmx2048m'])
+  Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G'])
 
   @@RbbtChemicalTagger = Rjb::import('RbbtChemicalTagger')
 

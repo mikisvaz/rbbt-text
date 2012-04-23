@@ -8,9 +8,9 @@ class TestOSCAR4 < Test::Unit::TestCase
   def test_match
     begin
       ner = OSCAR4.new
-      str  = "Alternatively, rearrangement of O-(w-haloalkyl)esters 34 of 2-carboethoxy-N-hydroxypyridine-2-selone affords azonianaphthalenium halides 37 in 79% yield"
+      str  = "Alternatively, CO2 rearrangement of O-(w-haloalkyl)esters 34 of 2-carboethoxy-N-hydroxypyridine-2-selone affords azonianaphthalenium halides 37 in 79% yield"
 
-      mentions = ner.match(str, "CM", false)
+      mentions = ner.match(str, "CM")
       good_mentions = ["2-carboethoxy-N-hydroxypyridine-2-selone", "O-(w-haloalkyl)esters"]
 
       good_mentions.each{|mention| 
@@ -22,7 +22,7 @@ class TestOSCAR4 < Test::Unit::TestCase
     end
   end
 
-  def test_ranges
+  def _test_ranges
     begin
       ner = OSCAR4.new
       str =<<-EOF 
