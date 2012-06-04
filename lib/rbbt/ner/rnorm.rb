@@ -79,17 +79,29 @@ class Normalizer
         next if pos
         pos = i if list.include? mention
       }
-      pos
+      pos 
     }
     return nil if positions.compact.empty?
-    best = candidates.zip(positions).sort{|a,b| a[1] <=> b[1]}.first[1]
+    best = candidates.zip(positions).sort{|a,b| 
+      case
+      when (a[1].nil? and b[1].nil?)
+        0
+      when b[1].nil?
+        1
+      when a[1].nil?
+        ddd 3
+        -1
+      else
+        a[1] <=> b[1]
+      end
+    }.first[1]
     candidates.zip(positions).select{|p| p[1] == best}.collect{|p| p[0]}
   end
 
 
 
   def initialize(lexicon, options = {})
-    @synonyms = TSV.open(lexicon, :flat)
+    @synonyms = TSV.open(lexicon, :type => :flat)
 
     @index = CueIndex.new
     @index.load(lexicon, options[:max_candidates])

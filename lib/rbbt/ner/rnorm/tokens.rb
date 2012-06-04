@@ -160,6 +160,7 @@ class Tokenizer
     @transforms = []
 
     file ||= Rbbt.share.rnorm.tokens_default.produce if !file && !block
+    file = file.find if file.respond_to? :find
     load_config :main, file, &block
   end
 

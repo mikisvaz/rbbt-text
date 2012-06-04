@@ -17,6 +17,7 @@ class CueIndex
 
     file ||= Rbbt.share.rnorm.cue_default.produce if !file && !block
 
+    file = file.find if file.respond_to? :find
     load_config(:define, file, &block)
   end
 
@@ -47,7 +48,7 @@ class CueIndex
   
   def load(file, max_candidates = 50)
     @indexes = Array.new(@rules.size){Hash.new}
-    data = TSV.open(file, :flat)
+    data = TSV.open(file, :type => :flat)
     data.each{|code, values|
       values.each{|value|
         cues(value).each_with_index{|cue_list,i|
