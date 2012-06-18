@@ -48,12 +48,12 @@ class CueIndex
   
   def load(file, max_candidates = 50)
     @indexes = Array.new(@rules.size){Hash.new}
-    data = TSV.open(file, :type => :flat)
+    data = TSV === file ? file : TSV.open(file, :type => :flat, :unnamed => true)
     data.each{|code, values|
       values.each{|value|
         cues(value).each_with_index{|cue_list,i|
           cue_list.each{|cue|
-            @indexes[i][cue] ||= []
+            @indexes[i][cue] ||= Set.new
             @indexes[i][cue]  << code unless @indexes[i][cue].include? code
           }
         }
@@ -70,7 +70,7 @@ class CueIndex
     @indexes.each_with_index{|index,i|
       best = []
       cues[i].each{|cue|
-        best << index[cue] if index[cue]
+        best << index[cue].to_a if index[cue]
       }
       return best.flatten if best.any?
     }

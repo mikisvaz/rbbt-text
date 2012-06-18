@@ -42,13 +42,14 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     end
   end
 
-  def self.process_stream(stream)
+  def self.process_stream(stream, case_insensitive = false)
     index = {}
     while line = stream.gets
       names = line.split(/\t|\|/).select{|n| not n.empty?}.compact
       code = names.shift
       
       names.each do |name|
+        name = name.downcase if case_insensitive
         ngram = name[0..2].strip
         index[ngram] ||= []
         index[ngram] << [name, code]
@@ -58,13 +59,14 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
  
   end
 
-  def self.process_hash(hash)
+  def self.process_hash(hash, case_insensitive = false)
     index = {}
     hash.monitor = true if hash.respond_to? :monitor
     hash.unnamed = true if hash.respond_to? :unnamed
     method = hash.respond_to?(:through)? :through : :each
     hash.send(method) do |code, names|
       names.each do |name|
+        name = name.downcase if case_insensitive
         ngram = name[0..2].strip
         index[ngram] ||= []
         index[ngram] << [name, code]
@@ -72,6 +74,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     end
     index
   end
+
 
   def self.match(index, text)
     matches = []
@@ -112,22 +115,24 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     matches
   end
 
-  attr_accessor :index, :type
-  def initialize(file, type = nil)
+
+  attr_accessor :index, :type, :case_insensitive
+  def initialize(file, type = nil, case_insensitive = false)
     @type = type
+    @case_insensitive = case_insensitive
     case
     when (TSV === file or Hash === file)
       Log.debug("Ngram Prefix Dictionary. Loading of lexicon hash started.")
-      @index = NGramPrefixDictionary.process_hash(file)
+      @index = NGramPrefixDictionary.process_hash(file, case_insensitive)
     when Path === file
       Log.debug("Ngram Prefix Dictionary. Loading of lexicon file started: #{ file }.")
-      @index = NGramPrefixDictionary.process_stream(file.open)
+      @index = NGramPrefixDictionary.process_stream(file.open, case_insensitive)
     when Misc.is_filename?(file)
       Log.debug("Ngram Prefix Dictionary. Loading of lexicon file started: #{ file }.")
       @index = NGramPrefixDictionary.process_stream(Open.open(file))
     when StreamIO === file
       Log.debug("Ngram Prefix Dictionary. Loading of lexicon stream started.")
-      @index = NGramPrefixDictionary.process_stream(file)
+      @index = NGramPrefixDictionary.process_stream(file, case_insensitive)
     else
       raise "Format of lexicon not understood: #{file.inspect}"
     end
@@ -136,9 +141,16 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
   end
 
   def match(text)
-    NGramPrefixDictionary.match(index, text).collect{|name, code, offset|
+    matches = NGramPrefixDictionary.match(index, (case_insensitive ? text.downcase : text)).collect{|name, code, offset|
       NamedEntity.setup(name, offset, type, code)
     }
+
+    if case_insensitive
+      matches.each{|m| m.replace(text[m.range])}
+      matches
+    else
+      matches
+    end
   end
 end
 

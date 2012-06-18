@@ -1,6 +1,5 @@
 require 'rbbt/util/misc'
 
-
 plural = Proc.new do |t| t.sub(/s$/,'') end
 
 tokens do

@@ -254,6 +254,7 @@ class Document
       name = name.to_s
       index = segment_index(name, persist_dir)
       annotations = index[segment.range]
+      segment.segments[name] ||= {}
       segment.segments[name] = annotations
       class << segment
         self

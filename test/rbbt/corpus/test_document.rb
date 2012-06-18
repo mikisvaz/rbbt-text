@@ -7,6 +7,7 @@ module TokenEntity
   include Segment
   self.annotation :original
 end
+
 class Document
 
   def tokenize(text)

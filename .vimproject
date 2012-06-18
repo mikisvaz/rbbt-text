@@ -39,6 +39,8 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    ngram_prefix_dictionary.rb
    patterns.rb
 
+   finder.rb
+
    rnorm.rb
    rnorm=rnorm{
     cue_index.rb

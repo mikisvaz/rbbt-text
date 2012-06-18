@@ -7,6 +7,25 @@ module Document
     attr_accessor :corpus
   end
 
+  attr_accessor :docid
+
+  property :docid => :single2array do |*args|
+    @docid ||= if self =~ /^text:/
+                 self
+               else
+                 ["text", Misc.digest(self.inspect)] * ":"
+               end
+    @docid
+  end
+
+  property :annotation_id => :single2array do |*args|
+    docid(*args)
+  end
+
+  property :_get_text => :single do
+    self
+  end
+
   property :text => :array2single do |*args|
     article_text = {}
     missing = []
@@ -14,12 +33,15 @@ module Document
     if Document.corpus.nil?
       self._get_text(*args)
     else
+
       self.each do |doc|
-        doc_code = args.any? ? [doc, Misc.digest(args.inspect)] * ":" : doc
         Document.corpus.read if Document.corpus.respond_to? :read
 
-        if Document.corpus.include?(doc) 
-          article_text[doc_code] =  Document.corpus[doc_code] 
+        case
+        when Document.corpus.include?(doc) 
+          article_text[doc] =  Document.corpus[doc] 
+        when Document.corpus.include?(doc.docid(*args)) 
+          article_text[doc] =  Document.corpus[doc.docid(*args)] 
         else
           missing << doc
         end
@@ -31,13 +53,16 @@ module Document
 
         Misc.lock(Document.corpus.respond_to?(:persistence_path) ? Document.corpus.persistence_path : nil) do
           Document.corpus.write if Document.corpus.respond_to? :write
+
           missing_text.each do |doc, text|
-            doc_code = args.any? ? [doc, Misc.digest(args.inspect)] * ":" : doc
-            article_text[doc_code] = text
-            Document.corpus[doc_code] = text
+            doc = missing.first.annotate doc.dup
+            Document.corpus[doc.docid(*args)] = text
+            article_text[doc] = text
           end
+
           Document.corpus.read if Document.corpus.respond_to? :read
         end
+
       end
 
       article_text.values_at *self
@@ -45,3 +70,4 @@ module Document
   end
 
 end
+
