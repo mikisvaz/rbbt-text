@@ -44,6 +44,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 
   def self.process_stream(stream, case_insensitive = false)
     index = {}
+
     while line = stream.gets
       names = line.split(/\t|\|/).select{|n| not n.empty?}.compact
       code = names.shift
@@ -55,15 +56,17 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
         index[ngram] << [name, code]
       end
     end
+
     index
- 
   end
 
   def self.process_hash(hash, case_insensitive = false)
     index = {}
+
     hash.monitor = true if hash.respond_to? :monitor
     hash.unnamed = true if hash.respond_to? :unnamed
     method = hash.respond_to?(:through)? :through : :each
+
     hash.send(method) do |code, names|
       names.each do |name|
         name = name.downcase if case_insensitive
@@ -72,6 +75,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
         index[ngram] << [name, code]
       end
     end
+
     index
   end
 
