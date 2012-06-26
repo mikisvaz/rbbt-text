@@ -30,6 +30,11 @@ C2;bb
       matches = index.match('AA oo')
       assert matches.select{|m| m.code.include? 'C1'}.any?
       assert matches.include? 'AA'
+
+      matches = index.match('AA')
+      assert matches.select{|m| m.code.include? 'C1'}.any?
+      assert matches.include? 'AA'
+
     end
   end
 

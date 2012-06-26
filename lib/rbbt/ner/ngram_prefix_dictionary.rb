@@ -95,12 +95,12 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
         diff = text_length - text_offset
         # Match with entries
         index[ngram].each do |name, code|
-          if name.length < diff
+          if name.length <= diff
             #if piece.start_with? name and 
             #  (text_offset + name.length == text_length or piece[name.length] == " "[0])
 
             if fast_start_with(text, name, text_offset)
-              found = [name, code, text_offset]
+              found = [name.dup, code, text_offset]
               break
             end
           end
@@ -156,32 +156,4 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
       matches
     end
   end
-end
-
-if __FILE__ == $0
-  require 'rbbt/sources/jochem'
-  require 'rbbt/sources/pubmed'
-
-  texts = []
-  index = {}
-
-  texts = PubMed.get_article(PubMed.query("GB-1a", 100)).collect do |pmid, article|
-    article.text
-  end
-
-  texts *= 150/texts.length
-
-  tsv = Rbbt.share.databases.JoChem.lexicon.tsv :flat, :persistence => false, :grep => "GB"
-  #tsv = Rbbt.share.databases.JoChem.lexicon.tsv :flat, :persistence => true
-
-  tsv.unnamed = true
-  ner = NGramPrefixDictionary.new(tsv)
-
-  Misc.benchmark do
-    texts.each do |text|
-      ner.match(text)
-    end
-  end
-
-
 end
