@@ -101,8 +101,29 @@ module NLP
           a, b, d, c = $1, $2, $3, $4
           events << eventCount.to_s  << "\t"
           events << returnFeatures(a, b, c)
-          (" " + a + b + "__" + eventCount.to_s + "____" + d + "__" + c + " ")
+          (" " << a << b << "__" << eventCount.to_s << "____" << d << "__" << c << " ")
         }
+        eventCount += 1
+      end
+      marks << line
+    end
+
+    [events, marks]
+  end
+
+  def self.event_extraction(text)
+    events = ""
+    marks = ""
+
+    eventCount = 0
+
+    pat = / ([^ ]+)([.!\?\)\]\"])( +)([^ ]+) /
+    for line in text.split(/\n/) do
+      while line.match(pat) do
+        a, b, d, c = $1, $2, $3, $4
+        events << eventCount.to_s  << "\t"
+        events << returnFeatures(a, b, c)
+        line = $` + (" " << a << b << "__" << eventCount.to_s << "____" << d << "__" << c << " ") << $'
         eventCount += 1
       end
       marks << line

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+name='OpenNLP'
+url="http://apache.rediris.es//incubator/opennlp/apache-opennlp-1.5.2-incubating-bin.tar.gz"
+
+get_src "$name" "$url"
+move_opt "$name" 
+
+
+ln -sf  "$PKG_DIR/lib/*.jar"  "$OPT_JAR_DIR/"
+clean_build

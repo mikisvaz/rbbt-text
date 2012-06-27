@@ -11,6 +11,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
   nlp=rbbt/nlp{
    nlp.rb
+   open_nlp=open_nlp{
+    sentence_splitter.rb
+   }
    genia=genia{
     sentence_splitter.rb
    }
@@ -63,6 +66,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   software=install/software filter="*"{
    ABNER
    BANNER
+   OpenNLP
    OSCAR3
    OSCAR4
    ChemicalTagger
