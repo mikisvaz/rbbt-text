@@ -81,6 +81,8 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 
 
   def self.match(index, text)
+    return [] if text.nil? or text.empty?
+
     matches = []
 
     text_offset = 0

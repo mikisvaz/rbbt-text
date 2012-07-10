@@ -1,4 +1,5 @@
 require 'rbbt/entity'
+require 'rbbt/ner/segment/docid'
 
 module Document
   extend Entity
@@ -45,6 +46,8 @@ module Document
         else
           missing << doc
         end
+
+        Document.corpus.close if Document.corpus.respond_to? :close
       end
 
       if missing.any?
@@ -52,15 +55,15 @@ module Document
         missing_text = Misc.process_to_hash(missing){|list| list._get_text(*args)}
 
         Misc.lock(Document.corpus.respond_to?(:persistence_path) ? Document.corpus.persistence_path : nil) do
-          Document.corpus.write if Document.corpus.respond_to? :write
+          Document.corpus.write if Document.corpus.respond_to? :write and not Document.corpus.write?
 
-          missing_text.each do |doc, text|
+          missing_text.each do |doc, doc_text|
             doc = missing.first.annotate doc.dup
-            Document.corpus[doc.docid(*args)] = text
-            article_text[doc] = text
+            Document.corpus[doc.docid(*args)] = doc_text
+            article_text[doc] = doc_text
           end
 
-          Document.corpus.read if Document.corpus.respond_to? :read
+          Document.corpus.close if Document.corpus.respond_to? :close
         end
 
       end

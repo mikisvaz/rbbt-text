@@ -5,7 +5,7 @@ module NamedEntity
   extend Entity
   include Segment
 
-  self.annotation :type, :code, :score, :docid
+  self.annotation :type, :code, :score
 
   def report
     <<-EOF

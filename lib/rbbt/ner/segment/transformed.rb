@@ -119,7 +119,7 @@ module Transformed
         new = replacement.call(segment)
       end
 
-      diff = new.length - segment.length
+      diff = new.length - segment.segment_length
 
       self[updated_begin..updated_end] = new
 

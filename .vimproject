@@ -21,6 +21,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   ner=rbbt/ner{
    segment.rb
    segment=segment{
+    docid.rb
     named_entity.rb
     token.rb
     segmented.rb

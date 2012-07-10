@@ -9,11 +9,16 @@ module Segment
     @offset = offset.nil? ? nil : offset.to_i
   end
 
+
+  def segment_length
+    self.length
+  end
+
   #{{{ Ranges
 
   def end
     return nil if offset.nil?
-    offset + length - 1
+    offset + segment_length - 1
   end
 
   def range
@@ -41,8 +46,14 @@ module Segment
     self
   end
 
-  def make_relative(segments)
-    segments.collect{|s| s.push offset}
+  def make_relative(segments, &block)
+    if block_given?
+      segments.each{|s| s.push offset}
+      yield(segments)
+      segments.each{|s| s.pull offset}
+    else
+      segments.each{|s| s.push offset}
+    end
   end
 
   def range_in(container = nil)
@@ -72,7 +83,7 @@ module Segment
         when (not a.range.include? b.offset and not b.range.include? a.offset)
           a.offset <=> b.offset
         else
-          a.length <=> b.length
+          a.segment_length <=> b.segment_length
         end
       end
     else
@@ -125,7 +136,7 @@ module Segment
         chunks << chunk
       end
 
-      segment_end = offset + segment.length - 1
+      segment_end = offset + segment.segment_length - 1
 
       if not skip_segments
         chunk = text[offset..segment_end]
@@ -156,8 +167,8 @@ module Segment
       offset = text.index part
       next if offset.nil?
       Segment.setup(part, pre_offset + offset)
-      pre_offset += offset + part.length - 1
-      text = text[(offset + part.length - 1)..-1]
+      pre_offset += offset + part.segment_length - 1
+      text = text[(offset + part.segment_length - 1)..-1]
     end
   end
 

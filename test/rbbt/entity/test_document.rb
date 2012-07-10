@@ -13,15 +13,15 @@ module Document
 
   property :banner => :single do |*args|
     normalize, organism = args
-    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :banner, :normalize => normalize, :organism => organism).exec
+    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :banner, :normalize => normalize, :organism => organism).exec.each{|e| SegmentWithDocid.setup(e, self.docid)}
   end
 
   property :abner => :single do |*args|
     normalize, organism = args
-    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :banner, :normalize => normalize, :organism => organism).exec
+    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :banner, :normalize => normalize, :organism => organism).exec.each{|e| SegmentWithDocid.setup(e, self.docid)}
   end
 
-  persist :abner, :annotations
+  persist :abner, :annotations, :dir => Rbbt.tmp.test.find(:user).entity_property
 end
 
 class TestDocument < Test::Unit::TestCase
@@ -37,6 +37,16 @@ class TestDocument < Test::Unit::TestCase
     pmid = "21904853"
     PMID.setup(pmid)
 
+    genes = pmid.abner.reject{|ne| ne.offset.nil?}
+    genes.each do |ne|
+      orig = ne
+      orig_range = ne.range
+      ne.mask
+      assert ne.masked?
+      assert ne =~ /^MASKED/
+      assert_equal orig_range, ne.range
+      assert_equal ne, ne.unmask
+    end
     assert pmid.abner.include? "TET2"
   end
 
