@@ -35,8 +35,8 @@ module Document
       self._get_text(*args)
     else
 
+      Document.corpus.read if Document.corpus.respond_to? :read
       self.each do |doc|
-        Document.corpus.read if Document.corpus.respond_to? :read
 
         case
         when Document.corpus.include?(doc) 
@@ -47,8 +47,8 @@ module Document
           missing << doc
         end
 
-        Document.corpus.close if Document.corpus.respond_to? :close
       end
+      Document.corpus.close if Document.corpus.respond_to? :close
 
       if missing.any?
         missing.first.annotate missing

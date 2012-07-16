@@ -35,7 +35,6 @@ module OpenNLP
       
       sentences = nil
       TmpFile.with_file do |tmpfile|
-        Log.medium "Starting"
         start_time = Time.now
 
         begin
