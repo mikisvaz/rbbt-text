@@ -9,7 +9,7 @@ require 'rbbt/util/log'
 require 'rbbt/corpus/document_repo'
 
 class Test::Unit::TestCase
-  def test_datafile(file)
+  def get_test_datafile(file)
     File.join(File.dirname(__FILE__), 'data', file)
   end
 

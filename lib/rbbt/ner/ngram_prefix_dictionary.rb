@@ -6,14 +6,15 @@ require 'rbbt/ner/segment/token'
 require 'rbbt/ner/NER'
 require 'inline'
 
+
 # This code was adapted from Ashish Tendulkar (ASK MARTIN)
 class NGramPrefixDictionary < NER
   STOP_LETTERS = %w(\' " ( ) { } [ ] - ? ! < ; : > . ,)
   STOP_LETTER_CHAR_VALUES = STOP_LETTERS.collect{|l| l[0]}
-  class << self
-    inline do |builder|
 
-      builder.c_raw <<-EOC
+  inline do |builder|
+
+    builder.c_raw_singleton <<-EOC
 int is_stop_letter(char letter)
 {
 
@@ -21,9 +22,9 @@ int is_stop_letter(char letter)
 
   return 0;
 }
-      EOC
+    EOC
 
-      builder.c <<-EOC
+    builder.c_singleton <<-EOC
 VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 {
   int length_cmp = RSTRING_LEN(cmp);
@@ -38,8 +39,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 
   return Qfalse;
 }
-      EOC
-    end
+    EOC
   end
 
   def self.process_stream(stream, case_insensitive = false)
