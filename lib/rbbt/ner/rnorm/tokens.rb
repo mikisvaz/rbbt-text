@@ -33,7 +33,8 @@ class Tokenizer
 
     def method_missing(name, *args, &bloc)
       @token = name.to_sym
-      @value = *args.first
+      value = args.first
+      @value = value
       self
     end
 
@@ -123,8 +124,12 @@ class Tokenizer
 
   #{{{ Metaprogramming hooks
   def define_tokens(name, *args, &block)
-    action = *args[0] || block ||  /#{name.to_s}s?/i
-      raise "Wrong format" unless (action.is_a?(Proc) || action.is_a?(Regexp))
+    action = args[0] || block ||  /#{name.to_s}s?/i
+
+    #HACK: Misterious error where *args[0] returns an array [/regexp/i] for
+    #example
+    #action = action.first if Array === action
+    raise "Wrong format" unless (action.is_a?(Proc) || action.is_a?(Regexp))
 
     @types[name.to_sym] = action
     @order.push name.to_sym
@@ -201,7 +206,7 @@ class Tokenizer
   #{{{ Comparisons
 
   def evaluate_tokens(list1, list2)
-    @operations.inject(0){| acc, o|
+    @operations.inject(0){|acc, o|
       acc + o.eval(list1, list2)
     }
   end

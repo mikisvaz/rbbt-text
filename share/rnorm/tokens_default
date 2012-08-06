@@ -13,7 +13,7 @@ tokens do
 
   # Some words for removal 
   stopword     do |w|  $stopwords.include?( w.downcase_first)  end
-  gene         /genes?/i 
+  gene         /genes?/i
   dna
   cdna
   rna
