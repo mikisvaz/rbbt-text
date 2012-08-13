@@ -19,8 +19,16 @@ module Document
     @docid
   end
 
-  property :annotation_id => :single2array do |*args|
-    docid(*args)
+  #property :annotation_id => :single2array do |*args|
+  #  docid(*args)
+  #end
+
+  property :annotation_id => :both do |*args|
+    if Array === self
+      Misc.hash2md5(info.merge(:self => self))
+    else
+      docid(*args)
+    end
   end
 
   property :_get_text => :single do
