@@ -10,7 +10,7 @@ require 'inline'
 # This code was adapted from Ashish Tendulkar (ASK MARTIN)
 class NGramPrefixDictionary < NER
   STOP_LETTERS = %w(\' " ( ) { } [ ] - ? ! < ; : > . ,)
-  STOP_LETTER_CHAR_VALUES = STOP_LETTERS.collect{|l| l[0]}
+  STOP_LETTER_CHAR_VALUES = STOP_LETTERS.collect{|l| l[0]} + ["\n", "\r", " "].collect{|l| l[0]}
 
   inline do |builder|
 
@@ -18,7 +18,7 @@ class NGramPrefixDictionary < NER
 int is_stop_letter(char letter)
 {
 
-  if( letter == ' ' || #{STOP_LETTERS.collect{|l| "letter == '#{l}' "} * "||"} ){ return 1;}
+  if( letter == ' ' || letter == '\\n' || letter == '\\r' || #{STOP_LETTERS.collect{|l| "letter == '#{l}' "} * "||"} ){ return 1;}
 
   return 0;
 }
@@ -88,7 +88,10 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     text_offset = 0
     text_length = text.length
     while (not text_offset.nil?) and text_offset < text_length
-      text_offset += 1 if STOP_LETTER_CHAR_VALUES.include? text[text_offset]
+      if STOP_LETTER_CHAR_VALUES.include? text[text_offset]
+        text_offset += 1 
+        next
+      end
       ngram =  text[text_offset..text_offset + 2].strip
 
       found = nil
@@ -110,7 +113,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
       end
 
       if found.nil?
-        text_offset = text.index(" ", text_offset)
+        text_offset = text.index(/[#{STOP_LETTERS + ["\n", "\r", " "]}]/, text_offset)
         text_offset += 1 unless text_offset.nil?
       else
         matches << found

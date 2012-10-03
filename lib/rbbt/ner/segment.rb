@@ -149,7 +149,7 @@ module Segment
 
     end
 
-    if not text.nil? and text.any?
+    if not text.nil? and not text.empty?
       chunk = text.dup
       Segment.setup(chunk, text_offset)
       chunks << chunk
