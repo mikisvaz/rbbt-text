@@ -1,0 +1,21 @@
+#!/bin/bash
+
+name='Linnaeus'
+url="http://sourceforge.net/projects/linnaeus/files/Linnaeus/linnaeus-2.0.tar.gz/download"
+species_url="http://sourceforge.net/projects/linnaeus/files/Entity_packs/species-proxy-1.2.tar.gz/download"
+
+install_src "$name" "$url"
+ln -s "$OPT_DIR/$name/bin/"*.jar "$OPT_JAR_DIR/$name.jar" 
+
+echo "GET SPECIES"  > /tmp/foo
+get_src "Linnaeus-species-proxy" "$species_url"
+pkg_dir="`opt_dir \"$name\"`"
+build_dir=`build_dir`
+echo $pkg_dir  >> /tmp/foo
+echo $build_dir  >> /tmp/foo
+mv "$build_dir" "$pkg_dir"
+tmp_file="/tmp/species-proxy-properties.tmp"
+cat  "$pkg_dir/species-proxy/properties.conf" |grep -v "^.dir =" >> $tmp_file
+echo "\$dir = $pkg_dir/species-proxy/" > "$pkg_dir/species-proxy/properties.conf"
+cat $tmp_file | grep -v "^#" >>  "$pkg_dir/species-proxy/properties.conf"
+
