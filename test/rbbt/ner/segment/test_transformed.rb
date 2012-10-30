@@ -74,6 +74,16 @@ class TestClass < Test::Unit::TestCase
       assert_equal original.gsub(/TP53/, 'GN'), a
     end
 
+    Transformed.with_transform(a, [gene1], "GN") do 
+      Transformed.with_transform(a, [gene2], "LONG_GENE_PLACEHOLDER") do 
+        assert_equal original.gsub(/TP53/, 'GN').sub('CDK5R1', "LONG_GENE_PLACEHOLDER"), a
+      end
+      assert_equal original.gsub(/TP53/, 'GN'), a
+    end
+
+    assert_equal original, a
+
+
     assert_equal original, a
 
     exp1, exp2 = nil, nil

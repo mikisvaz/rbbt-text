@@ -11,7 +11,7 @@ module Transformed
     text
   end
  
-  def self.with_transform(text, segments, replacement)
+  def self.with_transform(text, segments, replacement = nil)
 
     text.extend Transformed
     text.replace(segments, replacement)
@@ -146,7 +146,9 @@ module Transformed
     end
   end
 
-  def restore(segments, first_only = false)
+  # Restore the sentence from all transformation. Segments that are passed as
+  # parameters are restored from transformed space to original space
+  def restore(segments = [], first_only = false)
     return segments if @transformation_stack.empty?
 
     if first_only

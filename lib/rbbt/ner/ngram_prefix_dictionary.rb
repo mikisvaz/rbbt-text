@@ -11,6 +11,7 @@ require 'inline'
 class NGramPrefixDictionary < NER
   STOP_LETTERS = %w(\' " ( ) { } [ ] - ? ! < ; : > . ,)
   STOP_LETTER_CHAR_VALUES = STOP_LETTERS.collect{|l| l[0]} + ["\n", "\r", " "].collect{|l| l[0]}
+  LETTER_REGEXP = Regexp.compile(/[#{Regexp.quote((STOP_LETTERS + ["\n", "\r", " "]) * "")}]/)
 
   inline do |builder|
 
@@ -113,7 +114,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
       end
 
       if found.nil?
-        text_offset = text.index(/[#{STOP_LETTERS + ["\n", "\r", " "]}]/, text_offset)
+        text_offset = text.index(LETTER_REGEXP, text_offset)
         text_offset += 1 unless text_offset.nil?
       else
         matches << found
