@@ -5,12 +5,12 @@ module Linnaeus
 
   Rbbt.claim Rbbt.software.opt.Linnaeus, :install, Rbbt.share.install.software.Linnaeus.find
 
-  ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
 
-  Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx4G'])
 
   def self.init
     begin
+      ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
+      Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx4G']) unless Rjb.loaded?
       @@ArgParser    = Rjb::import('martin.common.ArgParser')
       @@Args         = @@ArgParser.new(ARGS)
       @@Loggers      = Rjb::import('martin.common.Loggers')

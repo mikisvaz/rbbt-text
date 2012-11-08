@@ -7,11 +7,13 @@ require 'rbbt/util/log'
 class ChemicalTagger < NER
   Rbbt.claim Rbbt.software.opt.ChemicalTagger, :install, Rbbt.share.install.software.ChemicalTagger.find
 
-  Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G'])
-
-  @@RbbtChemicalTagger = Rjb::import('RbbtChemicalTagger')
+  def self.init
+    Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G']) unless Rjb.loaded?
+    @@RbbtChemicalTagger ||= Rjb::import('RbbtChemicalTagger')
+  end
 
   def self.match(text,  type = nil, memm =  false)
+    self.init
 
     return [] if text.nil? or text.strip.empty?
 

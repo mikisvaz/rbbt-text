@@ -8,14 +8,17 @@ require 'rbbt/util/log'
 class OSCAR3 < NER
   Rbbt.claim Rbbt.software.opt.OSCAR3, :install, Rbbt.share.install.software.OSCAR3.find
 
-  @@TextToSciXML   = Rjb::import('uk.ac.cam.ch.wwmm.ptclib.scixml.TextToSciXML')
-  @@ProcessingDocumentFactory   = Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.document.ProcessingDocumentFactory')
-  @@MEMMSingleton = Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.memm.MEMMSingleton')
-  @@DFANEFinder = Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.finder.DFANEFinder')
-  @@MEMM = @@MEMMSingleton.getInstance();
-  @@DFA  = @@DFANEFinder.getInstance();
+  def self.init
+    @@TextToSciXML              ||= Rjb::import('uk.ac.cam.ch.wwmm.ptclib.scixml.TextToSciXML')
+    @@ProcessingDocumentFactory ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.document.ProcessingDocumentFactory')
+    @@MEMMSingleton             ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.memm.MEMMSingleton')
+    @@DFANEFinder               ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar3.recogniser.finder.DFANEFinder')
+    @@MEMM                      ||= @@MEMMSingleton.getInstance();
+    @@DFA                       ||= @@DFANEFinder.getInstance();
+  end
 
   def self.match(text,  type = nil, memm =  false)
+    self.init
     doc  = @@ProcessingDocumentFactory.getInstance().makeTokenisedDocument(@@TextToSciXML.textToSciXML(text), true, false, false);
     mentions = []
     it = doc.getTokenSequences().iterator

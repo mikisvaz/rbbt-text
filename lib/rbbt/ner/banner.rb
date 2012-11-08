@@ -9,13 +9,15 @@ class Banner < NER
 
   Rbbt.claim Rbbt.software.opt.BANNER, :install, Rbbt.share.install.software.BANNER.find
 
-  @@JFile = Rjb::import('java.io.File')
-  @@SimpleTokenizer = Rjb::import('banner.tokenization.SimpleTokenizer')
-  @@CRFTagger = Rjb::import('banner.tagging.CRFTagger')
-  @@ParenthesisPostProcessor = Rjb::import('banner.processing.ParenthesisPostProcessor')
-  @@HeppleTagger = Rjb::import('dragon.nlp.tool.HeppleTagger')
-  @@Sentence = Rjb::import('banner.Sentence')
-  @@EngLemmatiser = Rjb::import('dragon.nlp.tool.lemmatiser.EngLemmatiser')
+  def self.init
+    @@JFile                    ||= Rjb::import('java.io.File')
+    @@SimpleTokenizer          ||= Rjb::import('banner.tokenization.SimpleTokenizer')
+    @@CRFTagger                ||= Rjb::import('banner.tagging.CRFTagger')
+    @@ParenthesisPostProcessor ||= Rjb::import('banner.processing.ParenthesisPostProcessor')
+    @@HeppleTagger             ||= Rjb::import('dragon.nlp.tool.HeppleTagger')
+    @@Sentence                 ||= Rjb::import('banner.Sentence')
+    @@EngLemmatiser            ||= Rjb::import('dragon.nlp.tool.lemmatiser.EngLemmatiser')
+  end
 
 
 
@@ -26,6 +28,7 @@ class Banner < NER
                  lemmadir  = Rbbt.software.opt.BANNER.nlpdata.lemmatiser.find,
                  taggerdir = Rbbt.software.opt.BANNER.nlpdata.tagger.find
                 )
+    Banner.init
 
     @tokenizer = @@SimpleTokenizer.new
 

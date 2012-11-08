@@ -10,13 +10,16 @@ class Abner < NER
 
   Rbbt.claim Rbbt.software.opt.ABNER, :install, Rbbt.share.install.software.ABNER.find
 
-  @@JFile   = Rjb::import('java.io.File')
-  @@Tagger  = Rjb::import('abner.Tagger')
-  @@Trainer = Rjb::import('abner.Trainer')
+  def self.init
+    @@JFile   ||= Rjb::import('java.io.File')
+    @@Tagger  ||= Rjb::import('abner.Tagger')
+    @@Trainer ||= Rjb::import('abner.Trainer')
+  end
 
   # If modelfile is present a custom trained model can be used,
   # otherwise, the default BioCreative model is used.
   def initialize(modelfile=nil)
+    Abner.init
     if modelfile == nil         
       @tagger = @@Tagger.new(@@Tagger.BIOCREATIVE)
     else                

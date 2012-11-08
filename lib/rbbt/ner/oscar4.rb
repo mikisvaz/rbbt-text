@@ -8,15 +8,19 @@ require 'rbbt/util/log'
 class OSCAR4 < NER
   Rbbt.claim Rbbt.software.opt.OSCAR4, :install, Rbbt.share.install.software.OSCAR4.find
 
-  Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G'])
-  @@OSCAR = Rjb::import('uk.ac.cam.ch.wwmm.oscar.Oscar')
-  @@FormatType = Rjb::import('uk.ac.cam.ch.wwmm.oscar.chemnamedict.entities.FormatType')
+  def self.init
+    Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G']) unless Rjb.loaded?
+
+    @@OSCAR      ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar.Oscar')
+    @@FormatType ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar.chemnamedict.entities.FormatType')
+  end
 
   def self.tagger
     @@tagger ||= @@OSCAR.new()
   end
 
   def self.match(text,  type = nil)
+    self.init
 
     return [] if text.nil? or text.strip.empty?
 
