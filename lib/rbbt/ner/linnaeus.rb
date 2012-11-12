@@ -7,9 +7,10 @@ module Linnaeus
 
 
 
+  ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
+
   def self.init
     begin
-      ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
       Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx4G']) unless Rjb.loaded?
       @@ArgParser    = Rjb::import('martin.common.ArgParser')
       @@Args         = @@ArgParser.new(ARGS)
