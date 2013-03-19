@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "rbbt-text"
-  s.version = "0.6.3"
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = "2012-02-09"
+  s.date = "2012-12-21"
   s.description = "Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc"
   s.email = "miguel.vazquez@fdi.ucm.es"
   s.executables = ["get_ppis.rb"]
@@ -26,6 +26,8 @@ Gem::Specification.new do |s|
     "lib/rbbt/ner/abner.rb",
     "lib/rbbt/ner/banner.rb",
     "lib/rbbt/ner/chemical_tagger.rb",
+    "lib/rbbt/ner/finder.rb",
+    "lib/rbbt/ner/linnaeus.rb",
     "lib/rbbt/ner/ngram_prefix_dictionary.rb",
     "lib/rbbt/ner/oscar3.rb",
     "lib/rbbt/ner/oscar4.rb",
@@ -35,6 +37,7 @@ Gem::Specification.new do |s|
     "lib/rbbt/ner/rnorm/cue_index.rb",
     "lib/rbbt/ner/rnorm/tokens.rb",
     "lib/rbbt/ner/segment.rb",
+    "lib/rbbt/ner/segment/docid.rb",
     "lib/rbbt/ner/segment/named_entity.rb",
     "lib/rbbt/ner/segment/relationship.rb",
     "lib/rbbt/ner/segment/segmented.rb",
@@ -43,13 +46,16 @@ Gem::Specification.new do |s|
     "lib/rbbt/ner/token_trieNER.rb",
     "lib/rbbt/nlp/genia/sentence_splitter.rb",
     "lib/rbbt/nlp/nlp.rb",
+    "lib/rbbt/nlp/open_nlp/sentence_splitter.rb",
     "share/install/software/ABNER",
     "share/install/software/BANNER",
     "share/install/software/ChemicalTagger",
     "share/install/software/Gdep",
     "share/install/software/Geniass",
+    "share/install/software/Linnaeus",
     "share/install/software/OSCAR3",
     "share/install/software/OSCAR4",
+    "share/install/software/OpenNLP",
     "share/install/software/StanfordParser",
     "share/patterns/drug_induce_disease",
     "share/rnorm/cue_default",
@@ -58,9 +64,9 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/mikisvaz/rbbt-util"
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.24"
   s.summary = "Text mining tools for the Ruby Bioinformatics Toolkit (rbbt)"
-  s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/corpus/test_corpus.rb", "test/rbbt/corpus/test_document.rb"]
+  s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/ner/test_finder.rb", "test/rbbt/ner/test_linnaeus.rb", "test/rbbt/entity/test_document.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/nlp/open_nlp/test_sentence_splitter.rb"]
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
