@@ -22,7 +22,7 @@ module SegmentWithDocid
   def unmasked_text
     return self unless masked?
     tag, length = self.split(":")
-    Document.setup(docid).text[offset..(offset+length.to_i-1)]
+    Document.setup(docid).text[offset.to_i..(offset.to_i+length.to_i-1)]
   end
 
   def unmask

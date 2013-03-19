@@ -27,5 +27,19 @@ Score: #{score.inspect}
     EOF
     text.chomp
   end
+
+  def entity(params = nil)
+    format, entity = code.split(":")
+    entity, format = format, nil if entity.nil?
+    
+    if defined? Entity and Entity.formats.include? type or Entity.formats.include? format
+      params ||= {}
+      params[:format] = format if format and params[:format].nil?
+      mod = (Entity.formats[type] || Entity.format[entity])
+      mod.setup(entity, params)
+    end
+
+    entity
+  end
 end
 

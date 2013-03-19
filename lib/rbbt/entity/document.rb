@@ -79,6 +79,5 @@ module Document
       article_text.values_at *self
     end
   end
-
 end
 

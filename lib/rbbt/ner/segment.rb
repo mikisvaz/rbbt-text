@@ -9,9 +9,12 @@ module Segment
     @offset = offset.nil? ? nil : offset.to_i
   end
 
-
   def segment_length
-    self.length
+    begin
+      super()
+    rescue
+      self.length
+    end
   end
 
   #{{{ Ranges
@@ -68,6 +71,11 @@ module Segment
     end
   end
 
+  def includes?(segment)
+    (segment.offset.to_i >= self.offset.to_i) and
+    (segment.offset.to_i + segment.segment_length.to_i <= self.offset.to_i + self.segment_length.to_i)
+  end
+
   #{{{ Sorting
 
   def self.sort(segments, inline = true)
@@ -92,9 +100,9 @@ module Segment
   end
 
   def self.overlaps(sorted_segments)
-
     last = nil
     overlaped = []
+
     sorted_segments.reverse.each do |segment| 
       overlaped << segment if (not last.nil?) and segment.range.end > last 
       last = segment.range.begin
