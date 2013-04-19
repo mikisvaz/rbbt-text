@@ -69,16 +69,16 @@ module Transformed
       when (b.nil? or b.offset.nil?)
         +1
         # Non-overlap
-      when (a.end < b.offset or b.end < a.offset)
+      when (a.end < b.offset.to_i or b.end < a.offset.to_i)
         b.offset <=> a.offset
         # b includes a
-      when (a.offset >= b.offset and a.end <= b.end)
+      when (a.offset.to_i >= b.offset.to_i and a.end <= b.end)
         -1
         # b includes a
-      when (b.offset >= a.offset and b.end <= a.end)
+      when (b.offset.to_i >= a.offset.to_i and b.end <= a.end)
         +1
         # Overlap
-      when (a.offset > b.offset and a.end > b.end or b.offset < a.offset and b.end > a.end)
+      when (a.offset.to_i > b.offset.to_i and a.end > b.end or b.offset.to_i < a.offset.to_i and b.end > a.end)
         a.length <=> b.length
       else
         raise "Unexpected case in sort: #{a.range} - #{b.range}"
@@ -99,8 +99,8 @@ module Transformed
 
       shift_begin, shift_end = shift
 
-      text_offset = self.respond_to?(:offset)? self.offset : 0
-      updated_begin = segment.offset + shift_begin - text_offset
+      text_offset = self.respond_to?(:offset)? self.offset.to_i : 0
+      updated_begin = segment.offset.to_i + shift_begin - text_offset
       updated_end   = segment.range.last + shift_end - text_offset
 
       updated_range = (updated_begin..updated_end)
@@ -136,11 +136,11 @@ module Transformed
       # Before
     when segment.end < range.begin
       # After
-    when segment.offset > range.end + diff
-      segment.offset -= diff
+    when segment.offset.to_i > range.end + diff
+      segment.offset.to_i -= diff
       # Includes
-    when (segment.offset <= range.begin and segment.end >= range.end + diff)
-      segment.replace self[segment.offset..segment.end - diff]
+    when (segment.offset.to_i <= range.begin and segment.end >= range.end + diff)
+      segment.replace self[segment.offset.to_i..segment.end - diff]
     else
       raise "Segment Overlaps"
     end

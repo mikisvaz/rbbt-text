@@ -21,12 +21,12 @@ module Segment
 
   def end
     return nil if offset.nil?
-    offset + segment_length - 1
+    offset.to_i + segment_length - 1
   end
 
   def range
     raise "No offset specified" if offset.nil?
-    (offset..self.end)
+    (offset.to_i..self.end)
   end
 
   def pull(offset)

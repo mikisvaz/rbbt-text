@@ -29,6 +29,7 @@ module OpenNLP
   def self.sentence_splitter(text)
     return [] if text.nil? or text.empty?
 
+    text = Misc.to_utf8(text)
     last = 0
     begin
       sentence_split_detector = self.sentence_split_detector
@@ -61,6 +62,7 @@ module OpenNLP
       end
 
       sentences.collect{|sentence|
+        sentence = Misc.to_utf8(sentence)
         start = text.index(sentence, last)
         Segment.setup sentence, start
         last = start + sentence.length - 1
