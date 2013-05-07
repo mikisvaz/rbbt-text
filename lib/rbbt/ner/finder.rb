@@ -21,7 +21,7 @@ class Finder
         @normalizer = Normalizer.new(path)
       else
         open_options = Misc.add_defaults open_options, :type => :flat
-        parser = TSV::Parser.new(Open.open(Path === path ? path.find : path), open_options)
+        parser = TSV::Parser.new(path, open_options)
         @namespace = parser.namespace 
         @format = parser.key_field
         @normalizer = Normalizer.new(Path === path ? path.tsv(open_options) : TSV.open(path, open_options))
@@ -55,6 +55,4 @@ class Finder
       acc += instance.find(name)
     end
   end
-
 end
-
