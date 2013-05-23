@@ -38,6 +38,8 @@ class OSCAR4 < NER
       #inchi = inchi.getValue() unless inchi.nil?
       inchi = nil
 
+      next unless entity.getType.toString == type unless type.nil?
+
       NamedEntity.setup mention, entity.getStart, entity.getType, inchi, entity.getConfidence
 
       result << mention
