@@ -15,16 +15,17 @@ class Finder
   class Instance
     attr_accessor :namespace, :format, :normalizer
     def initialize(path, open_options = {})
-      if TSV === path
+      case path
+      when TSV 
         @namespace = path.namespace 
         @format = path.key_field
         @normalizer = Normalizer.new(path)
       else
         open_options = Misc.add_defaults open_options, :type => :flat
-        parser = TSV::Parser.new(path, open_options)
-        @namespace = parser.namespace 
-        @format = parser.key_field
-        @normalizer = Normalizer.new(Path === path ? path.tsv(open_options) : TSV.open(path, open_options))
+        tsv = TSV.open(path, open_options)
+        @namespace = tsv.namespace 
+        @format = tsv.key_field
+        @normalizer = Normalizer.new(tsv)
       end
     end
 
