@@ -10,7 +10,7 @@ class TestFinder < Test::Unit::TestCase
 
   def test_namespace_and_format
     f = Finder.new(CMD.cmd("head -n 1000", :in => Open.open(Organism.identifiers("Hsa/jun2011").produce.find)))
-    assert_equal "Hsa/jun2011", f.instances.first.namespace
+    assert_equal "Hsa", f.instances.first.namespace
     assert_equal "Ensembl Gene ID", f.instances.first.format
   end
 
@@ -27,7 +27,7 @@ class TestFinder < Test::Unit::TestCase
   def test_find
     f = Finder.new(Organism.lexicon("Hsa/jun2011"), :grep => ["RASGRF2"])
 
-    ddd f.find("RAS").collect{|m| m.info}
+    assert f.find("RAS").include? "ENSG00000113319"
   end
 
 end
