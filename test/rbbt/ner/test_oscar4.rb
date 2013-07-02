@@ -22,7 +22,7 @@ class TestOSCAR4 < Test::Unit::TestCase
     end
   end
 
-  def _test_ranges
+  def test_ranges
     begin
       ner = OSCAR4.new
       str =<<-EOF 

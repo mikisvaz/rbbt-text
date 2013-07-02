@@ -8,6 +8,7 @@ class ChemicalTagger < NER
   Rbbt.claim Rbbt.software.opt.ChemicalTagger, :install, Rbbt.share.install.software.ChemicalTagger.find
 
   def self.init
+    ENV["CLASSPATH"] = ENV["CLASSPATH"].split(":").reverse * ":"
     Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G']) unless Rjb.loaded?
     @@RbbtChemicalTagger ||= Rjb::import('RbbtChemicalTagger')
   end
@@ -21,6 +22,7 @@ class ChemicalTagger < NER
       matches = @@RbbtChemicalTagger.match(text)
     rescue
       Log.debug "ChemicalTagger Error: #{$!.message}"
+      ddd $!.backtrace
       return []
     end
 
