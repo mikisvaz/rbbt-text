@@ -47,7 +47,6 @@ C2;11;22;3 3;bb
 
     TmpFile.with_file(lexicon.gsub(/;/,"\t")) do |file|
       index = NGramPrefixDictionary.new(file, "test")
-
       matches = index.match(' asdfa dsf asdf aa asdfasdf ')
       assert matches.select{|m| m.code.include? 'C1'}.any?
     end

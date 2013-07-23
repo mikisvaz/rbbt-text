@@ -57,6 +57,7 @@ class Banner < NER
     text.gsub!(/\n/,' ')
     text.gsub!(/\|/,'/') # Character | gives an error
     return [] if text.strip.empty? 
+    text = text.encode('utf-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
     sentence = @@Sentence.new(text)
 
     @tokenizer.tokenize(sentence)

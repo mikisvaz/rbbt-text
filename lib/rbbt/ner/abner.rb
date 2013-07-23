@@ -33,6 +33,7 @@ class Abner < NER
   def match(text)
     return [] if text.nil? or text.empty?
 
+    text = text.encode('utf-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
     res = @tagger.getEntities(text)
     types = res[1]
     strings = res[0]

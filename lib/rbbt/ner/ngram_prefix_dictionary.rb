@@ -31,7 +31,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
   int length_cmp = RSTRING_LEN(cmp);
   int length_str = RSTRING_LEN(str);
 
-  if (memcmp(RSTRING_PTR(str)+ offset, RSTRING_PTR(cmp), length_cmp) == 0){
+  if (memcmp(RSTRING_PTR(str) + offset, RSTRING_PTR(cmp), length_cmp) == 0){
     if (length_cmp - offset == length_str || is_stop_letter(RSTRING_PTR(str)[offset + length_cmp]))
       return Qtrue;
     else
@@ -87,25 +87,23 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
     matches = []
 
     text_offset = 0
+    text_chars = text.chars.to_a
     text_length = text.length
     while (not text_offset.nil?) and text_offset < text_length
       if STOP_LETTER_CHAR_VALUES.include? text[text_offset]
         text_offset += 1 
         next
       end
-      ngram =  text[text_offset..text_offset + 2].strip
+      ngram =  text.slice(text_offset, 3).strip
+      text_byte_offset = text_offset == 0 ? 0 : text[0..text_offset-1].bytesize
 
       found = nil
       if index.include? ngram
-
         diff = text_length - text_offset
         # Match with entries
         index[ngram].each do |name, code|
           if name.length <= diff
-            #if piece.start_with? name and 
-            #  (text_offset + name.length == text_length or piece[name.length] == " "[0])
-
-            if fast_start_with(text, name, text_offset)
+            if fast_start_with(text, name, text_byte_offset)
               found = [name.dup, code, text_offset]
               break
             end

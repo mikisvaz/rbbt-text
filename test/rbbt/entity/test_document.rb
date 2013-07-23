@@ -1,12 +1,15 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../../test_helper.rb')
+
+require 'rbbt/workflow'
 require 'rbbt/entity'
+Workflow.require_workflow "Genomics"
+
+Workflow.require_workflow "TextMining"
+
 require 'rbbt/entity/pmid'
 require 'rbbt/entity/document'
 require 'test/unit'
 
-require 'rbbt/workflow'
-
-Workflow.require_workflow "TextMining"
 
 module Document
   self.corpus = Persist.open_tokyocabinet("/tmp/corpus", false, :string, "BDB")
@@ -18,14 +21,14 @@ module Document
 
   property :abner => :single do |*args|
     normalize, organism = args
-    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :banner, :normalize => normalize, :organism => organism).exec.each{|e| SegmentWithDocid.setup(e, self.docid)}
+    TextMining.job(:gene_mention_recognition, "Factoid", :text => text, :method => :abner, :normalize => normalize, :organism => organism).exec.each{|e| SegmentWithDocid.setup(e, self.docid)}
   end
 
   persist :abner, :annotations, :dir => Rbbt.tmp.test.find(:user).entity_property
 end
 
 class TestDocument < Test::Unit::TestCase
-  def test_pmid
+  def _test_pmid
     pmid = "21904853"
     PMID.setup(pmid)
 
@@ -33,7 +36,7 @@ class TestDocument < Test::Unit::TestCase
     assert_match /TET2/, pmid.text
   end
 
-  def test_abner
+  def _test_abner
     pmid = "21904853"
     PMID.setup(pmid)
 

@@ -8,8 +8,6 @@ module Document
     attr_accessor :corpus
   end
 
-  attr_accessor :docid
-
   property :docid => :single2array do |*args|
     @docid ||= if self =~ /^text:/
                  self
@@ -18,10 +16,6 @@ module Document
                end
     @docid
   end
-
-  #property :annotation_id => :single2array do |*args|
-  #  docid(*args)
-  #end
 
   property :annotation_id => :both do |*args|
     if Array === self
@@ -43,37 +37,35 @@ module Document
       self._get_text(*args)
     else
 
-      Document.corpus.read if Document.corpus.respond_to? :read
-      self.each do |doc|
+      Document.corpus.read_and_close do
+        self.each do |doc|
+          id = doc.docid(*args)
+          case
+          when Document.corpus.include?(doc) 
+            article_text[doc] =  Document.corpus[doc] 
+          when Document.corpus.include?(id) 
+            article_text[doc] =  Document.corpus[id] 
+          else
+            missing << doc
+          end
 
-        case
-        when Document.corpus.include?(doc) 
-          article_text[doc] =  Document.corpus[doc] 
-        when Document.corpus.include?(doc.docid(*args)) 
-          article_text[doc] =  Document.corpus[doc.docid(*args)] 
-        else
-          missing << doc
         end
-
       end
-      Document.corpus.close if Document.corpus.respond_to? :close
 
       if missing.any?
         missing.first.annotate missing
         missing_text = Misc.process_to_hash(missing){|list| list._get_text(*args)}
 
         Misc.lock(Document.corpus.respond_to?(:persistence_path) ? Document.corpus.persistence_path : nil) do
-          Document.corpus.write if Document.corpus.respond_to? :write and not Document.corpus.write?
+          Document.corpus.write_and_close do
 
-          missing_text.each do |doc, doc_text|
-            doc = missing.first.annotate doc.dup
-            Document.corpus[doc.docid(*args)] = doc_text
-            article_text[doc] = doc_text
+            missing_text.each do |doc, doc_text|
+              doc = self.annotate doc.dup
+              Document.corpus[doc.docid(*args)] = doc_text
+              article_text[doc] = doc_text
+            end
           end
-
-          Document.corpus.close if Document.corpus.respond_to? :close
         end
-
       end
 
       article_text.values_at *self
