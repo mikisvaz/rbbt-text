@@ -9,6 +9,12 @@ class OSCAR4 < NER
   Rbbt.claim Rbbt.software.opt.OSCAR4, :install, Rbbt.share.install.software.OSCAR4.find
 
   def self.init
+
+    # There is an incompatibility between the OpenNLP version in OSCAR4 and the
+    # one used for other matters in Rbbt, which is the most recent. We remove
+    # the standalone jars from the CLASSPATH
+    ENV["CLASSPATH"] = ENV["CLASSPATH"].split(":").select{|p| p !~ /opennlp/} * ":"
+
     Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G']) unless Rjb.loaded?
 
     @@OSCAR      ||= Rjb::import('uk.ac.cam.ch.wwmm.oscar.Oscar')
