@@ -1,3 +1,4 @@
+require 'rbbt/nlp/nlp'
 require 'rbbt/ner/segment'
 module NLP
   def self.returnFeatures(prevWord, delimiter, nextWord)
@@ -168,6 +169,7 @@ module NLP
   end
 
   def self.geniass_sentence_splitter_extension(text)
+    Rbbt.software.opt.Geniass.produce
     require Rbbt.software.opt.Geniass.ruby["Geniass.so"].find
     geniass = Geniass.new
     if not geniass.geniass_is_loaded

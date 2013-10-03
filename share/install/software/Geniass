@@ -5,7 +5,7 @@ RBBT_SOFTWARE_DIR="$2"
 source "$INSTALL_HELPER_FILE"
 
 name='Geniass'
-url="http://www-tsujii.is.s.u-tokyo.ac.jp/~y-matsu/geniass/geniass-1.00.tar.gz"
+url="http://www.nactem.ac.uk/y-matsu/geniass/geniass-1.00.tar.gz"
 
 
 get_pkg "$name" "$url"
