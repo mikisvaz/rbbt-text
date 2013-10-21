@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "rbbt-text"
-  s.version = "1.0.0"
+  s.version = "1.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Miguel Vazquez"]
-  s.date = "2012-12-21"
+  s.date = "2013-10-21"
   s.description = "Text mining tools: named entity recognition and normalization, document classification, bag-of-words, dictionaries, etc"
   s.email = "miguel.vazquez@fdi.ucm.es"
   s.executables = ["get_ppis.rb"]
@@ -64,12 +64,12 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/mikisvaz/rbbt-util"
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.24"
+  s.rubygems_version = "2.0.3"
   s.summary = "Text mining tools for the Ruby Bioinformatics Toolkit (rbbt)"
-  s.test_files = ["test/test_helper.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/bow/test_misc.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/ner/test_finder.rb", "test/rbbt/ner/test_linnaeus.rb", "test/rbbt/entity/test_document.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/nlp/open_nlp/test_sentence_splitter.rb"]
+  s.test_files = ["test/rbbt/bow/test_misc.rb", "test/rbbt/bow/test_bow.rb", "test/rbbt/bow/test_dictionary.rb", "test/rbbt/ner/test_ngram_prefix_dictionary.rb", "test/rbbt/ner/test_NER.rb", "test/rbbt/ner/segment/test_named_entity.rb", "test/rbbt/ner/segment/test_transformed.rb", "test/rbbt/ner/segment/test_segmented.rb", "test/rbbt/ner/test_patterns.rb", "test/rbbt/ner/test_segment.rb", "test/rbbt/ner/test_finder.rb", "test/rbbt/ner/test_chemical_tagger.rb", "test/rbbt/ner/test_token_trieNER.rb", "test/rbbt/ner/test_oscar4.rb", "test/rbbt/ner/test_abner.rb", "test/rbbt/ner/test_regexpNER.rb", "test/rbbt/ner/test_rnorm.rb", "test/rbbt/ner/test_banner.rb", "test/rbbt/ner/test_linnaeus.rb", "test/rbbt/nlp/test_nlp.rb", "test/rbbt/nlp/open_nlp/test_sentence_splitter.rb", "test/rbbt/entity/test_document.rb", "test/test_helper.rb"]
 
   if s.respond_to? :specification_version then
-    s.specification_version = 3
+    s.specification_version = 4
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<rbbt-util>, [">= 4.0.0"])
