@@ -1,11 +1,10 @@
 require 'rjb'
 require 'rbbt'
 require 'rbbt/ner/segment/named_entity'
+
 module Linnaeus
 
   Rbbt.claim Rbbt.software.opt.Linnaeus, :install, Rbbt.share.install.software.Linnaeus.find
-
-
 
   ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
 
