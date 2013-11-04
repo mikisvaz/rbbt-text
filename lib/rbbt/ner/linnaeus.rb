@@ -8,9 +8,10 @@ module Linnaeus
 
   ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
 
+  Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx2G']) unless Rjb.loaded?
+
   def self.init
     begin
-      Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx4G']) unless Rjb.loaded?
       @@ArgParser    = Rjb::import('martin.common.ArgParser')
       @@Args         = @@ArgParser.new(ARGS)
       @@Loggers      = Rjb::import('martin.common.Loggers')
