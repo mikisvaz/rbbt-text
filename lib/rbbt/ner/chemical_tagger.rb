@@ -21,8 +21,7 @@ class ChemicalTagger < NER
     begin
       matches = @@RbbtChemicalTagger.match(text)
     rescue
-      Log.debug "ChemicalTagger Error: #{$!.message}"
-      ddd $!.backtrace
+      Log.exception $!
       return []
     end
 
