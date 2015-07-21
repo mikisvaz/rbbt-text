@@ -56,8 +56,8 @@ class RegExpNER < NER
       chunks = Segment.split(text, matches)
       chunks.each do |chunk|
         chunk_offset = chunk.offset
-        match_regexp_list(chunk, regexp_list, type).collect do |match| 
-          match.offset += chunk_offset; 
+        match_regexp_list(chunk, regexp_list, type).each do |match| 
+          match.offset = match.offset + chunk_offset; 
           matches << match 
         end
       end
@@ -68,9 +68,12 @@ class RegExpNER < NER
 
   attr_accessor :regexps
   def initialize(regexps = {})
-    @regexps = regexps.collect
+    @regexps = regexps.collect{|p| p }
   end
 
+  def token_score(*args)
+    1
+  end
 
   def __define_regexp_hook(name, regexp, *args)
     @regexps << [name, regexp]
@@ -86,7 +89,9 @@ class RegExpNER < NER
 
   def match(text)
     matches = RegExpNER.match_regexp_hash(text, @regexps)
-    matches
+    matches.collect do |m|
+      NamedEntity.setup(m, :offset => m.offset, :type =>  m.type, :code => m)
+    end
   end
 
 end

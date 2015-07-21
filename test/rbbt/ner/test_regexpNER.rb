@@ -79,6 +79,7 @@ class TestRegExpNER < Test::Unit::TestCase
     assert_equal :should, matches.select{|m| m.type == :should}[0].type
   end
 
+
   def test_regexp_order
     text =<<-EOF
   * Human AUC 0-24h= 7591 ng.h/ml at 30 mg/day    In mice, dietary administration of aripiprazole at doses of 1, 3, and 10 asdf mg/kg/day for 104 weeks was

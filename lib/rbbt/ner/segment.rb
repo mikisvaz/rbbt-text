@@ -5,10 +5,6 @@ module Segment
   extend Annotation
   self.annotation :offset
 
-  def offset=(offset)
-    @offset = offset.nil? ? nil : offset.to_i
-  end
-
   def segment_length
     begin
       super()

@@ -1,4 +1,5 @@
 require 'rbbt/ner/rnorm'
+require 'rbbt/ner/regexpNER'
 
 class Finder
   
@@ -20,6 +21,10 @@ class Finder
         @namespace = path.namespace 
         @format = path.key_field
         @normalizer = Normalizer.new(path)
+      when Hash
+        @namespace = open_options[:namespace]
+        @format = nil
+        @normalizer = RegExpNER.new(path)
       else
         open_options = Misc.add_defaults open_options, :type => :flat
         tsv = TSV.open(path, open_options)

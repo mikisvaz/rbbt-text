@@ -20,8 +20,8 @@ class Test::Unit::TestCase
 
   def teardown
     FileUtils.rm_rf Rbbt.tmp.test.find :user
-    Persist::TC_CONNECTIONS.values.each do |c| c.close end
-    Persist::TC_CONNECTIONS.clear
+    Persist::CONNECTIONS.values.each do |c| c.close end
+    Persist::CONNECTIONS.clear
     DocumentRepo::TC_CONNECTIONS.values.each do |c| c.close end
     DocumentRepo::TC_CONNECTIONS.clear
   end
