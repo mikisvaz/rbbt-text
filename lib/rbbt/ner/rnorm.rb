@@ -100,10 +100,22 @@ class Normalizer
 
 
   def initialize(lexicon, options = {})
-    @synonyms = TSV === lexicon ? lexicon : TSV.open(lexicon, :type => :flat, :unnamed => true)
+    @synonyms = case lexicon
+                when TSV
+                  lexicon.unnamed = true
+                  lexicon
+                when Array
+                  tsv = TSV.setup(lexicon, :fields => [], :type => :flat, :unnamed => true, :defaul_value => [])
+                  tsv.add_field "Term" do |k,v|
+                    k
+                  end
+                  tsv
+                else
+                  TSV.open(lexicon, :type => :flat, :unnamed => true)
+                end
 
     @index = CueIndex.new
-    @index.load(lexicon, options[:max_candidates])
+    @index.load(@synonyms, options[:max_candidates])
 
     @to_entrez = options[:to_entrez]
     @tokens = Tokenizer.new(options[:file])
@@ -157,6 +169,7 @@ class Normalizer
   end
 
   def resolve(mention, text = nil, options = {})
+    text, options = nil, text if options.empty? and Hash === text
     candidates = match(mention)
     select(candidates, mention, text, options)
   end
