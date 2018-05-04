@@ -114,6 +114,10 @@ class Normalizer
                   TSV.open(lexicon, :type => :flat, :unnamed => true)
                 end
 
+    @synonyms.process @synonyms.fields.first do |values, key|
+      [key] + values
+    end if options[:use_keys]
+
     @index = CueIndex.new
     @index.load(@synonyms, options[:max_candidates])
 
