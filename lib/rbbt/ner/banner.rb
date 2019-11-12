@@ -10,6 +10,7 @@ class Banner < NER
   Rbbt.claim Rbbt.software.opt.BANNER, :install, Rbbt.share.install.software.BANNER.find
 
   def self.init
+    Rbbt.software.opt.BANNER.produce
     @@JFile                    ||= Rjb::import('java.io.File')
     @@SimpleTokenizer          ||= Rjb::import('banner.tokenization.SimpleTokenizer')
     @@CRFTagger                ||= Rjb::import('banner.tagging.CRFTagger')

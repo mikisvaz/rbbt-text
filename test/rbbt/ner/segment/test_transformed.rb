@@ -2,7 +2,6 @@ require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_he
 require 'rbbt/ner/segment/transformed'
 require 'rbbt/ner/segment/named_entity'
 require 'rexml/document'
-require 'rand'
 
 class TestClass < Test::Unit::TestCase
   def tttest_transform

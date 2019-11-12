@@ -8,10 +8,10 @@ require 'json'
 
 class Document
 
-  attr_accessor :text, :docid, :namespace, :id, :type, :hash, :segments, :segment_indeces, :persist_dir, :global_persistence
+  attr_accessor :text, :docid, :namespace, :id, :type, :hash, :segments, :segment_indices, :persist_dir, :global_persistence
   def initialize(persist_dir = nil, docid = nil, text = nil, global_persistence = nil)
     @segments = {}
-    @segment_indeces = {}
+    @segment_indices = {}
 
     if not persist_dir.nil?
       @persist_dir = persist_dir
@@ -236,7 +236,7 @@ class Document
   end
 
   def segment_index(name, persist_dir = nil)
-    @segment_indeces[name] ||= Segment.index(self.send(name), persist_dir.nil? ? :memory : File.join(persist_dir, name + '.range'))
+    @segment_indices[name] ||= Segment.index(self.send(name), persist_dir.nil? ? :memory : File.join(persist_dir, name + '.range'))
   end
 
   def load_into(segment, *annotations)

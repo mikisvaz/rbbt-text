@@ -10,8 +10,9 @@ class Corpus
     type = nil if String === type and type.empty?
 
     PubMed.get_article(pmids).collect do |pmid, article|
+      add_document(article.title, :pubmed, pmid, :title)
       if (type.nil? and article.pdf_url.nil?) or (not type.nil? and type.to_sym === :abstract)
-        add_document(article.text, :pubmed, pmid, :abstract)
+        add_document(article.abstract || "", :pubmed, pmid, :abstract)
       else
         raise "No FullText available for #{ pmid }" if article.pdf_url.nil?
         add_document(article.full_text, :pubmed, pmid, :fulltext)

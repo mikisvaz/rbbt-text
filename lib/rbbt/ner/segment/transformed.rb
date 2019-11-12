@@ -6,7 +6,7 @@ module Transformed
   def self.transform(text, segments, replacement = nil, &block)
 
     text.extend Transformed
-    text.replace(segments, replacement, &block)
+    text.replace_segments(segments, replacement, &block)
 
     text
   end
@@ -14,7 +14,7 @@ module Transformed
   def self.with_transform(text, segments, replacement = nil)
 
     text.extend Transformed
-    text.replace(segments, replacement)
+    text.replace_segments(segments, replacement)
 
     segments = yield text
 
@@ -62,23 +62,23 @@ module Transformed
   def self.sort(segments)
     segments.compact.sort do |a,b|
       case
-      when ((a.nil? and b.nil?) or (a.offset.nil? and b.offset.nil?))
+      when ((a.nil? && b.nil?) || (a.offset.nil? && b.offset.nil?))
         0
-      when (a.nil? or a.offset.nil?)
+      when (a.nil? || a.offset.nil?)
         -1
-      when (b.nil? or b.offset.nil?)
+      when (b.nil? || b.offset.nil?)
         +1
         # Non-overlap
-      when (a.end < b.offset.to_i or b.end < a.offset.to_i)
+      when (a.end < b.offset.to_i || b.end < a.offset.to_i)
         b.offset <=> a.offset
         # b includes a
-      when (a.offset.to_i >= b.offset.to_i and a.end <= b.end)
+      when (a.offset.to_i >= b.offset.to_i && a.end <= b.end)
         -1
         # b includes a
-      when (b.offset.to_i >= a.offset.to_i and b.end <= a.end)
+      when (b.offset.to_i >= a.offset.to_i && b.end <= a.end)
         +1
         # Overlap
-      when (a.offset.to_i > b.offset.to_i and a.end > b.end or b.offset.to_i < a.offset.to_i and b.end > a.end)
+      when (a.offset.to_i > b.offset.to_i && a.end > b.end || b.offset.to_i > a.offset.to_i && b.end > a.end)
         a.length <=> b.length
       else
         raise "Unexpected case in sort: #{a.range} - #{b.range}"
@@ -86,7 +86,7 @@ module Transformed
     end
   end
 
-  def replace(segments, replacement = nil, &block)
+  def replace_segments(segments, replacement = nil, &block)
     @transformed_segments ||= {}
     @transformation_stack ||= []
     stack = []
@@ -137,7 +137,7 @@ module Transformed
     when segment.end < range.begin
       # After
     when segment.offset.to_i > range.end + diff
-      segment.offset.to_i -= diff
+      segment.offset = segment.offset.to_i - diff
       # Includes
     when (segment.offset.to_i <= range.begin and segment.end >= range.end + diff)
       segment.replace self[segment.offset.to_i..segment.end - diff]

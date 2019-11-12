@@ -11,6 +11,7 @@ class Abner < NER
   Rbbt.claim Rbbt.software.opt.ABNER, :install, Rbbt.share.install.software.ABNER.find
 
   def self.init
+    Rbbt.software.opt.ABNER.produce
     @@JFile   ||= Rjb::import('java.io.File')
     @@Tagger  ||= Rjb::import('abner.Tagger')
     @@Trainer ||= Rjb::import('abner.Trainer')

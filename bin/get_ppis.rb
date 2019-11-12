@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
 require 'rbbt-util'
-require 'rbbt/annotations/corpus'
-require 'rbbt/annotations/corpus/pubmed'
-require 'rbbt/annotations/relationships/ppi'
+require 'rbbt/corpus/corpus'
+require 'rbbt/corpus/sources/pubmed'
+#require 'rbbt/annotations/relationships/ppi'
 require 'rbbt/sources/pubmed'
-require 'rbbt/ner/annotations'
+#require 'rbbt/ner/annotations'
 require 'rbbt/ner/token_trieNER'
-require 'rbbt/ner/annotations/transformed'
+#require 'rbbt/ner/annotations/transformed'
 require 'rbbt/ner/chemical_tagger'
 
 Corpus.define_entity_ner "Compounds", false do |doc|

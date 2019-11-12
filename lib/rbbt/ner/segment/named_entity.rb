@@ -41,5 +41,10 @@ Score: #{score.inspect}
 
     entity
   end
+
+  def to_brat
+    [self.type, self.offset, self.end] * " "
+  end
+
 end
 

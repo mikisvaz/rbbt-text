@@ -33,6 +33,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
 
    abner.rb
    banner.rb
+   g_norm_plus.rb
    
    linnaeus.rb
 
@@ -70,6 +71,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    ABNER
    Linnaeus
    BANNER
+   GNormPlus
    OpenNLP
    OSCAR3
    OSCAR4
@@ -83,29 +85,32 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    tokens_default
   }
  }
- test=test {
+ test=test filter="*" {
   test_helper.rb
   data=data{
   }
   bow=rbbt/bow{
    test_bow.rb
-   test_misc.rb
    test_dictionary.rb
+   test_misc.rb
   }
   ner=rbbt/ner{
+   test_NER.rb
    test_abner.rb
    test_banner.rb
-   test_named_entity.rb
-   test_oscar3.rb
-   test_polysearch.rb
+   test_chemical_tagger.rb
+   test_finder.rb
+   test_linnaeus.rb
+   test_ngram_prefix_dictionary.rb
+   test_oscar4.rb
+   test_patterns.rb
    test_regexpNER.rb
-   test_tokenNER.rb
    test_rnorm.rb
+   test_segment.rb
+   test_token_trieNER.rb
   }
   annotations=rbbt/annotations{
-   test_annotation_repo.rb
-   test_corpus.rb
-   test_document_repo.rb
+
  }
  data=data{
  }

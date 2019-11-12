@@ -1,0 +1,7 @@
+#!/bin/bash
+
+name='GNormPlus'
+url="https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/tmTools/download/GNormPlus/GNormPlusJava.zip"
+
+prepare_pkg "$name" "$url"
+

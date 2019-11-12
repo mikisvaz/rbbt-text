@@ -72,6 +72,17 @@ module Segment
     (segment.offset.to_i + segment.segment_length.to_i <= self.offset.to_i + self.segment_length.to_i)
   end
 
+  def overlaps?(segment)
+    segment.offset.to_i >= self.offset.to_i && segment.offset.to_i <= self.end || 
+    self.offset.to_i >= segment.offset.to_i && self.offset.to_i <= segment.end
+  end
+
+  def self.collisions(main, secondary)
+    collisions = secondary.select do |ss|
+      collisions = main.select{|ms| ms.overlaps? ss }.any?
+    end
+  end
+
   #{{{ Sorting
 
   def self.sort(segments, inline = true)
@@ -282,7 +293,7 @@ module Segment
 
     info[:annotation_types] = [Segment] unless info.include? :annotation_types
 
-    Annotated.load(object, info)
+    Annotated.load_entity(object, info)
   end
 
   def self.set_tsv_fields(fields, segments)
