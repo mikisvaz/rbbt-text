@@ -1,6 +1,8 @@
 require 'rbbt/nlp/nlp'
 require 'rbbt/ner/segment'
 module NLP
+  Rbbt.claim Rbbt.software.opt.Geniass, :install, Rbbt.share.install.software.Geniass.find
+
   def self.returnFeatures(prevWord, delimiter, nextWord)
     if nextWord.match(/__ss__/)
       nw = nextWord.sub(/__ss__/, "")
@@ -235,4 +237,67 @@ module NLP
     end
 
   end
+
+  def self.geniass_sentence_splitter(text)
+    offsets = []
+
+    cleaned = text.gsub("\n",NEW_LINE_MASK)
+    TmpFile.with_file(cleaned) do |fin|
+      TmpFile.with_file do |fout|
+        CMD.cmd("cd #{Rbbt.software.opt.Geniass.find}; ./geniass #{ fin } #{ fout }")
+
+        
+        Open.write(fin, Open.read(fin).gsub(NEW_LINE_MASK, "\n"))
+        Open.write(fout, Open.read(fout).gsub("\n", '|').gsub(NEW_LINE_MASK, "\n"))
+        # Addapted from sentence2standOff.rb in Geniass package
+
+        inTxtStrict = Open.open(fin)
+        inTxtNew = Open.open(fout)
+
+        marker = "|"[0]
+        position = 0
+        sentenceCount = 1
+        target = ''
+        targetNew = ''
+        start = 0
+        finish = 0
+
+        while(!inTxtNew.eof?) do
+          targetNew = inTxtNew.getc
+          target = inTxtStrict.getc
+          position += 1
+          if targetNew == marker
+            sentenceCount += 1
+            finish = position - 1
+            offsets << [start, finish] if finish - start > 10
+            if targetNew == target
+              start = position
+            else
+              targetNew = inTxtNew.getc
+              while targetNew != target do
+                target = inTxtStrict.getc
+                position += 1
+              end
+              start = position - 1
+            end
+          end
+        end
+
+        finish = position - 1
+        offsets << [start, finish] if finish > start
+
+        inTxtStrict.close
+        inTxtNew.close
+      end
+    end
+
+    offsets.collect do |s,e|
+      sentence = text[s..e]
+      next if sentence.nil?
+      #sentence.gsub!(NEW_LINE_MASK, "\n")
+      Segment.setup sentence, s
+      sentence
+    end
+  end
+
 end

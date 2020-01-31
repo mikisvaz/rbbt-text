@@ -29,11 +29,14 @@ sentence. This is
 another sentence. 
     EOF
 
+    iii OpenNLP.sentence_split_detector.sentDetect(text)
+    assert_equal 5, OpenNLP.sentence_split_detector.sentDetect(text).length
+
     assert_equal 5, OpenNLP.sentence_splitter(text).length
     assert_equal "This is a \nsentence.", OpenNLP.sentence_splitter(text)[3]
   end
 
-  def test_text_sentences
+  def _test_text_sentences
     Misc.benchmark(100) do
       OpenNLP.sentence_splitter($text).include? "Our
 findings highlight the role of SMARCA4 in the pathogenesis of SMARCB1-positive

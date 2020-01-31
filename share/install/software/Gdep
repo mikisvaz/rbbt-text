@@ -5,7 +5,7 @@ RBBT_SOFTWARE_DIR="$2"
 source "$INSTALL_HELPER_FILE"
 
 name='Gdep'
-url="http://people.ict.usc.edu/~sagae/parser/gdep/gdep-beta2.tgz"
+url="http://www.sagae.org/gdep/gdep-beta2.tgz"
 
 
 get_pkg "$name" "$url"

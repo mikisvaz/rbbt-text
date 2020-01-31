@@ -4,7 +4,21 @@ require 'rbbt/ner/segment/named_entity'
 require 'rexml/document'
 
 class TestClass < Test::Unit::TestCase
-  def tttest_transform
+  def test_sort
+    text = <<-EOF
+More recently, PPAR activators were shown to inhibit the activation of inflammatory response genes (such as IL-2, IL-6, IL-8, TNF alpha and metalloproteases) by negatively interfering with the NF-kappa B, STAT and AP-1 signalling pathways in cells of the vascular wall.
+    EOF
+
+    entities = ["PPAR", "IL-2", "IL-6", "IL-8", "TNF alpha", "NF-kappa B", "AP-1", "STAT"].reverse.collect do |literal|
+      NamedEntity.setup(literal, :offset => text.index(literal))
+    end
+
+    Transformed.with_transform(text, entities, Proc.new{|e| "[" + e.upcase + "]" }) do 
+      assert text.include? "such as [IL-2]"
+    end
+  end
+
+  def ___test_transform
     a = "This sentence mentions the TP53 gene and the CDK5 protein"
     original = a.dup
 
@@ -26,6 +40,8 @@ class TestClass < Test::Unit::TestCase
     c[gene1.range] = "GN"
     assert_equal c, Transformed.transform(a,[gene1], "GN")
 
+    iii a.transformation_offset_differences
+    raise
     assert_equal gene2.offset, a.transformation_offset_differences.first.first.first
     assert_equal gene1.offset, a.transformation_offset_differences.last.first.first
 
@@ -215,5 +231,60 @@ class TestClass < Test::Unit::TestCase
       end
     end
    end
+
+  def test_nested_transform
+    a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
+
+    gene1 = "TP53"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1
+    gene1.type = "Gene"
+
+    gene2 = "CDK5R1"
+    gene2.extend NamedEntity
+    gene2.offset = a.index gene2
+    gene2.type = "Protein"
+
+    Transformed.with_transform(a, [gene1,gene2], "[G]") do 
+      assert_equal "This sentence mentions the [G] gene and the [G] protein", a
+    end
+    Transformed.with_transform(a, [gene1], "[G1]") do 
+      Transformed.with_transform(a, [gene2], "[G2]") do 
+        assert_equal "This sentence mentions the [G1] gene and the [G2] protein", a
+      end
+    end
+    Transformed.with_transform(a, [gene2], "[G2]") do 
+      Transformed.with_transform(a, [gene1], "[G1]") do 
+        assert_equal "This sentence mentions the [G1] gene and the [G2] protein", a
+      end
+    end
+  end
+
+  def test_offset_transform
+    a = "ILF can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the interleukin-2 promoter."
+
+    gene1 = "ILF"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1
+    gene1.type = "Gene"
+
+    gene2 = "interleukin-2"
+    gene2.extend NamedEntity
+    gene2.offset = a.index gene2
+    gene2.type = "Protein"
+
+    Transformed.with_transform(a, [gene1,gene2], "[G]") do 
+      assert_equal "[G] can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the [G] promoter.", a
+    end
+
+    offset = 100
+    a = Segment.setup(a, :offset => offset)
+    gene1.offset += offset
+    gene2.offset += offset
+    Transformed.with_transform(a, [gene1,gene2], "[G]") do 
+      assert_equal "[G] can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the [G] promoter.", a
+    end
+
+  end
 end
 

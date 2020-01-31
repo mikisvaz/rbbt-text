@@ -18,7 +18,7 @@ module Transformed
 
     segments = yield text
 
-    segments = nil unless Array === segments
+    segments = nil unless Array === segments && Segment === segments.first
 
     text.restore(segments, true)
   end
@@ -59,39 +59,41 @@ module Transformed
     [begin_shift, end_shift]
   end
 
-  def self.sort(segments)
-    segments.compact.sort do |a,b|
-      case
-      when ((a.nil? && b.nil?) || (a.offset.nil? && b.offset.nil?))
-        0
-      when (a.nil? || a.offset.nil?)
-        -1
-      when (b.nil? || b.offset.nil?)
-        +1
-        # Non-overlap
-      when (a.end < b.offset.to_i || b.end < a.offset.to_i)
-        b.offset <=> a.offset
-        # b includes a
-      when (a.offset.to_i >= b.offset.to_i && a.end <= b.end)
-        -1
-        # b includes a
-      when (b.offset.to_i >= a.offset.to_i && b.end <= a.end)
-        +1
-        # Overlap
-      when (a.offset.to_i > b.offset.to_i && a.end > b.end || b.offset.to_i > a.offset.to_i && b.end > a.end)
-        a.length <=> b.length
-      else
-        raise "Unexpected case in sort: #{a.range} - #{b.range}"
-      end
-    end
-  end
+  #def self.sort(segments)
+  #  segments.compact.sort do |a,b|
+  #    case
+  #    when ((a.nil? && b.nil?) || (a.offset.nil? && b.offset.nil?))
+  #      0
+  #    when (a.nil? || a.offset.nil?)
+  #      -1
+  #    when (b.nil? || b.offset.nil?)
+  #      +1
+  #      # Non-overlap
+  #    when (a.end < b.offset.to_i || b.end < a.offset.to_i)
+  #      b.offset <=> a.offset
+  #      # b includes a
+  #    when (a.offset.to_i >= b.offset.to_i && a.end <= b.end)
+  #      -1
+  #      # b includes a
+  #    when (b.offset.to_i >= a.offset.to_i && b.end <= a.end)
+  #      +1
+  #      # Overlap
+  #    when (a.offset.to_i > b.offset.to_i && a.end > b.end || b.offset.to_i > a.offset.to_i && b.end > a.end)
+  #      b.length <=> a.length
+  #    else
+  #      raise "Unexpected case in sort: #{a.range} - #{b.range}"
+  #    end
+  #  end
+  #end
 
   def replace_segments(segments, replacement = nil, &block)
     @transformed_segments ||= {}
     @transformation_stack ||= []
     stack = []
 
-    Transformed.sort(segments).each do |segment|
+    segments = [segments] unless Array === segments 
+    orig_length = self.length
+    Segment.sort(segments).each do |segment|
       next if segment.offset.nil?
       shift = shift segment.range
 
@@ -106,6 +108,10 @@ module Transformed
       updated_range = (updated_begin..updated_end)
 
       updated_text = self[updated_begin..updated_end]
+      if updated_text.nil?
+        Log.warn "Range outside of segment: #{self.length} #{segment.locus} (#{updated_range})"
+        next
+      end
 
       original_text = segment.dup
       segment.replace updated_text
@@ -169,5 +175,10 @@ module Transformed
       end
       segments
     end
+  end
+
+  def self.ansi(text, entities, colors = nil)
+
+
   end
 end

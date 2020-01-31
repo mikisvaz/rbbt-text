@@ -95,14 +95,14 @@ module Segment
           -1
         when (b.nil? or b.offset.nil?)
           +1
-        when (not a.range.include? b.offset and not b.range.include? a.offset)
-          a.offset <=> b.offset
+        when (not a.range.include? b.offset.to_i and not b.range.include? a.offset.to_i)
+          a.offset.to_i <=> b.offset.to_i
         else
           a.segment_length <=> b.segment_length
         end
       end
     else
-      segments.sort_by do |segment| segment.offset || 0 end.reverse
+      segments.sort_by do |segment| segment.offset.to_i || 0 end.reverse
     end
   end
 
@@ -335,5 +335,16 @@ module Segment
     end
   end
 
+  def ansi(color)
+    Log.color color, self
+  end
+
+  def locus
+    [offset, self.end] * ".."
+  end
+
+  def ==(other)
+    self.id == other.id
+  end
 end
 

@@ -182,7 +182,4 @@ class Dictionary::KL
   def weights(options = {})
     best(options)
   end
-
-   
-    
 end

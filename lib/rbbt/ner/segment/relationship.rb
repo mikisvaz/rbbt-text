@@ -2,19 +2,23 @@ require 'rbbt/ner/segment'
 
 module Relationship
   extend Annotation
-  include Segment
+  self.annotation :segment
   self.annotation :terms
+  self.annotation :type
+
+  def text
+    if segment
+      segment
+    else
+      type + ": " + terms * ", "
+    end
+  end
 
   def html
     text = <<-EOF
 <span class='Relationship'\
->#{ self }</span>
+>#{ self.text }</span>
     EOF
     text.chomp
-  end
-
-  def html_with_entities(*types)
-    annotations.values_at(*types).each do |segments|
-    end
   end
 end

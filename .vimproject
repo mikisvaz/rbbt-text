@@ -34,6 +34,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    abner.rb
    banner.rb
    g_norm_plus.rb
+   brat.rb
    
    linnaeus.rb
 
