@@ -8,6 +8,7 @@ Workflow.require_workflow "TextMining"
 
 require 'rbbt/entity/pmid'
 require 'rbbt/entity/document'
+require 'rbbt/corpus'
 require 'test/unit'
 
 

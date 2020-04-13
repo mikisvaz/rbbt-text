@@ -1,4 +1,4 @@
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 
 module Relationship
   extend Annotation

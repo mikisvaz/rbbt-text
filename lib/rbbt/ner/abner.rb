@@ -1,7 +1,7 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/segment'
 require 'rbbt/resource'
+require 'rbbt/text/segment'
 require 'rbbt/ner/NER'
 
 # Offers a Ruby interface to the Abner Named Entity Recognition Package
@@ -31,10 +31,10 @@ class Abner < NER
   # Given a chunk of text, it finds all the mentions appearing in it. It
   # returns all the mentions found, regardless of type, to be coherent
   # with the rest of NER packages in Rbbt.
-  def match(text)
+  def match(text, fix_encode = true)
     return [] if text.nil? or text.empty?
 
-    text = text.encode('utf-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '')
+    text = text.encode('utf-8', 'binary', :invalid => :replace, :undef => :replace, :replace => '') if fix_encode
     res = @tagger.getEntities(text)
     types = res[1]
     strings = res[0]

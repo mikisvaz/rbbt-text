@@ -6,7 +6,7 @@ require 'rbbt'
 require 'rbbt/persist'
 require 'rbbt/util/tmpfile'
 require 'rbbt/util/log'
-require 'rbbt/corpus/document_repo'
+require 'rbbt/text/corpus'
 
 class Test::Unit::TestCase
   def get_test_datafile(file)
@@ -22,8 +22,8 @@ class Test::Unit::TestCase
     FileUtils.rm_rf Rbbt.tmp.test.find :user
     Persist::CONNECTIONS.values.each do |c| c.close end
     Persist::CONNECTIONS.clear
-    DocumentRepo::TC_CONNECTIONS.values.each do |c| c.close end
-    DocumentRepo::TC_CONNECTIONS.clear
+    Corpus::DocumentRepo::TC_CONNECTIONS.values.each do |c| c.close end
+    Corpus::DocumentRepo::TC_CONNECTIONS.clear
   end
 
 end

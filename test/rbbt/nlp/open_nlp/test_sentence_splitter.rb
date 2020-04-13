@@ -29,7 +29,6 @@ sentence. This is
 another sentence. 
     EOF
 
-    iii OpenNLP.sentence_split_detector.sentDetect(text)
     assert_equal 5, OpenNLP.sentence_split_detector.sentDetect(text).length
 
     assert_equal 5, OpenNLP.sentence_splitter(text).length

@@ -77,9 +77,14 @@ module Segment
     self.offset.to_i >= segment.offset.to_i && self.offset.to_i <= segment.end
   end
 
+  def overlaps(segments)
+    segments.select{|s| self.overlaps?(s)}
+  end
+
+
   def self.collisions(main, secondary)
-    collisions = secondary.select do |ss|
-      collisions = main.select{|ms| ms.overlaps? ss }.any?
+    secondary.select do |ss|
+      main.select{|ms| ms.overlaps? ss }.any?
     end
   end
 
@@ -320,7 +325,7 @@ module Segment
     tsv = TSV.setup({}, :key_field => "ID", :fields => fields, :type => :double)
 
     segments.each do |segment|
-      tsv[segment.id] = self.tsv_values_for_segment(segment, fields)
+      tsv[segment.object_id.to_s] = self.tsv_values_for_segment(segment, fields)
     end
 
     tsv
@@ -343,8 +348,8 @@ module Segment
     [offset, self.end] * ".."
   end
 
-  def ==(other)
-    self.id == other.id
-  end
+  #def ==(other)
+  #  self.text == other.text
+  #end
 end
 

@@ -1,4 +1,4 @@
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 require 'rbbt/entity'
 
 module NamedEntity 
@@ -32,7 +32,7 @@ Score: #{score.inspect}
     format, entity = code.split(":")
     entity, format = format, nil if entity.nil?
     
-    if defined? Entity and Entity.formats.include? type or Entity.formats.include? format
+    if defined?(Entity) && Entity.formats.include?(type) or Entity.formats.include?(format)
       params ||= {}
       params[:format] = format if format and params[:format].nil?
       mod = (Entity.formats[type] || Entity.format[entity])

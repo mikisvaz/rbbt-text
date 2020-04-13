@@ -1,4 +1,4 @@
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 
 module SegmentWithDocid 
   extend Annotation

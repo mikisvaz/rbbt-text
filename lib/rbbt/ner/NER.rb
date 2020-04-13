@@ -1,6 +1,6 @@
-require 'rbbt/ner/segment'
-require 'rbbt/ner/segment/named_entity'
-require 'rbbt/ner/segment/segmented'
+require 'rbbt/text/segment'
+require 'rbbt/text/segment/named_entity'
+require 'rbbt/text/segment/segmented'
 
 class NER
   def entities(text, protect = false, *args)

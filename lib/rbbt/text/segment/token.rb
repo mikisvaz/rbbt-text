@@ -1,5 +1,5 @@
 require 'rbbt/annotations'
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 
 module Token
   attr_accessor :offset, :original

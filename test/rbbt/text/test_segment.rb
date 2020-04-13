@@ -1,7 +1,7 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../..', 'test_helper.rb')
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 
-class TestClass < Test::Unit::TestCase
+class TestSegment < Test::Unit::TestCase
   def test_info
     a = "test"
     a.extend Segment

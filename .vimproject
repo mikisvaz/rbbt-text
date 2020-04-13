@@ -4,6 +4,30 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   get_ppis.rb
  }
  lib=lib{
+
+  rbbt=rbbt{
+   text=text{
+    document.rb
+    corpus.rb
+    corpus=corpus{
+     document.rb
+     document_repo.rb
+     sources=sources{
+      pmid.rb
+     }
+    }
+    segment.rb
+    segment=segment{
+     docid.rb
+     named_entity.rb
+     relationship.rb
+     segmented.rb
+     token.rb
+     transformed.rb
+    }
+   }
+  }
+
   bow=rbbt/bow {
    bow.rb
    dictionary.rb
@@ -19,54 +43,28 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    }
   }
   ner=rbbt/ner{
-   segment.rb
-   segment=segment{
-    docid.rb
-    named_entity.rb
-    token.rb
-    segmented.rb
-    transformed.rb
-    relationship.rb
-   }
-
    NER.rb
-
    abner.rb
    banner.rb
-   g_norm_plus.rb
    brat.rb
-   
+   chemical_tagger.rb
+   finder.rb
+   g_norm_plus.rb
    linnaeus.rb
-
+   ngram_prefix_dictionary.rb
    oscar3.rb
    oscar4.rb
-   chemical_tagger.rb
-
-   regexpNER.rb
-   token_trieNER.rb
-   ngram_prefix_dictionary.rb
    patterns.rb
-
-   finder.rb
-
+   regexpNER.rb
    rnorm.rb
+   token_trieNER.rb
    rnorm=rnorm{
     cue_index.rb
     tokens.rb
    }
   }
-  corpus=rbbt/corpus{
-   document.rb
-   document_repo.rb
-   corpus.rb
-   sources=sources{
-    pubmed.rb
-   }
-  }
-  entity=rbbt/entity{
-   document.rb
-  }
  }
+
  share=share{
   software=install/software filter="*"{
    ABNER
@@ -86,32 +84,42 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    tokens_default
   }
  }
+
  test=test filter="*" {
   test_helper.rb
-  data=data{
-  }
   bow=rbbt/bow{
    test_bow.rb
    test_dictionary.rb
    test_misc.rb
   }
+  text=rbbt/text{
+   test_corpus.rb
+   test_document.rb
+   test_segment.rb
+   segment=segment{
+    test_named_entity.rb
+    test_relationship.rb
+    test_segmented.rb
+    test_transformed.rb
+    }
+  }
   ner=rbbt/ner{
    test_NER.rb
    test_abner.rb
    test_banner.rb
+   test_brat.rb
    test_chemical_tagger.rb
    test_finder.rb
+   test_g_norm_plus.rb
    test_linnaeus.rb
    test_ngram_prefix_dictionary.rb
    test_oscar4.rb
    test_patterns.rb
    test_regexpNER.rb
    test_rnorm.rb
-   test_segment.rb
    test_token_trieNER.rb
   }
   annotations=rbbt/annotations{
-
  }
  data=data{
  }

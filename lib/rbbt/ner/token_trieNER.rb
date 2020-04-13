@@ -1,7 +1,7 @@
 require 'rbbt'
 require 'rbbt/tsv'
-require 'rbbt/ner/segment'
-require 'rbbt/ner/segment/token'
+require 'rbbt/text/segment'
+require 'rbbt/text/segment/token'
 require 'rbbt/ner/NER'
 
 class TokenTrieNER < NER

@@ -1,6 +1,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_helper.rb')
-require 'rbbt/ner/segment/transformed'
-require 'rbbt/ner/segment/named_entity'
+require 'rbbt/text/segment/transformed'
+require 'rbbt/text/segment/named_entity'
 require 'rexml/document'
 
 class TestClass < Test::Unit::TestCase
@@ -97,7 +97,6 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     end
 
     assert_equal original, a
-
 
     assert_equal original, a
 
@@ -285,6 +284,100 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
       assert_equal "[G] can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the [G] promoter.", a
     end
 
+  end
+
+  def test_by_sentence
+    a = "This is a first sentences. ILF can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the interleukin-2 promoter."
+
+    sentence_pos = a.index('.')+2
+    sentence = a[sentence_pos..-1]
+    Segment.setup sentence, sentence_pos
+
+    gene1 = "ILF"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1
+    gene1.type = "Gene"
+
+    Transformed.with_transform(sentence, [gene1], "[G]") do 
+      assert_equal sentence.sub("ILF", "[G]"), sentence
+    end
+  end
+
+  def test_collisions
+    text =<<-EOF.chomp
+This is another sentence. Protein (nsp1), helicase (nsp13).
+    EOF
+
+    sentence_pos = text.index(".") + 2
+    sentence = Segment.setup(text[sentence_pos..-1], sentence_pos)
+
+    viral = %w(nsp1 nsp13)
+    human = %w(helicase)
+
+    viral = viral.collect do |e|
+      next unless text.index(e)
+      NamedEntity.setup(e, text.index(e), "VirGene")
+    end.compact
+
+    human = human.collect do |e|
+      next unless text.index(e)
+      NamedEntity.setup(e, text.index(e), "HumGene")
+    end
+
+    clean = human.reject{|s| s.overlaps(viral).any?}
+
+    Transformed.with_transform(sentence, viral, Proc.new{|e| "[VIRAL=#{e}]"}) do
+      assert_equal sentence, "Protein ([VIRAL=nsp1]), helicase ([VIRAL=nsp13])."
+      Transformed.with_transform(sentence, clean, Proc.new{|e| "[HUMAN=#{e}]"}) do
+        assert_equal sentence, "Protein ([VIRAL=nsp1]), [HUMAN=helicase] ([VIRAL=nsp13])."
+      end
+    end
+  end
+
+
+  def test_collisions2
+    text =<<-EOF.chomp
+This is another sentence. Among the nonstructural proteins, the leader protein (nsp1), the papain-like protease (nsp3), the nsp4, the 3C-like protease (nsp5), the nsp7, the nsp8, the nsp9, the nsp10, the RNA-directed RNA polymerase (nsp12), the helicase (nsp13), the guanine-N7 methyltransferase (nsp14), the uridylate-specific endoribonuclease (nsp15), the 2'-O-methyltransferase (nsp16), and the ORF7a protein could be built on the basis of homology templates.
+    EOF
+
+    sentence_pos = text.index(".") + 2
+    sentence = Segment.setup(text[sentence_pos..-1], sentence_pos)
+
+    target = sentence.dup
+
+    viral = %w(nsp1 nsp4 nsp5 nsp7 nsp8 nsp9 nsp10 nsp12 nsp13 nsp14 nsp15 ORF7a spike)
+    human = %w(helicase nsp5 nsp4 nsp3)
+
+    viral = viral.collect do |e|
+      next unless text.index(e)
+      NamedEntity.setup(e, text.index(e), "VirGene")
+    end.compact
+
+    human = human.collect do |e|
+      next unless text.index(e)
+      NamedEntity.setup(e, text.index(e), "HumGene")
+    end
+
+    clean = human.reject{|s| s.overlaps(viral).any?}
+
+    tag = Misc.digest("TAG")
+
+    viral.each do |e|
+      target.gsub!(/\b#{e}\b/, "[VIRAL=#{e}-#{tag}]")
+    end
+
+    target_tmp = target.dup
+
+    clean.each do |e|
+      target.gsub!(/\b#{e}\b/, "[HUMAN=#{e}-#{tag}]")
+    end
+
+    Transformed.with_transform(sentence, viral, Proc.new{|e| "[VIRAL=#{e}-#{tag}]"}) do
+      assert_equal sentence, target_tmp
+      Transformed.with_transform(sentence, clean, Proc.new{|e| "[HUMAN=#{e}-#{tag}]"}) do
+        assert_equal sentence, target
+      end
+    end
   end
 end
 

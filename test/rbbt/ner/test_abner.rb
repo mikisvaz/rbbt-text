@@ -13,6 +13,7 @@ class TestAbner < Test::Unit::TestCase
         assert(mentions.include? mention)
       }
     rescue
+      Log.exception $!
     end
   end
 end

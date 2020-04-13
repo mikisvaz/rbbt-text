@@ -1,6 +1,6 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 

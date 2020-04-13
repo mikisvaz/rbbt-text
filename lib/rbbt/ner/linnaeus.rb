@@ -1,6 +1,6 @@
 require 'rjb'
 require 'rbbt'
-require 'rbbt/ner/segment/named_entity'
+require 'rbbt/text/segment/named_entity'
 
 module Linnaeus
 

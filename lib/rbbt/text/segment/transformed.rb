@@ -1,9 +1,11 @@
 require 'rbbt/util/misc'
-require 'rbbt/ner/segment'
+require 'rbbt/text/segment'
 
 module Transformed
 
   def self.transform(text, segments, replacement = nil, &block)
+
+    block = replacement if Proc === replacement
 
     text.extend Transformed
     text.replace_segments(segments, replacement, &block)
@@ -24,67 +26,43 @@ module Transformed
   end
 
   attr_accessor :transformed_segments, :transformation_stack
- 
+
   def shift(segment_o)
     begin_shift = 0
     end_shift = 0
 
+    text_offset = self.respond_to?(:offset)? self.offset.to_i : 0
     @transformed_segments.sort_by{|id, info| info.last}.each{|id,info| 
-      pseg_o, diff = info
+      pseg_o, diff, utext, pseg_u, index  = info
+
+      pseg_u = ((pseg_u.begin + text_offset)..(pseg_u.last + text_offset))
 
       case
         # Before
-      when segment_o.last + end_shift < pseg_o.begin
+      when segment_o.last + end_shift < pseg_u.begin
         # After
-      when (segment_o.begin + begin_shift > pseg_o.last)
+      when (segment_o.begin + begin_shift > pseg_u.last)
         begin_shift += diff
         end_shift += diff
         # Includes
-      when (segment_o.begin + begin_shift <= pseg_o.begin and segment_o.last + end_shift >= pseg_o.last)
+      when (segment_o.begin + begin_shift <= pseg_u.begin and segment_o.last + end_shift >= pseg_u.last)
         end_shift += diff
         # Inside
-      when (segment_o.begin + begin_shift >= pseg_o.begin and segment_o.last + end_shift <= pseg_o.last)
+      when (segment_o.begin + begin_shift >= pseg_u.begin and segment_o.last + end_shift <= pseg_u.last)
         return nil
         # Overlaps start
-      when (segment_o.begin + begin_shift <= pseg_o.begin and segment_o.last + end_shift <= pseg_o.last)
+      when (segment_o.begin + begin_shift <= pseg_u.begin and segment_o.last + end_shift <= pseg_u.last)
         return nil
         # Overlaps end
-      when (segment_o.begin + begin_shift >= pseg_o.begin and segment_o.last + end_shift >= pseg_o.last)
+      when (segment_o.begin + begin_shift >= pseg_u.begin and segment_o.last + end_shift >= pseg_u.last)
         return nil
-     else
-        raise "Unknown overlaps: #{segment_o.inspect} - #{pseg_o.inspect}"
+      else
+        raise "Unknown overlaps: #{segment_o.inspect} - #{pseg_u.inspect}"
       end
     }
 
     [begin_shift, end_shift]
   end
-
-  #def self.sort(segments)
-  #  segments.compact.sort do |a,b|
-  #    case
-  #    when ((a.nil? && b.nil?) || (a.offset.nil? && b.offset.nil?))
-  #      0
-  #    when (a.nil? || a.offset.nil?)
-  #      -1
-  #    when (b.nil? || b.offset.nil?)
-  #      +1
-  #      # Non-overlap
-  #    when (a.end < b.offset.to_i || b.end < a.offset.to_i)
-  #      b.offset <=> a.offset
-  #      # b includes a
-  #    when (a.offset.to_i >= b.offset.to_i && a.end <= b.end)
-  #      -1
-  #      # b includes a
-  #    when (b.offset.to_i >= a.offset.to_i && b.end <= a.end)
-  #      +1
-  #      # Overlap
-  #    when (a.offset.to_i > b.offset.to_i && a.end > b.end || b.offset.to_i > a.offset.to_i && b.end > a.end)
-  #      b.length <=> a.length
-  #    else
-  #      raise "Unexpected case in sort: #{a.range} - #{b.range}"
-  #    end
-  #  end
-  #end
 
   def replace_segments(segments, replacement = nil, &block)
     @transformed_segments ||= {}
@@ -93,8 +71,9 @@ module Transformed
 
     segments = [segments] unless Array === segments 
     orig_length = self.length
-    Segment.sort(segments).each do |segment|
+    Segment.clean_sort(segments).each do |segment|
       next if segment.offset.nil?
+
       shift = shift segment.range
 
       next if shift.nil?
@@ -102,6 +81,7 @@ module Transformed
       shift_begin, shift_end = shift
 
       text_offset = self.respond_to?(:offset)? self.offset.to_i : 0
+
       updated_begin = segment.offset.to_i + shift_begin - text_offset
       updated_end   = segment.range.last + shift_end - text_offset
 
@@ -112,6 +92,8 @@ module Transformed
         Log.warn "Range outside of segment: #{self.length} #{segment.locus} (#{updated_range})"
         next
       end
+
+      #raise "error '#{segment}' => '#{updated_text}'" if updated_text != segment
 
       original_text = segment.dup
       segment.replace updated_text
@@ -177,8 +159,31 @@ module Transformed
     end
   end
 
-  def self.ansi(text, entities, colors = nil)
+  #def self.sort(segments)
+  #  segments.compact.sort do |a,b|
+  #    case
+  #    when ((a.nil? && b.nil?) || (a.offset.nil? && b.offset.nil?))
+  #      0
+  #    when (a.nil? || a.offset.nil?)
+  #      -1
+  #    when (b.nil? || b.offset.nil?)
+  #      +1
+  #      # Non-overlap
+  #    when (a.end < b.offset.to_i || b.end < a.offset.to_i)
+  #      b.offset <=> a.offset
+  #      # b includes a
+  #    when (a.offset.to_i >= b.offset.to_i && a.end <= b.end)
+  #      -1
+  #      # b includes a
+  #    when (b.offset.to_i >= a.offset.to_i && b.end <= a.end)
+  #      +1
+  #      # Overlap
+  #    when (a.offset.to_i > b.offset.to_i && a.end > b.end || b.offset.to_i > a.offset.to_i && b.end > a.end)
+  #      b.length <=> a.length
+  #    else
+  #      raise "Unexpected case in sort: #{a.range} - #{b.range}"
+  #    end
+  #  end
+  #end
 
-
-  end
 end
