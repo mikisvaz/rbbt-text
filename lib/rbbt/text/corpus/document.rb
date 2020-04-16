@@ -1,5 +1,6 @@
 require 'rbbt/text/segment'
 require 'rbbt/text/segment/segmented'
+require 'rbbt/text/segment/docid'
 require 'rbbt/tsv'
 require 'rbbt/resource/path'
 require 'rbbt/persist/tsv'
@@ -15,6 +16,7 @@ class Corpus
     attr_accessor :text, :docid, :namespace, :id, :type, :hash, :segments, :segment_indices, :persist_dir, :global_persistence, :corpus
 
     attr_accessor :multiple_result
+
     def initialize(persist_dir = nil, docid = nil, text = nil, global_persistence = nil, corpus = nil)
       @segments = {}
       @segment_indices = {}
@@ -44,16 +46,22 @@ class Corpus
     end
 
     def self.define(entity, &block)
-      send :define_method, "produce_#{entity}", &block
+      send :define_method, "produce_#{entity}" do 
+        segments = self.instance_exec &block
 
-      self.class_eval <<-EOC, __FILE__, __LINE__
+        segments.each{|s| s.docid = docid }
+      end
+
+      self.class_eval <<-EOC, __FILE__, __LINE__ + 1
         def load_#{entity}(raw = false)
           return if segments.include? "#{ entity }"
           if self.respond_to?("load_with_persistence_#{entity}") and not @persist_dir.nil?
-            segments["#{entity}"] = load_with_persistence_#{entity}(raw)
+            entities = load_with_persistence_#{entity}(raw)
           else
-            segments["#{ entity }"] = produce_#{entity}
+            entities = produce_#{entity}
           end
+
+          segments["#{ entity }"] = entities
         end
 
         def #{entity}(raw = false)
@@ -77,7 +85,10 @@ class Corpus
 
     def self.define_multiple(entity, &block)
       send :define_method, "produce_#{entity}" do
-        return self.multiple_result[entity] if self.multiple_result && self.multiple_result[entity]
+        if self.multiple_result && self.multiple_result[entity]
+          segments = self.multiple_result[entity]
+          return segments.each{|s| s.docid = docid }
+        end
         raise MultipleEntity, "Entity #{entity} runs with multiple documents, please prepare beforehand with prepare_multiple: #{self.docid}"
       end
 
@@ -86,14 +97,16 @@ class Corpus
         self
       end.send :define_method, name, &block
 
-      self.class_eval <<-EOC, __FILE__, __LINE__
+      self.class_eval <<-EOC, __FILE__, __LINE__ + 1
         def load_#{entity}(raw = false)
           return if segments.include? "#{ entity }"
           if self.respond_to?("load_with_persistence_#{entity}") and not @persist_dir.nil?
-            segments["#{entity}"] = load_with_persistence_#{entity}(raw)
+            entities = load_with_persistence_#{entity}(raw)
           else
-            segments["#{ entity }"] = produce_#{entity}
+            entities = produce_#{entity}
           end
+
+          segments["#{ entity }"] = entities
         end
 
         def #{entity}(raw = false)
@@ -124,7 +137,7 @@ class Corpus
           missing << doc
         end
       end
-      res = self.send("multiple_produce_#{entity.to_s}", missing)
+      res = self.send("multiple_produce_#{entity.to_s}", missing) if missing.any?
       case res
       when Array
         res.each_with_index do |res,i|
@@ -142,7 +155,9 @@ class Corpus
           end
         end
       end
-      missing.each{|doc| doc.send entity }
+      missing.each{|doc|
+        doc.send entity 
+      }
     end
 
 
@@ -197,7 +212,7 @@ class Corpus
         FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields unless fields.nil?
       end
 
-      self.class_eval <<-EOC, __FILE__, __LINE__
+      self.class_eval <<-EOC, __FILE__, __LINE__ + 1
         def load_with_persistence_#{entity}(raw = false)
           repo = TSV_REPOS["#{ entity }"]
           if repo.nil?
@@ -253,7 +268,7 @@ class Corpus
 
       FIELDS_FOR_ENTITY_PERSISTENCE[entity.to_s] = fields 
 
-      self.class_eval <<-EOC, __FILE__, __LINE__
+      self.class_eval <<-EOC, __FILE__, __LINE__ + 1
         def load_with_persistence_#{entity}(raw = false)
           fields = FIELDS_FOR_ENTITY_PERSISTENCE["#{ entity }"]
 
@@ -261,20 +276,23 @@ class Corpus
           
           begin
 
-            data.read true
-
-            fields = data.fields if fields.nil? and data.respond_to? :fields
-
-
             if data.respond_to? :persistence_path and String === data.persistence_path
               data.filter(data.persistence_path + '.filters')
             end
 
-            data.add_filter("field:#{ doc_field }", @docid) if data.fields.include?("#{doc_field}")
-            data.add_filter("field:#{ entity_field }", "#{ entity }") if data.fields.include?("#{entity_field}")
-            keys = data.keys
-            data.pop_filter if data.fields.include?("#{entity_field}")
-            data.pop_filter if data.fields.include?("#{doc_field}")
+            keys = data.read_and_close do
+
+              fields = data.fields if fields.nil? and data.respond_to? :fields
+
+              data.add_filter("field:#{ doc_field }", @docid) if fields.include?("#{doc_field}")
+              data.add_filter("field:#{ entity_field }", "#{ entity }") if fields.include?("#{entity_field}")
+              keys = data.keys
+              data.pop_filter if fields.include?("#{entity_field}")
+              data.pop_filter if fields.include?("#{doc_field}")
+
+              keys
+            end
+
 
             if keys.empty?
               segments = produce_#{entity}
@@ -289,34 +307,38 @@ class Corpus
                 "#{ entity }"
               end
 
-              data.add_filter("field:#{ doc_field }", @docid) if data.fields.include?("#{doc_field}")
-              data.add_filter("field:#{ entity_field }", "#{ entity }") if data.fields.include?("#{entity_field}")
-              data.write true
-              keys = tsv.collect do |key, value|
-                data[key] = value
-                key
+              keys = data.write_and_close do
+                data.add_filter("field:#{ doc_field }", @docid) if fields.include?("#{doc_field}")
+                data.add_filter("field:#{ entity_field }", "#{ entity }") if fields.include?("#{entity_field}")
+                keys = tsv.collect do |key, value|
+                  data[key] = value
+                  key
+                end
+                data.pop_filter if fields.include?("#{entity_field}")
+                data.pop_filter if fields.include?("#{doc_field}")
+                keys
               end
-              data.pop_filter if data.fields.include?("#{entity_field}")
-              data.pop_filter if data.fields.include?("#{doc_field}")
-              data.read
 
             else
-              if raw == :check
-                data.close
-                return nil
-              end
+              return nil if raw == :check
             end
 
             return data.values if raw
 
             start_pos = data.identify_field "Start"
-            segments = data.values_at(*keys).collect{|annotation| 
+            data.read_and_close do 
+              data.chunked_values_at(keys).collect{|annotation| 
+                  begin
                 pos = annotation[start_pos]
-                Segment.load_tsv_values(text, annotation, data.fields) unless [-1, "-1", [-1], ["-1"]].include? pos
-            }.compact
-            data.close
-
-            segments
+                Segment.load_tsv_values(text, annotation, fields) unless [-1, "-1", [-1], ["-1"]].include?(pos)
+                  rescue
+                    Log.exception $!
+                    iif keys
+                    iif [text, annotation]
+                  end
+                  
+              }.compact
+            end
           ensure
             data.close
           end
@@ -348,7 +370,7 @@ class Corpus
         segment.segments[name] = annotations
         class << segment
           self
-        end.class_eval "def #{ name }; @segments['#{ name }']; end", __FILE__, __LINE__
+        end.class_eval "def #{ name }; @segments['#{ name }']; end", __FILE__, __LINE__ + 1
       end
 
       segment

@@ -29,6 +29,7 @@ Score: #{score.inspect}
   end
 
   def entity(params = nil)
+    code = self.dup
     format, entity = code.split(":")
     entity, format = format, nil if entity.nil?
     

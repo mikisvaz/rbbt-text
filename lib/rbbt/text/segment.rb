@@ -3,7 +3,7 @@ require 'rbbt/fix_width_table'
 
 module Segment 
   extend Annotation
-  self.annotation :offset
+  self.annotation :offset, :docid
 
   def segment_length
     begin
@@ -325,7 +325,7 @@ module Segment
     tsv = TSV.setup({}, :key_field => "ID", :fields => fields, :type => :double)
 
     segments.each do |segment|
-      tsv[segment.object_id.to_s] = self.tsv_values_for_segment(segment, fields)
+      tsv[segment.segment_id] = self.tsv_values_for_segment(segment, fields)
     end
 
     tsv
@@ -346,6 +346,14 @@ module Segment
 
   def locus
     [offset, self.end] * ".."
+  end
+
+  def segment_id
+    if self.respond_to?(:docid)
+      [docid, locus, Misc.obj2digest(info)] * ":"
+    else
+      Misc.obj2digest(info)
+    end
   end
 
   #def ==(other)

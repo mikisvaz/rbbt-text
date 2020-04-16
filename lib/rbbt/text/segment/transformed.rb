@@ -111,10 +111,10 @@ module Transformed
 
       self[updated_begin..updated_end] = new
 
-      @transformed_segments[segment.object_id] = [segment.range, diff, updated_text, updated_range, @transformed_segments.size]
+      @transformed_segments[segment.segment_id] = [segment.range, diff, updated_text, updated_range, @transformed_segments.size]
 
       segment.replace original_text
-      stack << segment.object_id
+      stack << segment.segment_id
     end
     @transformation_stack << stack
   end
