@@ -8,7 +8,6 @@ class TestGNormPlus < Test::Unit::TestCase
 We found that TP53 is regulated by MDM2 in Homo sapiens
     EOF
 
-
     mentions = GNormPlus.process({:file => text})
     Log.tsv mentions
   end
