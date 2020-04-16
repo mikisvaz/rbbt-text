@@ -10,35 +10,39 @@ module GNormPlus
   end
 
   CONFIG =<<-EOF
-
 #===Annotation
 #Attribution setting:
 #FocusSpecies = Taxonomy ID
-#	All: All species
-#	9606: Human
-#	4932: yeast
-#	7227: Fly
-#	10090: Mouse
-#	10116: Rat
-#	7955: Zebrafish
-#	3702: Arabidopsis thaliana
+#       All: All species
+#       9606: Human
+#       4932: yeast
+#       7227: Fly
+#       10090: Mouse
+#       10116: Rat
+#       7955: Zebrafish
+#       3702: Arabidopsis thaliana
 #open: True
 #close: False
 
 [Focus Species]
-	FocusSpecies = All
+	FocusSpecies = 9606
+	FilterAntibody = False
 [Dictionary & Model]
 	DictionaryFolder = ./Dictionary
 	GNRModel = ./Dictionary/GNR.Model
 	SCModel = ./Dictionary/SimConcept.Model
 	GeneIDMatch = True
+	HomologeneID = False
 	Normalization2Protein = False
+	ShowUnNormalizedMention = False
 	DeleteTmp = True
+	IgnoreNER = True
 EOF
 
   def self.process(texts)
     TmpFile.with_file do |tmpdir|
       Open.mkdir tmpdir
+
       Misc.in_dir tmpdir do
         Open.ln_s Rbbt.software.opt.GNormPlus.Dictionary.find, '.'
         Open.ln_s Rbbt.software.opt.GNormPlus["BioC.dtd"].find, '.'
@@ -50,12 +54,12 @@ EOF
 
         texts.each do |name,text|
           Open.write("input/#{name}.txt") do |f|
-            f.puts "#{name}|a|" << text
+            f.puts "#{name}|a|" << text.gsub("\n\n", "\n·")
             f.puts
           end
         end
         Open.write('config', CONFIG)
-        CMD.cmd_log("java -Xmx20G -Xms20G  -jar '#{Rbbt.software.opt.GNormPlus.find}/GNormPlus.jar' 'input' 'output' 'config'")
+        CMD.cmd_log("java -Xmx20G -Xms20G  -jar '#{Rbbt.software.opt.GNormPlus.produce.find}/GNormPlus.jar' 'input' 'output' 'config'")
 
         if texts.respond_to? :key_field
           key_field = texts.key_field
@@ -68,6 +72,9 @@ EOF
           entities = Open.read(file).split("\n")[1..-1].collect{|l| l.gsub(':', '.').split("\t")[1..-1] * ":"}
           tsv[name] = entities
         end
+
+        raise "GNormPlus failed: no results found" if tsv.size == 0 && texts.size > 0
+
         tsv
       end
     end
