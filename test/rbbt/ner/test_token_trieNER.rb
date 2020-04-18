@@ -74,6 +74,7 @@ C2;11;22;3 3;bb
       index = TokenTrieNER.new("test", TSV.open(file, :flat, :sep => ';'))
 
       assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
+      assert index.match(' asdfa dsf asdf aa asdfasdf ').select{|m| m.code.include? 'C1'}.any?
     end
   end
 

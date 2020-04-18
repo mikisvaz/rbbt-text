@@ -1,5 +1,5 @@
 require 'rbbt/nlp/nlp'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 module NLP
   Rbbt.claim Rbbt.software.opt.Geniass, :install, Rbbt.share.install.software.Geniass.find
 

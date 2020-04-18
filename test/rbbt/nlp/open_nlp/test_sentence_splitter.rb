@@ -1,6 +1,6 @@
 require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_helper.rb')
 require 'rbbt/nlp/open_nlp/sentence_splitter'
-require 'rbbt/ner/segment'
+require 'rbbt/segment'
 
 $text=<<-EOF
 Atypical teratoid/rhabdoid tumors (AT/RTs) are highly aggressive brain tumors
@@ -22,6 +22,22 @@ class TestClass < Test::Unit::TestCase
   def test_sentences
     text =<<-EOF
 This is a sentence.    
+No funky character in this sentence.
+This is a sentence.    
+This is a 
+sentence. This is
+another sentence. 
+    EOF
+
+    assert_equal 5, OpenNLP.sentence_split_detector.sentDetect(text).length
+
+    assert_equal 5, OpenNLP.sentence_splitter(text).length
+    assert_equal "This is a \nsentence.", OpenNLP.sentence_splitter(text)[3]
+  end
+
+  def test_sentences_fix_utf8
+    text =<<-EOF
+This is a sentence.    
 A funky character ™ in a sentence.
 This is a sentence.    
 This is a 
@@ -35,12 +51,12 @@ another sentence.
     assert_equal "This is a \nsentence.", OpenNLP.sentence_splitter(text)[3]
   end
 
-  def _test_text_sentences
+  def test_text_sentences
     Misc.benchmark(100) do
-      OpenNLP.sentence_splitter($text).include? "Our
+      assert OpenNLP.sentence_splitter($text).include?("Our
 findings highlight the role of SMARCA4 in the pathogenesis of SMARCB1-positive
 AT/RT and the usefulness of antibodies directed against SMARCA4 in this
-diagnostic setting."
+diagnostic setting.")
     end
   end
 end

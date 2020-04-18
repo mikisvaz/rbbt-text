@@ -6,7 +6,34 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
  lib=lib{
 
   rbbt=rbbt{
-   text=text{
+   document.rb
+   document=document{
+    corpus.rb
+    corpus=corpus{
+      pubmed.rb
+    }
+    annotation.rb
+   }
+   segment.rb
+   segment=segment{
+    range_index.rb
+    annotation.rb
+    named_entity.rb
+    token.rb
+
+    overlaps.rb
+    segmented.rb
+
+    transformed.rb
+
+    encoding.rb
+
+    tsv.rb
+   }
+
+   // OLD STUFF
+
+   text=.save/text{
     document.rb
     corpus.rb
     corpus=corpus{
@@ -24,6 +51,8 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
      segmented.rb
      token.rb
      transformed.rb
+     encoding.rb
+
     }
    }
   }
@@ -56,8 +85,8 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    oscar4.rb
    patterns.rb
    regexpNER.rb
-   rnorm.rb
    token_trieNER.rb
+   rnorm.rb
    rnorm=rnorm{
     cue_index.rb
     tokens.rb

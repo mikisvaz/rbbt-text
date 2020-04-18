@@ -1,6 +1,6 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 require 'rbbt/resource'
 
 module OpenNLP
@@ -33,48 +33,49 @@ module OpenNLP
   def self.sentence_splitter(text)
     return [] if text.nil? or text.empty?
 
-    text = Misc.to_utf8(text)
-    last = 0
-    begin
-      sentence_split_detector = self.sentence_split_detector
-      
-      sentences = nil
-      TmpFile.with_file do |tmpfile|
-        start_time = Time.now
+    Segment.ascii(text, "?") do
+      last = 0
+      begin
+        sentence_split_detector = self.sentence_split_detector
 
-        begin
-          pid = Process.fork do
-            sent = sentence_split_detector.sentDetect(text)
-            Open.write(tmpfile, sent * "#OpenNLP:SENTENCE#")
-          end
-
-          while not Process.waitpid(pid)
-            if Time.now - start_time > MAX
-              Process.kill(9, pid)
-              raise "Taking to long (> #{MAX} seconds)"
-            end
-            sleep 0.1
-          end
+        sentences = nil
+        TmpFile.with_file do |tmpfile|
+          start_time = Time.now
 
           begin
-            Process.waitpid(pid)
+            pid = Process.fork do
+              sent = sentence_split_detector.sentDetect(text)
+              Open.write(tmpfile, sent * "#OpenNLP:SENTENCE#")
+            end
+
+            while not Process.waitpid(pid)
+              if Time.now - start_time > MAX
+                Process.kill(9, pid)
+                raise "Taking to long (> #{MAX} seconds)"
+              end
+              sleep 0.1
+            end
+
+            begin
+              Process.waitpid(pid)
+            end
+          rescue Errno::ECHILD
           end
-        rescue Errno::ECHILD
+
+          sentences = Open.read(tmpfile).split("#OpenNLP:SENTENCE#")
         end
 
-        sentences = Open.read(tmpfile).split("#OpenNLP:SENTENCE#")
+        sentences.collect{|sentence|
+          sentence = Misc.to_utf8(sentence)
+          start = text.index(sentence, last)
+          Segment.setup sentence, start
+          last = start + sentence.length - 1
+          sentence
+        }
+      rescue Exception
+        raise $!
+        raise "Sentence splitter raised exception: #{$!.message}"
       end
-
-      sentences.collect{|sentence|
-        sentence = Misc.to_utf8(sentence)
-        start = text.index(sentence, last)
-        Segment.setup sentence, start
-        last = start + sentence.length - 1
-        sentence
-      }
-    rescue Exception
-      raise $!
-      raise "Sentence splitter raised exception: #{$!.message}"
     end
   end
 end

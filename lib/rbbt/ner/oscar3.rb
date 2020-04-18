@@ -1,7 +1,6 @@
 require 'rbbt'
 require 'rjb'
 require 'libxml'
-require 'rbbt/text/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
@@ -53,7 +52,7 @@ class OSCAR3 < NER
         next unless type.nil? or type.include? mention_type
         score  = memm ? entities.get(key).to_string.to_f : nil
 
-        NamedEntity.setup mention, rstart.to_i + offset, mention_type, nil, score
+        NamedEntity.setup mention, :offset => rstart.to_i + offset, :entity_type => mention_type, :score => score
         
         mentions << mention unless mentions.collect{|m| m.to_s}.include? mention.to_s
       end

@@ -1,4 +1,3 @@
-require 'rbbt/text/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/simpleDSL'
 
@@ -23,7 +22,7 @@ class RegExpNER < NER
       end
 
       if match and not match.empty?
-        NamedEntity.setup(match, start + pre.length, type)
+        NamedEntity.setup(match, :offset => start + pre.length, :entity_type => type)
         matches << match
       end
 

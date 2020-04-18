@@ -1,17 +1,18 @@
-require 'rbbt/text/segment'
-require 'rbbt/entity'
+require 'rbbt/segment'
+require 'rbbt/segment/annotation'
 
-module NamedEntity 
+module NamedEntity
   extend Entity
   include Segment
+  include SegmentAnnotation
 
-  self.annotation :type, :code, :score
+  self.annotation :entity_type, :code, :score
 
   def report
     <<-EOF
 String: #{ self }
 Offset: #{ offset.inspect }
-Type: #{type.inspect}
+Type: #{entity_type.inspect}
 Code: #{code.inspect}
 Score: #{score.inspect}
     EOF
@@ -20,7 +21,7 @@ Score: #{score.inspect}
   def html
     text = <<-EOF
 <span class='Entity'\
-#{type.nil? ? "" : " attr-entity-type='#{Array === type ? type * " " : type}'"}\
+#{entity_type.nil? ? "" : " attr-entity-type='#{Array === entity_type ? entity_type * " " : entity_type}'"}\
 #{code.nil?  ? "" : " attr-entity-code='#{Array === code ? code * " " : code}'"}\
 #{score.nil? ? "" : " attr-entity-score='#{Array === score ? score * " " : score}'"}\
 >#{ self }</span>
@@ -29,14 +30,14 @@ Score: #{score.inspect}
   end
 
   def entity(params = nil)
-    code = self.dup
+    code = self.code || self.dup
     format, entity = code.split(":")
     entity, format = format, nil if entity.nil?
-    
-    if defined?(Entity) && Entity.formats.include?(type) or Entity.formats.include?(format)
+
+    if defined?(Entity) && Entity.formats.include?(entity_type) or Entity.formats.include?(format)
       params ||= {}
       params[:format] = format if format and params[:format].nil?
-      mod = (Entity.formats[type] || Entity.format[entity])
+      mod = (Entity.formats[entity_type] || Entity.format[entity])
       mod.setup(entity, params)
     end
 
@@ -44,4 +45,3 @@ Score: #{score.inspect}
   end
 
 end
-

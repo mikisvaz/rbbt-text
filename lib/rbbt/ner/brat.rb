@@ -1,4 +1,4 @@
-require 'rbbt/text/segment/named_entity'
+require 'rbbt/segment/named_entity'
 require 'rbbt/text/segment/relationship'
 module Brat
   Rbbt.claim Rbbt.software.opt.Brat, :install, "https://github.com/nlplab/brat.git"

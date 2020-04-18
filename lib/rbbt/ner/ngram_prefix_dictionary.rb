@@ -1,8 +1,8 @@
 require 'rbbt'
 require 'rbbt/util/misc'
 require 'rbbt/tsv'
-require 'rbbt/text/segment'
-require 'rbbt/text/segment/token'
+require 'rbbt/segment'
+require 'rbbt/segment/token'
 require 'rbbt/ner/NER'
 require 'inline'
 
@@ -150,7 +150,7 @@ VALUE fast_start_with(VALUE str, VALUE cmp, int offset)
 
   def match(text)
     matches = NGramPrefixDictionary.match(index, (case_insensitive ? text.downcase : text)).collect{|name, code, offset|
-      NamedEntity.setup(name, offset, type, code)
+      NamedEntity.setup(name, :offset => offset, :entity_type => type, :code => code)
     }
 
     if case_insensitive

@@ -1,10 +1,34 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), '../../..', 'test_helper.rb')
-require 'rbbt/text/segment/transformed'
-require 'rbbt/text/segment/named_entity'
+require File.join(File.expand_path(File.dirname(__FILE__)), '../..', 'test_helper.rb')
+require 'rbbt/segment/transformed'
+require 'rbbt/segment/named_entity'
 require 'rexml/document'
 
-class TestClass < Test::Unit::TestCase
-  def test_sort
+class TestTransformed < Test::Unit::TestCase
+
+  def setup
+    @text = <<-EOF
+More recently, PPAR activators were shown to inhibit the activation of inflammatory response genes (such as IL-2, IL-6, IL-8, TNF alpha and metalloproteases) by negatively interfering with the NF-kappa B, STAT and AP-1 signalling pathways in cells of the vascular wall.
+    EOF
+
+    @entities = ["PPAR", "IL-2", "IL-6", "IL-8", "TNF alpha", "NF-kappa B", "AP-1", "STAT"].collect do |literal|
+      NamedEntity.setup(literal, :offset => @text.index(literal))
+    end
+  end
+
+  def test_transform
+    text = <<-EOF
+More recently, PPAR activators were shown to inhibit the activation of inflammatory response genes (such as IL-2, IL-6, IL-8, TNF alpha and metalloproteases) by negatively interfering with the NF-kappa B, STAT and AP-1 signalling pathways in cells of the vascular wall.
+    EOF
+
+    entities = ["PPAR", "IL-2", "IL-6", "IL-8", "TNF alpha", "NF-kappa B", "AP-1", "STAT"].reverse.collect do |literal|
+      NamedEntity.setup(literal, :offset => text.index(literal))
+    end
+
+    Transformed.transform(text, entities, Proc.new{|e| "[" + e.upcase + "]" }) 
+    assert text.include? "such as [IL-2]"
+  end
+
+  def test_with_transform
     text = <<-EOF
 More recently, PPAR activators were shown to inhibit the activation of inflammatory response genes (such as IL-2, IL-6, IL-8, TNF alpha and metalloproteases) by negatively interfering with the NF-kappa B, STAT and AP-1 signalling pathways in cells of the vascular wall.
     EOF
@@ -18,47 +42,7 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     end
   end
 
-  def ___test_transform
-    a = "This sentence mentions the TP53 gene and the CDK5 protein"
-    original = a.dup
-
-    gene1 = "TP53"
-    gene1.extend Segment
-    gene1.offset = a.index gene1
-
-    gene2 = "CDK5"
-    gene2.extend Segment
-    gene2.offset = a.index gene2
-
-    assert_equal gene1, a[gene1.range]
-    assert_equal gene2, a[gene2.range]
-    
-    c = a.dup
-
-    c[gene2.range] = "GN"
-    assert_equal c, Transformed.transform(a,[gene2], "GN")
-    c[gene1.range] = "GN"
-    assert_equal c, Transformed.transform(a,[gene1], "GN")
-
-    iii a.transformation_offset_differences
-    raise
-    assert_equal gene2.offset, a.transformation_offset_differences.first.first.first
-    assert_equal gene1.offset, a.transformation_offset_differences.last.first.first
-
-
-    gene3 = "GN gene"
-    gene3.extend Segment
-    gene3.offset = a.index gene3
-
-    assert_equal gene3, a[gene3.range]
-
-    a.restore([gene3])
-    assert_equal original, a
-    assert_equal "TP53 gene", a[gene3.range]
-
-  end
-
-  def test_with_transform
+  def test_with_transform_2
     a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     original = a.dup
 
@@ -123,12 +107,12 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     gene1 = "TP53"
     gene1.extend NamedEntity
     gene1.offset = a.index gene1
-    gene1.type = "Gene"
+    gene1.entity_type = "Gene"
 
     gene2 = "CDK5R1"
     gene2.extend NamedEntity
     gene2.offset = a.index gene2
-    gene2.type = "Protein"
+    gene2.entity_type = "Protein"
 
     Transformed.with_transform(a, [gene1,gene2], Proc.new{|e| e.html}) do 
       assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein'>CDK5R1</span> protein", a
@@ -143,13 +127,13 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     gene1.extend NamedEntity
     gene1.offset = a.index gene1 
     gene1.offset += 10
-    gene1.type = "Gene"
+    gene1.entity_type = "Gene"
 
     gene2 = "CDK5R1"
     gene2.extend NamedEntity
     gene2.offset = a.index gene2
     gene2.offset += 10
-    gene2.type = "Protein"
+    gene2.entity_type = "Protein"
 
     Transformed.with_transform(a, [gene1,gene2], Proc.new{|e| e.html}) do 
       assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein'>CDK5R1</span> protein", a
@@ -162,12 +146,12 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     gene1 = "TP53"
     gene1.extend NamedEntity
     gene1.offset = a.index gene1
-    gene1.type = "Gene"
+    gene1.entity_type = "Gene"
 
     gene2 = "TP53 gene"
     gene2.extend NamedEntity
     gene2.offset = a.index gene2
-    gene2.type = "Expanded Gene"
+    gene2.entity_type = "Expanded Gene"
 
     assert_equal [gene1], Segment.overlaps(Segment.sort([gene1,gene2]))
 
@@ -379,5 +363,46 @@ This is another sentence. Among the nonstructural proteins, the leader protein (
       end
     end
   end
+
+  def ___test_transform
+    a = "This sentence mentions the TP53 gene and the CDK5 protein"
+    original = a.dup
+
+    gene1 = "TP53"
+    gene1.extend Segment
+    gene1.offset = a.index gene1
+
+    gene2 = "CDK5"
+    gene2.extend Segment
+    gene2.offset = a.index gene2
+
+    assert_equal gene1, a[gene1.range]
+    assert_equal gene2, a[gene2.range]
+    
+    c = a.dup
+
+    c[gene2.range] = "GN"
+    assert_equal c, Transformed.transform(a,[gene2], "GN")
+    c[gene1.range] = "GN"
+    assert_equal c, Transformed.transform(a,[gene1], "GN")
+
+    iii a.transformation_offset_differences
+    raise
+    assert_equal gene2.offset, a.transformation_offset_differences.first.first.first
+    assert_equal gene1.offset, a.transformation_offset_differences.last.first.first
+
+
+    gene3 = "GN gene"
+    gene3.extend Segment
+    gene3.offset = a.index gene3
+
+    assert_equal gene3, a[gene3.range]
+
+    a.restore([gene3])
+    assert_equal original, a
+    assert_equal "TP53 gene", a[gene3.range]
+
+  end
+
 end
 

@@ -8,13 +8,13 @@ require 'rbbt/sources/NCI'
 
 class TestFinder < Test::Unit::TestCase
 
-  def test_namespace_and_format
+  def _test_namespace_and_format
     f = Finder.new(CMD.cmd("head -n 1000", :in => Open.open(Organism.identifiers(Organism.default_code("Hsa")).produce.find)))
     assert_equal Organism.default_code("Hsa"), f.instances.first.namespace
     assert_equal "Ensembl Gene ID", f.instances.first.format
   end
 
-  def test_find
+  def _test_find
     f = Finder.new(Organism.lexicon(Organism.default_code("Hsa")), :grep => ["SF3B1"])
 
     assert_equal "ENSG00000115524", f.find("SF3B1").first
@@ -23,7 +23,7 @@ class TestFinder < Test::Unit::TestCase
     end
   end
 
-  def test_find2
+  def _test_find2
     f = Finder.new(Organism.lexicon(Organism.default_code("Hsa")), :grep => ["RASGRF2"])
 
     m = f.find("RAS").first

@@ -2,17 +2,17 @@ require File.join(File.expand_path(File.dirname(__FILE__)), '../../test_helper.r
 require 'rbbt/ner/patterns'
 
 class TestPatternRelExt < Test::Unit::TestCase
-  def test_simple_pattern
+  def _test_simple_pattern
     text = "Experiments have shown that TP53 interacts with CDK5 under certain conditions"
 
     gene1 = "TP53"
-    NamedEntity.setup(gene1, text.index(gene1), "Gene")
+    NamedEntity.setup(gene1, :offset => text.index(gene1), :entity_type => "Gene")
 
     gene2 = "CDK5"
-    NamedEntity.setup(gene2, text.index(gene2), "Gene")
+    NamedEntity.setup(gene2, :offset => text.index(gene2), :entity_type => "Gene")
 
     interaction = "interacts"
-    NamedEntity.setup(interaction, text.index(interaction), "Interaction")
+    NamedEntity.setup(interaction, :offset => text.index(interaction), :entity_type => "Interaction")
 
     Segmented.setup(text, [gene1, gene2, interaction])
 
@@ -23,13 +23,13 @@ class TestPatternRelExt < Test::Unit::TestCase
     text = "Experiments have shown that TP53 found in cultivated cells interacts with CDK5 under certain conditions"
 
     gene1 = "TP53"
-    NamedEntity.setup(gene1, text.index(gene1), "Gene")
+    NamedEntity.setup(gene1, :offset => text.index(gene1), :entity_type => "Gene")
 
     gene2 = "CDK5"
-    NamedEntity.setup(gene2, text.index(gene2), "Gene")
+    NamedEntity.setup(gene2, :offset => text.index(gene2), :entity_type => "Gene")
 
     interaction = "interacts"
-    NamedEntity.setup(interaction, text.index(interaction), "Interaction")
+    NamedEntity.setup(interaction, :offset => text.index(interaction), :entity_type => "Interaction")
 
     Segmented.setup(text, {:entities => [gene1, gene2, interaction]})
 
@@ -40,7 +40,7 @@ class TestPatternRelExt < Test::Unit::TestCase
       PatternRelExt.new(["NP[entity:Gene] VP[stem:interacts] with NP[entity:Gene]"]).match_sentences([text]).first.first
   end
 
-  def test_chunk_pattern
+  def _test_chunk_pattern
     text = "There is a concern with the use of thiazolidinediones in patients with an increased risk of colon cancer (e.g., familial colon polyposis)."
 
     drug = "thiazolidinediones"
@@ -57,7 +57,7 @@ class TestPatternRelExt < Test::Unit::TestCase
   end
 
 
-  def test_entities_with_spaces
+  def _test_entities_with_spaces
     PatternRelExt.new("NP[entity:Gene Name]").token_trie
   end
 

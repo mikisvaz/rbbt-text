@@ -27,10 +27,9 @@ S000000376	AAA	GENE1	DDD
      assert_equal(["S000000029"], @norm.match("FUN21"))
      assert_equal(["S000000030", "S000000029", "S000000031"].sort, @norm.match("FUN").sort)
      assert_equal(["S000000030", "S000000029", "S000000031"].sort, @norm.match("FUN 2").sort)
-     assert_equal(["S000000030", "S000000029", "S000000031"].sort, @norm.match("FUN 21").sort) 
-     assert_equal([], @norm.match("GER4"))
-
-     @norm.match("FUN21")
+     assert_equal(["S000000029"].sort, @norm.match("FUN 21").sort) 
+     assert_equal([], @norm.match("Non-sense"))
+     assert_equal(["S000000029", "S000000374"], @norm.match("GER4"))
   end 
 
   def test_select

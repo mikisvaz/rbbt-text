@@ -9,7 +9,17 @@ We found that TP53 is regulated by MDM2 in Homo sapiens
     EOF
 
     mentions = GNormPlus.process({:file => text})
-    Log.tsv mentions
+    assert_equal 1, mentions.length
+    assert_equal 2, mentions["file"].length
+  end
+
+  def test_entities
+    text =<<-EOF
+We found that TP53 is regulated by MDM2 in Homo sapiens
+    EOF
+
+    mentions = GNormPlus.entities({:file => text})
+    mentions["file"].include? "TP53"
   end
 end
 

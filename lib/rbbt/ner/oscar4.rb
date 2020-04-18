@@ -1,7 +1,7 @@
 require 'rbbt'
 require 'rjb'
 require 'libxml'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
@@ -25,7 +25,7 @@ class OSCAR4 < NER
     @@tagger ||= @@OSCAR.new()
   end
 
-  def self.match(text,  type = nil)
+  def self.match(text, protect = false,  type = nil)
     self.init
 
     return [] if text.nil? or text.strip.empty?
@@ -46,7 +46,7 @@ class OSCAR4 < NER
 
       next unless entity.getType.toString == type unless type.nil?
 
-      NamedEntity.setup mention, entity.getStart, entity.getType, inchi, entity.getConfidence
+      NamedEntity.setup mention, :offset => entity.getStart, :entity_type => entity.getType, :code => inchi, :score => entity.getConfidence
 
       result << mention
     end

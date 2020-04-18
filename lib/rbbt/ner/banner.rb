@@ -1,7 +1,7 @@
 require 'rbbt'
 require 'rjb'
 require 'rbbt/ner/NER'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 
 # Offers a Ruby interface to the Banner Named Entity Recognition Package
 # in Java. Banner[http://banner.sourceforge.net/].

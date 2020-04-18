@@ -1,6 +1,5 @@
 require 'rbbt'
 require 'rjb'
-require 'rbbt/text/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
 
@@ -8,7 +7,7 @@ class ChemicalTagger < NER
   Rbbt.claim Rbbt.software.opt.ChemicalTagger, :install, Rbbt.share.install.software.ChemicalTagger.find
 
   def self.init
-    ENV["CLASSPATH"] = ENV["CLASSPATH"].split(":").reverse * ":"
+    ENV["CLASSPATH"] = [ENV["CLASSPATH"].split(":"), Rbbt.software.opt.ChemicalTagger.produce.glob("*.jar").first].reverse * ":"
     Rjb::load(nil, jvmargs = ['-Xms1G','-Xmx2G']) unless Rjb.loaded?
     @@RbbtChemicalTagger ||= Rjb::import('RbbtChemicalTagger')
   end

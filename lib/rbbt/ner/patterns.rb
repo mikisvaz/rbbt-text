@@ -1,7 +1,7 @@
-require 'rbbt/text/segment/named_entity'
-require 'rbbt/text/segment/segmented'
-require 'rbbt/text/segment/transformed'
-require 'rbbt/text/segment/relationship'
+require 'rbbt/segment/named_entity'
+require 'rbbt/segment/segmented'
+require 'rbbt/segment/transformed'
+#require 'rbbt/segment/relationship'
 require 'rbbt/ner/regexpNER'
 require 'rbbt/ner/token_trieNER'
 require 'rbbt/nlp/nlp'
@@ -14,7 +14,8 @@ class PatternRelExt
     regexpNER = RegExpNER.new type => patterns.collect{|p| /#{p}/}
     segments = sentence.segments
     segments = segments.values.flatten if Hash === segments
-    Transformed.with_transform(sentence, segments, Proc.new{|s| s.type.to_s.upcase}) do |sentence|
+    Transformed.with_transform(sentence, segments, Proc.new{|s| s.entity_type.to_s.upcase}) do |sentence|
+      ppp sentence
       regexpNER.entities(sentence)
     end
   end

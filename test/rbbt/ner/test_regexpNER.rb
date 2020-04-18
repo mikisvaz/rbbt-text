@@ -23,9 +23,9 @@ class TestRegExpNER < Test::Unit::TestCase
     matches = RegExpNER.match_regexp_hash(sentence, regexp_hash)
 
     assert_equal ["this", "this", "that"].sort, matches.sort
-    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
-    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
-    assert_equal :this, matches.select{|m| m.type == :this}[0].type
+    assert_equal "In ".length, matches.select{|m| m.entity_type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.entity_type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.entity_type == :this}[0].entity_type
   end
 
   def test_define_regexps
@@ -39,9 +39,9 @@ class TestRegExpNER < Test::Unit::TestCase
 
     matches = ner.entities(sentence)
     assert_equal ["this", "this", "that"].sort, matches.sort
-    assert_equal "In ".length, matches.select{|m| m.type == :this }[0].offset
-    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this }[1].offset
-    assert_equal :this, matches.select{|m| m.type == :this }[0].type
+    assert_equal "In ".length, matches.select{|m| m.entity_type == :this }[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.entity_type == :this }[1].offset
+    assert_equal :this, matches.select{|m| m.entity_type == :this }[0].entity_type
   end
 
 
@@ -51,9 +51,9 @@ class TestRegExpNER < Test::Unit::TestCase
     ner = RegExpNER.new({:this => /this/, :that => /that/})
     matches = ner.entities(sentence)
     assert_equal ["this", "this", "that"].sort, matches.sort
-    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
-    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
-    assert_equal :this, matches.select{|m| m.type == :this}[0].type
+    assert_equal "In ".length, matches.select{|m| m.entity_type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.entity_type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.entity_type == :this}[0].entity_type
 
     Segmented.setup(sentence)
     ner_this = RegExpNER.new({:this => /this/})
@@ -64,9 +64,9 @@ class TestRegExpNER < Test::Unit::TestCase
     matches = sentence.segments
 
     assert_equal ["this", "this", "that"].sort, matches.sort
-    assert_equal "In ".length, matches.select{|m| m.type == :this}[0].offset
-    assert_equal "In this sentence I should find ".length, matches.select{|m| m.type == :this}[1].offset
-    assert_equal :this, matches.select{|m| m.type == :this}[0].type
+    assert_equal "In ".length, matches.select{|m| m.entity_type == :this}[0].offset
+    assert_equal "In this sentence I should find ".length, matches.select{|m| m.entity_type == :this}[1].offset
+    assert_equal :this, matches.select{|m| m.entity_type == :this}[0].entity_type
   end
 
   def test_entities_captures
@@ -75,8 +75,8 @@ class TestRegExpNER < Test::Unit::TestCase
     ner = RegExpNER.new({:this => /this/, :that => /that/, :should => /I (should)/})
     matches = ner.entities(sentence)
     assert_equal ["this", "this", "that", "should"].sort, matches.sort
-    assert_equal "In this sentence I ".length, matches.select{|m| m.type == :should}[0].offset
-    assert_equal :should, matches.select{|m| m.type == :should}[0].type
+    assert_equal "In this sentence I ".length, matches.select{|m| m.entity_type == :should}[0].offset
+    assert_equal :should, matches.select{|m| m.entity_type == :should}[0].entity_type
   end
 
 

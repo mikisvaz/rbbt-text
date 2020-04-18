@@ -2,8 +2,8 @@ require 'rbbt'
 require 'rbbt/util/tmpfile'
 require 'rbbt/persist'
 require 'rbbt/resource'
-require 'rbbt/text/segment'
-require 'rbbt/text/segment/segmented'
+require 'rbbt/segment'
+require 'rbbt/segment/segmented'
 require 'rbbt/nlp/genia/sentence_splitter'
 require 'digest/md5'
 
@@ -101,7 +101,7 @@ module NLP
     input = sentences.collect{|sentence| sentence.gsub(/\n/, NEW_LINE_MASK)} * "\n"
     sentence_tokens = TmpFile.with_file(input) do |fin|
       out = local_persist(Digest::MD5.hexdigest(input), :Chunks, :string) do
-        CMD.cmd("cd #{Rbbt.software.opt.Gdep.find}; ./gdep #{ fin }").read
+        CMD.cmd("cd #{Rbbt.software.opt.Gdep.produce.find}; ./gdep #{ fin }").read
       end
 
       out.split(/^$/).collect do |sentence|
@@ -120,10 +120,10 @@ module NLP
 
 
   def self.gdep_parse_sentences_extension(sentences)
-    require Rbbt.software.opt.Gdep.ruby["Gdep.so"].find
+    require Rbbt.software.opt.Gdep.produce.ruby["Gdep.so"].find
     gdep = Gdep.new
     if not gdep.gdep_is_loaded
-      Misc.in_dir Rbbt.software.opt.Gdep.find do
+      Misc.in_dir Rbbt.software.opt.Gdep.produce.find do
         gdep.load_gdep 
       end
     end

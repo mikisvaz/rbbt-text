@@ -1,12 +1,12 @@
 require 'rjb'
 require 'rbbt'
-require 'rbbt/text/segment/named_entity'
+require 'rbbt/segment/named_entity'
 
 module Linnaeus
 
   Rbbt.claim Rbbt.software.opt.Linnaeus, :install, Rbbt.share.install.software.Linnaeus.find
 
-  ARGS = ["--properties", Rbbt.software.opt.Linnaeus["species-proxy/properties.conf"].find]
+  ARGS = ["--properties", Rbbt.software.opt.Linnaeus.produce["species-proxy/properties.conf"].find]
 
 
   Rjb::load(nil, jvmargs = ['-Xms2G','-Xmx2G']) unless Rjb.loaded?
@@ -31,7 +31,7 @@ module Linnaeus
     init unless defined? @@Matcher
 
     @@Matcher.match(text).toArray().collect do |mention|
-      NamedEntity.setup(mention.text(), mention.start(), "Organism", mention.ids(), mention.probabilities())
+      NamedEntity.setup(mention.text(), :offset => mention.start(), :entity_type => "Organism", :code => mention.ids(), :score => mention.probabilities())
     end
   end
 end

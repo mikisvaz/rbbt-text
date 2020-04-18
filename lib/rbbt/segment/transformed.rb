@@ -1,6 +1,3 @@
-require 'rbbt/util/misc'
-require 'rbbt/text/segment'
-
 module Transformed
 
   def self.transform(text, segments, replacement = nil, &block)
@@ -111,10 +108,10 @@ module Transformed
 
       self[updated_begin..updated_end] = new
 
-      @transformed_segments[segment.segment_id] = [segment.range, diff, updated_text, updated_range, @transformed_segments.size]
+      @transformed_segments[segment.object_id] = [segment.range, diff, updated_text, updated_range, @transformed_segments.size]
 
       segment.replace original_text
-      stack << segment.segment_id
+      stack << segment.object_id
     end
     @transformation_stack << stack
   end
@@ -122,13 +119,13 @@ module Transformed
   def fix_segment(segment, range, diff)
     case
       # Before
-    when segment.end < range.begin
+    when segment.eend < range.begin
       # After
     when segment.offset.to_i > range.end + diff
       segment.offset = segment.offset.to_i - diff
       # Includes
-    when (segment.offset.to_i <= range.begin and segment.end >= range.end + diff)
-      segment.replace self[segment.offset.to_i..segment.end - diff]
+    when (segment.offset.to_i <= range.begin and segment.eend >= range.end + diff)
+      segment.replace self[segment.offset.to_i..segment.eend - diff]
     else
       raise "Segment Overlaps"
     end
@@ -141,7 +138,8 @@ module Transformed
 
     if first_only
       @transformation_stack.pop.reverse.each do |id|
-        orig_range, diff, text, range = @transformed_segments.delete id
+        segment_info = @transformed_segments.delete id
+        orig_range, diff, text, range = segment_info 
 
         new_range = (range.begin..range.last + diff)
         self[new_range] = text

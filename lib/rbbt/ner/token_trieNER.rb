@@ -1,8 +1,8 @@
 require 'rbbt'
 require 'rbbt/tsv'
-require 'rbbt/text/segment'
-require 'rbbt/text/segment/token'
+require 'rbbt/segment'
 require 'rbbt/ner/NER'
+require 'rbbt/segment/token'
 
 class TokenTrieNER < NER
   def self.clean(token)
@@ -16,13 +16,13 @@ class TokenTrieNER < NER
   def self.prepare_token(token, start, extend_to_token = true, no_clean = false)
     if no_clean
       if extend_to_token
-        Token.setup(clean(token), start, token)
+        Token.setup(token, :offset => start, :original => token)
       else
         token
       end
     else
       if extend_to_token
-        Token.setup(clean(token), start, token)
+        Token.setup(clean(token), :offset => start, :original => token)
       else
         clean(token)
       end
@@ -137,7 +137,7 @@ class TokenTrieNER < NER
     tmp_index = {}
     hash.send(hash.respond_to?(:through)? :through : :each) do |code, names|
       names = Array === names ? names : [names]
-      names.flatten! if Array === names.first and not Token === names.first.first
+      names.flatten! if Array === names.first and not Segment === names.first.first
 
       if names.empty?
         names.unshift code unless TSV === hash and not (hash.fields.nil? or hash.fields.empty?)
@@ -237,7 +237,7 @@ class TokenTrieNER < NER
       match << ((t.respond_to?(:original) and not t.original.nil?) ? t.original : t)
     }
 
-    NamedEntity.setup(match, match_tokens.first.offset, type, codes)
+    NamedEntity.setup(match, :offset => match_tokens.first.offset, :entity_type => type, :code => codes)
   end
 
   attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean

@@ -1,7 +1,7 @@
 require 'rbbt'
 require 'rjb'
 require 'rbbt/resource'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 require 'rbbt/ner/NER'
 
 # Offers a Ruby interface to the Abner Named Entity Recognition Package

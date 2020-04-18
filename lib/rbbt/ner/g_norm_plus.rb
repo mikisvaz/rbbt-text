@@ -1,4 +1,6 @@
 require 'rbbt-util'
+require 'rbbt/segment'
+require 'rbbt/segment/named_entity'
 module GNormPlus
 
   Rbbt.claim Rbbt.software.opt.GNormPlus, :install do
@@ -35,8 +37,8 @@ module GNormPlus
 	HomologeneID = False
 	Normalization2Protein = False
 	ShowUnNormalizedMention = False
+	IgnoreNER = False
 	DeleteTmp = True
-	IgnoreNER = True
 EOF
 
   def self.process(texts)
@@ -69,7 +71,7 @@ EOF
         tsv = TSV.setup({}, :key_field => key_field, :fields => ["Entities"], :type => :flat)
         Dir.glob("output/*.txt").each do |file|
           name = File.basename(file).sub(".txt",'')
-          entities = Open.read(file).split("\n")[1..-1].collect{|l| l.gsub(':', '.').split("\t")[1..-1] * ":"}
+          entities = Open.read(file).split("\n")[1..-1].collect{|l| l.gsub(':', '·').split("\t")[1..-1] * ":"}
           tsv[name] = entities
         end
 
@@ -77,6 +79,21 @@ EOF
 
         tsv
       end
+    end
+  end
+
+  def self.entities(texts)
+    res = {}
+    process(texts).each do |name, entities|
+
+      segments = entities.collect do |entity|
+        start, eend, literal, type, code = entity.split(":")
+        literal.gsub!('·',':')
+
+        NamedEntity.setup(literal, :offset => start.to_i, :entity_type => type, :code => code)
+      end
+
+      res[name] = segments
     end
   end
 end

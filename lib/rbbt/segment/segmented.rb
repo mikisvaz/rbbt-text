@@ -1,5 +1,5 @@
 require 'rbbt/annotations'
-require 'rbbt/text/segment'
+require 'rbbt/segment'
 
 module Segmented
   extend Annotation

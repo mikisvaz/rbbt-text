@@ -12,7 +12,7 @@ pkg_dir="`opt_dir \"$name\"`"
 build_dir=`build_dir`
 mv "$build_dir" "$pkg_dir"
 tmp_file="~/.rbbt/tmp/species-proxy-properties.tmp"
-mkdir -p $(basename "$tmp_file")
+mkdir -p $(dirname "$tmp_file")
 cat  "$pkg_dir/species-proxy/properties.conf" |grep -v "^.dir =" >> $tmp_file
 echo "\$dir = $pkg_dir/species-proxy/" > "$pkg_dir/species-proxy/properties.conf"
 cat $tmp_file | grep -v "^#" >>  "$pkg_dir/species-proxy/properties.conf"
