@@ -68,6 +68,10 @@ module Transformed
 
     segments = [segments] unless Array === segments 
     orig_length = self.length
+
+    offset = self.respond_to?(:offset) ? self.offset : 0
+    segments = segments.select{|s| s.offset >= offset && s.offset <= offset + self.length - 1 }
+
     Segment.clean_sort(segments).each do |segment|
       next if segment.offset.nil?
 
@@ -86,7 +90,7 @@ module Transformed
 
       updated_text = self[updated_begin..updated_end]
       if updated_text.nil?
-        Log.warn "Range outside of segment: #{self.length} #{segment.locus} (#{updated_range})"
+        Log.warn "Range outside of segment: #{self.length} #{segment.range} (#{updated_range})"
         next
       end
 

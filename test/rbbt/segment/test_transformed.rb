@@ -101,6 +101,35 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     assert_equal "CDK5R1 protein", exp2
   end
 
+  def test_with_transform_sentences
+    a = "This first sentence mentions Bread. This sentence mentions the TP53 gene and the CDK5R1 protein"
+    original = a.dup
+
+    gene1 = "TP53"
+    gene1.extend NamedEntity
+    gene1.offset = a.index gene1
+
+    gene2 = "CDK5R1"
+    gene2.extend NamedEntity
+    gene2.offset = a.index gene2
+
+    bread = "Bread"
+    bread.extend NamedEntity
+    bread.offset = a.index bread
+
+    sentences = Segment.align(a, a.split(". "))
+
+    Transformed.with_transform(sentences[1], [gene1, gene2, bread], "GN") do
+      assert sentences[1].include?("GN gene and the GN protein")
+    end
+
+    Transformed.with_transform(sentences[0], [gene1, gene2, bread], "BR") do
+      assert sentences[0].include?("first sentence mentions BR")
+    end
+
+
+  end
+
   def test_html
     a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
 
