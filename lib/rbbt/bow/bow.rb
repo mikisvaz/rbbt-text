@@ -69,6 +69,11 @@ module BagOfWords
     count = bigrams ? count(bigrams(text)) : count(words(text))
     count.values_at(*terms)
   end
+
+  def self.weighted_features(text, weights)
+    features = features(text, weights.keys)
+    features.zip(weights.values).collect{|f,w| f * w } 
+  end
 end
 
 class String

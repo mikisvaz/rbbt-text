@@ -74,28 +74,32 @@ class Dictionary::TF_IDF
   end
 
   def best(options = {})
-    high, low, limit = {
-      :low   => 0,
-      :high    => 1,
-    }.merge(options).
-    values_at(:high, :low, :limit)
+    key = Misc.obj2digest(options)
+    @best ||= {}
+    @best[key] ||= begin
+                     high, low, limit = {
+                       :low   => 0,
+                       :high    => 1,
+                     }.merge(options).
+                     values_at(:high, :low, :limit)
 
-    num_docs = @num_docs.to_f
-    best = df.select{|term, value|
-      value >= low && value <= high
-    }.collect{|p| 
-      term     = p.first
-      df_value = p.last
-      [term,
-       @terms[term].to_f / num_docs * Math::log(1.0/df_value)
-      ]
-    }
+                     num_docs = @num_docs.to_f
+                     best = df.select{|term, value|
+                       value >= low && value <= high
+                     }.collect{|p| 
+                       term     = p.first
+                       df_value = p.last
+                       [term,
+                        @terms[term].to_f / num_docs * Math::log(1.0/df_value)
+                       ]
+                     }
 
-    if limit
-      Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
-    else
-      Hash[*best.flatten]
-    end
+                     if limit
+                       Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
+                     else
+                       Hash[*best.flatten]
+                     end
+                   end
   end
 
   def weights(options = {})
