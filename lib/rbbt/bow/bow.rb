@@ -87,5 +87,3 @@ class String
     BagOfWords.bigrams(self)
   end
 end
-
-

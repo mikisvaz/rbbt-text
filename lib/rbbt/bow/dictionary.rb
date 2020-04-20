@@ -95,7 +95,7 @@ class Dictionary::TF_IDF
                      }
 
                      if limit
-                       Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
+                       Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit-1).flatten]
                      else
                        Hash[*best.flatten]
                      end
@@ -177,7 +177,7 @@ class Dictionary::KL
       best[term] = pos * Math::log(pos / neg) + neg * Math::log(neg / pos)
     }
     if limit
-      Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit).flatten]
+      Hash[*best.sort{|a,b| b[1] <=>  a[1]}.slice(0, limit-1).flatten]
     else
       best
     end

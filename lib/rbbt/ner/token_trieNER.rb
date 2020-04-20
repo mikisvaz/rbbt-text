@@ -5,15 +5,27 @@ require 'rbbt/ner/NER'
 require 'rbbt/segment/token'
 
 class TokenTrieNER < NER
-  def self.clean(token)
+  def self.clean(token, stem = false)
     if token.length > 3
-      token.downcase.sub(/-/,'')
+      upcase = token !~ /[a-z]/
+      token = token.downcase.sub(/-/,'')
+
+      if stem && ! upcase
+        require 'stemmer'
+        if stem == :double
+          token = token.stem.stem
+        else
+          token = token.stem
+        end
+      end
+
+      token
     else
       token
     end
   end
 
-  def self.prepare_token(token, start, extend_to_token = true, no_clean = false)
+  def self.prepare_token(token, start, extend_to_token = true, no_clean = false, stem = false)
     if no_clean
       if extend_to_token
         Token.setup(token, :offset => start, :original => token)
@@ -22,25 +34,25 @@ class TokenTrieNER < NER
       end
     else
       if extend_to_token
-        Token.setup(clean(token), :offset => start, :original => token)
+        Token.setup(clean(token, stem), :offset => start, :original => token)
       else
-        clean(token)
+        clean(token, stem)
       end
     end
   end
 
-  def self.tokenize(text, extend_to_token = true, split_at = nil, no_clean = false, start = 0)
+  def self.tokenize(text, extend_to_token = true, split_at = nil, no_clean = false, stem = false, start = 0)
     split_at = /\s|(\(|\)|[-."':,])/ if split_at.nil?
 
     tokens = []
     while matchdata = text.match(split_at)
-      tokens << prepare_token(matchdata.pre_match, start, extend_to_token, no_clean) unless matchdata.pre_match.empty?
-      tokens << prepare_token(matchdata.captures.first, start + matchdata.begin(1), extend_to_token, no_clean) if matchdata.captures.any? and not matchdata.captures.first.empty?
+      tokens << prepare_token(matchdata.pre_match, start, extend_to_token, no_clean, stem) unless matchdata.pre_match.empty?
+      tokens << prepare_token(matchdata.captures.first, start + matchdata.begin(1), extend_to_token, no_clean, stem) if matchdata.captures.any? and not matchdata.captures.first.empty?
       start += matchdata.end(0)
       text = matchdata.post_match
     end
      
-    tokens << prepare_token(text, start, extend_to_token) unless text.empty?
+    tokens << prepare_token(text, start, extend_to_token, no_clean, stem) unless text.empty?
 
     tokens
   end
@@ -130,7 +142,7 @@ class TokenTrieNER < NER
     index1
   end
 
-  def self.process(index, hash, type = nil, slack = nil, split_at = nil, no_clean = false)
+  def self.process(index, hash, type = nil, slack = nil, split_at = nil, no_clean = false, stem = false)
 
     chunk_size = hash.size / 100
     items_in_chunk = 0
@@ -146,7 +158,7 @@ class TokenTrieNER < NER
       names.each do |name|
         next if name.empty? or (String === name and name.length < 2)
 
-        tokens = Array === name ? name : tokenize(name, false, split_at, no_clean) 
+        tokens = Array === name ? name : tokenize(name, false, split_at, no_clean, stem) 
         tokens.extend EnumeratedArray
 
         token_index = index_for_tokens(tokens, code, type, slack)
@@ -240,7 +252,7 @@ class TokenTrieNER < NER
     NamedEntity.setup(match, :offset => match_tokens.first.offset, :entity_type => type, :code => codes)
   end
 
-  attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean
+  attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean, :stem
   def initialize(type = nil, file = nil, options = {})
     options = Misc.add_defaults options, :longest_match => true, :no_clean => false, :slack => nil, :split_at => nil,
       :persist => false
@@ -248,6 +260,7 @@ class TokenTrieNER < NER
     @longest_match = options.delete :longest_match
     @split_at = options.delete :split_at
     @no_clean = options.delete :no_clean
+    @stem = options.delete :stem
 
     file = [] if file.nil?
     file = [file] unless Array === file
@@ -273,7 +286,7 @@ class TokenTrieNER < NER
       Log.debug "TokenTrieNER merging TSV"
       new.with_unnamed do
         new.with_monitor({:step => 1000, :desc => "Processing TSV into TokenTrieNER"}) do
-          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
+          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean, stem)
         end
       end
     when Hash === new
@@ -284,14 +297,14 @@ class TokenTrieNER < NER
       new = TSV.open(new, :flat)
       new.with_unnamed do
         new.with_monitor({:step => 1000, :desc => "Processing TSV into TokenTrieNER"}) do
-          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean)
+          TokenTrieNER.process(@index, new, type, slack, split_at, no_clean, stem)
         end
       end
     end
   end
 
   def match(text)
-    tokens = Array === text ? text : TokenTrieNER.tokenize(text, true, split_at, no_clean)
+    tokens = Array === text ? text : TokenTrieNER.tokenize(text, true, split_at, no_clean, stem)
 
     tokens.extend EnumeratedArray
     tokens.pos = 0
