@@ -12,18 +12,17 @@ class TestAnnotation < Test::Unit::TestCase
     segment = Segment.setup("is", :offset => text.index("is"), :docid => text.docid)
     annotation = SegmentAnnotation.setup(segment, :type => :verb)
 
-    assert_equal 'verb', annotation.annotid.split(":").last
+    assert_equal 'verb', annotation.annotid.split(":")[5]
 
     annotation = SegmentAnnotation.setup(segment.segid, :type => :verb)
-    assert_equal 'verb', annotation.annotid.split(":").last
+    assert_equal 'verb', annotation.annotid.split(":")[5]
   end
 
   def test_annotid
     text = "This is a document"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 

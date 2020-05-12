@@ -3,17 +3,40 @@ require 'rbbt-util'
 module Document::Corpus
 
   def self.setup(corpus)
-    corpus.extend Document::Corpus
+    corpus.extend Document::Corpus unless Document::Corpus === corpus
+    corpus.extend Persist::TSVAdapter unless Persist::TSVAdapter === corpus
+    corpus
   end
 
   def add_document(document)
-    self[document.docid] = document
+    docid = document.docid
+    return document if self.include?(docid)
+    self.write_and_close do
+      self[docid] = document
+    end
+  end
+  
+  def docids(prefix)
+    prefix += ":" unless prefix[-1] == ":"
+    docids = self.read_and_close do
+      self.prefix(prefix)
+    end
+    DocID.setup(docids, :corpus => self)
+  end
+
+  def documents(prefix)
+    self.docids(prefix).document
   end
 
   def [](*args)
     docid, *rest = args
-    res = super(*args)
+
+    res = self.read_and_close do
+      super(*args)
+    end
+    
     return res if args.length > 1
+
     namespace, id, type  = docid.split(":")
 
     if res.nil?

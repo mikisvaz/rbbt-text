@@ -1,5 +1,6 @@
 require 'rbbt-util'
 require 'rbbt/entity'
+require 'rbbt/document'
 
 module SegID
   extend Entity
@@ -10,11 +11,11 @@ module SegID
   end
 
   def range
-    @range ||= Range.new(*_parts.last.split("..").map(&:to_i))
+    @range ||= Range.new(*_parts[4].split("..").map(&:to_i))
   end
 
   def docid
-    @docid ||= _parts[0..3] * ":"
+    @docid ||= DocID.setup(_parts[0..3] * ":")
   end
 
   def offset
@@ -25,12 +26,13 @@ module SegID
     range.end - range.begin + 1
   end
 
-  property :segment do
+  property :segment => :single do
+    docid = self.docid
     document = DocID.setup(docid, :corpus => corpus).document
 
     text = document[range]
 
-    Segment.setup(text, docid)
+    Segment.setup(text, :docid => docid, :offset => offset)
   end
 
   property :segid do

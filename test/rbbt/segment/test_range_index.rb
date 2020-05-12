@@ -9,8 +9,7 @@ class TestRangeIndex < Test::Unit::TestCase
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 

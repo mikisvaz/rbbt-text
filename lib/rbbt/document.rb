@@ -1,6 +1,5 @@
 require 'rbbt-util'
 require 'rbbt/entity'
-require 'rbbt/document/annotation'
 
 module DocID
   extend Entity
@@ -19,10 +18,21 @@ module DocID
     DocID.setup([namespace, code, "title"] * ":", :corpus => corpus)
   end
 
-  def document
-    text = self.corpus[self]
-    namespace, id, type = self.split(":")
-    Document.setup(text, namespace, id, type, :corpus => corpus)
+  property :document => :both do
+    if Array === self
+      namespace, id, type = nil, nil, nil
+      docs = self.collect do |docid|
+        text = self.corpus[docid]
+        namespace, id, type = docid.split(":")
+        #Document.setup(text, namespace, id, type, :corpus => corpus)
+        text
+      end
+      Document.setup(docs, :corpus => corpus)
+    else
+      text = self.corpus[self]
+      namespace, id, type = self.split(":")
+      Document.setup(text, :namespace => namespace, :code => id, :type => type, :corpus => corpus)
+    end
   end
 end
 

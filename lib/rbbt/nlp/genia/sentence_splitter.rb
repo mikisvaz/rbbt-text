@@ -239,6 +239,7 @@ module NLP
   end
 
   def self.geniass_sentence_splitter(text)
+    Rbbt.software.opt.Geniass.produce
     offsets = []
 
     cleaned = text.gsub("\n",NEW_LINE_MASK)
@@ -294,7 +295,7 @@ module NLP
     offsets.collect do |s,e|
       sentence = text[s..e]
       next if sentence.nil?
-      #sentence.gsub!(NEW_LINE_MASK, "\n")
+      sentence.gsub!(NEW_LINE_MASK, "\n")
       Segment.setup sentence, s
       sentence
     end

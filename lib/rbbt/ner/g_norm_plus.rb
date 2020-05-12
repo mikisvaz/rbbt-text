@@ -55,11 +55,16 @@ EOF
         Open.mkdir 'tmp'
 
         texts.each do |name,text|
+          text = Misc.fixutf8(text)
+
+          text = text.gsub('|', '#').gsub("\n", " ").gsub(/\t/,' ')
+
           Open.write("input/#{name}.txt") do |f|
-            f.puts "#{name}|a|" << text.gsub("\n\n", "\n·")
+            f.puts "#{name}|a|" << text
             f.puts
           end
         end
+
         Open.write('config', CONFIG)
         CMD.cmd_log("java -Xmx20G -Xms20G  -jar '#{Rbbt.software.opt.GNormPlus.produce.find}/GNormPlus.jar' 'input' 'output' 'config'")
 
@@ -95,6 +100,7 @@ EOF
 
       res[name] = segments
     end
+    res
   end
 end
 

@@ -2,7 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), '../..', 'test_helpe
 require 'rbbt/segment/encoding'
 
 class TestEncoding < Test::Unit::TestCase
-  def _test_bad_chars
+  def test_bad_chars
     text = "A funky character ™ in a sentence."
 
     assert_equal ["™"], Segment.bad_chars(text)

@@ -26,7 +26,7 @@ class TestDocumentCorpus < Test::Unit::TestCase
 
       corpus.add_document(text)
 
-      assert corpus.prefix("TEST:").include?(text.docid)
+      assert corpus.docids("TEST:").include?(text.docid)
     end
   end
 end

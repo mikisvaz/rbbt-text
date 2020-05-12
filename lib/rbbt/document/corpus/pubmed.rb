@@ -6,7 +6,6 @@ module Document::Corpus
     type = nil if String === type and type.empty?
 
     res = PubMed.get_article(pmids).collect do |pmid, article|
-      Log.debug "Loading pmid #{pmid}"
       document = if type.nil? || type.to_sym == :abstract
                    Document.setup(article.abstract || "", "PMID", pmid, :abstract, self, :corpus => self)
                  elsif type.to_sym == :title
@@ -15,6 +14,7 @@ module Document::Corpus
                    raise "No FullText available for #{ pmid }" if article.full_text.nil?
                    Document.setup(article.full_text, :PMID, pmid, :fulltext, self, :corpus => self)
                  end
+      Log.debug "Loading pmid #{pmid}"
       add_document(document)
     end
 

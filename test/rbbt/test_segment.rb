@@ -17,8 +17,7 @@ class TestSegment < Test::Unit::TestCase
     text = "This is a document"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 
@@ -41,8 +40,7 @@ class TestSegment < Test::Unit::TestCase
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 
@@ -65,8 +63,7 @@ class TestSegment < Test::Unit::TestCase
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 
@@ -94,8 +91,7 @@ class TestSegment < Test::Unit::TestCase
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 
@@ -142,8 +138,7 @@ Atypical teratoid/rhabdoid tumors (AT/RTs) are highly aggressive brain tumors of
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
 
-    corpus = {}
-    corpus.extend Document::Corpus
+    corpus = Document::Corpus.setup({})
 
     corpus.add_document(text)
 

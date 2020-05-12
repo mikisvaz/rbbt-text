@@ -7,13 +7,37 @@ class TestNLP < Test::Unit::TestCase
 This is a sentence.    
 A funky character ™ in a sentence.
 This is a sentence.    
-This is a 
+This is a broken
 sentence. This is
-another sentence. 
+another broken sentence. 
     EOF
 
-    assert_equal "This is a \nsentence.", NLP.geniass_sentence_splitter(text)[3]
+    iii NLP.geniass_sentence_splitter(text)
+    assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter(text)[2].strip
   end
 
+  def test_sentences_2
+    text =<<-EOF
+This is a sentence.    
+This is a sentence.    
+This is a broken
+sentence. This is
+another broken sentence. 
+    EOF
+
+    assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter(text)[2].strip
+  end
+
+  def test_sentences_ext
+    text =<<-EOF
+This is a sentence.    
+This is a sentence.    
+This is a broken
+sentence. This is
+another broken sentence. 
+    EOF
+
+    assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter_extension(text)[2].strip
+  end
 end
 

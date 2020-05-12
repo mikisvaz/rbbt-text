@@ -15,7 +15,6 @@ class PatternRelExt
     segments = sentence.segments
     segments = segments.values.flatten if Hash === segments
     Transformed.with_transform(sentence, segments, Proc.new{|s| s.entity_type.to_s.upcase}) do |sentence|
-      ppp sentence
       regexpNER.entities(sentence)
     end
   end

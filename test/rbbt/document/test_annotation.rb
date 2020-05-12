@@ -36,7 +36,7 @@ class TestAnnotation < Test::Unit::TestCase
     Document.setup(text, "TEST", "test_doc1", nil)
 
     corpus = {}
-    corpus.extend Document::Corpus
+    Document::Corpus.setup corpus
 
     corpus.add_document(text)
 
@@ -50,7 +50,7 @@ class TestAnnotation < Test::Unit::TestCase
     Document.setup(text2, "TEST", "test_doc2", nil)
 
     corpus = {}
-    corpus.extend Document::Corpus
+    Document::Corpus.setup corpus
 
     corpus.add_document(text1)
     corpus.add_document(text2)
@@ -68,7 +68,7 @@ class TestAnnotation < Test::Unit::TestCase
     Document.setup(text, "TEST", "test_doc1", nil)
 
     corpus = {}
-    corpus.extend Document::Corpus
+    Document::Corpus.setup corpus
 
     corpus.add_document(text)
 
@@ -95,7 +95,7 @@ class TestAnnotation < Test::Unit::TestCase
     Document.setup(text, "TEST", "test_doc1", nil)
 
     corpus = {}
-    corpus.extend Document::Corpus
+    Document::Corpus.setup corpus
 
     corpus.add_document(text)
 
@@ -122,7 +122,7 @@ class TestAnnotation < Test::Unit::TestCase
     Document.setup(text, "TEST", "test_doc1", nil)
 
     corpus = {}
-    corpus.extend Document::Corpus
+    Document::Corpus.setup corpus
 
     corpus.add_document(text)
 

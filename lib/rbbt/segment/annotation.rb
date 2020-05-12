@@ -1,6 +1,6 @@
 require 'rbbt-util'
-require 'rbbt/entity'
 require 'rbbt/segment'
+require 'rbbt/entity'
 
 module AnnotID
   extend Entity
@@ -32,7 +32,7 @@ end
 
 module SegmentAnnotation
   extend Entity
-  include Segment
+  include Object::Segment
   self.annotation :type
 
   property :segid do
@@ -47,7 +47,7 @@ module SegmentAnnotation
   end
 
   property :annotid do |corpus=nil|
-    AnnotID.setup([segid, type] * ":", :corpus => corpus)
+    AnnotID.setup([segid, type, Misc.obj2digest(self.info)] * ":", :corpus => corpus)
   end
 
   alias id annotid

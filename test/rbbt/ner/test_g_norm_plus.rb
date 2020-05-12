@@ -5,12 +5,17 @@ Log.severity = 0
 class TestGNormPlus < Test::Unit::TestCase
   def test_match
     text =<<-EOF
-We found that TP53 is regulated by MDM2 in Homo sapiens
+
+Introduction
+
+We found that TP53 is regulated by MDM2 in Homo 
+sapiens
     EOF
 
     mentions = GNormPlus.process({:file => text})
+
     assert_equal 1, mentions.length
-    assert_equal 2, mentions["file"].length
+    assert_equal 3, mentions["file"].length
   end
 
   def test_entities
@@ -19,7 +24,10 @@ We found that TP53 is regulated by MDM2 in Homo sapiens
     EOF
 
     mentions = GNormPlus.entities({:file => text})
-    mentions["file"].include? "TP53"
+    assert mentions["file"].include?("TP53")
+    mentions["file"].each do |mention|
+      assert_equal mention, text[mention.range].sub("\n", ' ')
+    end
   end
 end
 

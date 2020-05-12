@@ -10,7 +10,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    document=document{
     corpus.rb
     corpus=corpus{
-      pubmed.rb
+     pubmed.rb
     }
     annotation.rb
    }
@@ -32,7 +32,6 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    }
 
    // OLD STUFF
-
    text=.save/text{
     document.rb
     corpus.rb
@@ -55,6 +54,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
 
     }
    }
+   // OLD STUFF
   }
 
   bow=rbbt/bow {
@@ -63,6 +63,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    misc.rb
   }
   nlp=rbbt/nlp{
+   spaCy.rb
    nlp.rb
    open_nlp=open_nlp{
     sentence_splitter.rb

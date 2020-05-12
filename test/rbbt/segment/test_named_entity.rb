@@ -22,12 +22,13 @@ class TestClass < Test::Unit::TestCase
     assert_equal "SCORE", a.score
   end
 
-  def __test_tsv
+  def test_tsv
     a = "test"
     NamedEntity.setup a, 10, "TYPE", "CODE", "SCORE"
-    assert Segment.tsv([a]).fields.include? "code"
-    assert Segment.tsv([a], nil).fields.include? "code"
-    assert Segment.tsv([a], "literal").fields.include? "code"
+    assert Annotated.tsv([a]).fields.include? "code"
+    assert Annotated.tsv([a], nil).fields.include? "code"
+    assert Annotated.tsv([a], :all).fields.include? "code"
+    assert Annotated.tsv([a], :all).fields.include? "literal"
   end
 
   def __test_segment_brat
