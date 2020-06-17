@@ -42,7 +42,7 @@ class TokenTrieNER < NER
   end
 
   def self.tokenize(text, extend_to_token = true, split_at = nil, no_clean = false, stem = false, start = 0)
-    split_at = /\s|(\(|\)|[-."':,])/ if split_at.nil?
+    split_at = /\s|(\(|\)|[-."':,;])/ if split_at.nil?
 
     tokens = []
     while matchdata = text.match(split_at)
@@ -308,7 +308,7 @@ class TokenTrieNER < NER
 
     tokens.extend EnumeratedArray
     tokens.pos = 0
-
+    
     matches = []
     while tokens.left?
       new_matches = TokenTrieNER.find(@index, tokens, longest_match, slack) 
