@@ -24,7 +24,6 @@ module DocID
       docs = self.collect do |docid|
         text = self.corpus[docid]
         namespace, id, type = docid.split(":")
-        #Document.setup(text, namespace, id, type, :corpus => corpus)
         text
       end
       Document.setup(docs, :corpus => corpus)

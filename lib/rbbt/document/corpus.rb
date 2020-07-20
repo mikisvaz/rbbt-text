@@ -10,7 +10,7 @@ module Document::Corpus
 
   def add_document(document)
     docid = document.docid
-    return document if self.include?(docid)
+    return self[docid] if self.include?(docid)
     self.write_and_close do
       self[docid] = document
     end
