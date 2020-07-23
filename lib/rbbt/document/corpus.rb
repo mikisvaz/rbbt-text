@@ -17,9 +17,9 @@ module Document::Corpus
   end
   
   def docids(prefix)
-    prefix += ":" unless prefix[-1] == ":"
+    prefix += ":" unless prefix == :all || prefix[-1] == ":"
     docids = self.read_and_close do
-      self.prefix(prefix)
+      prefix == :all ? self.keys : self.prefix(prefix)
     end
     DocID.setup(docids, :corpus => self)
   end
@@ -35,6 +35,7 @@ module Document::Corpus
       super(*args)
     end
     
+    res.force_encoding(Encoding.default_external) if res 
     return res if args.length > 1
 
     namespace, id, type  = docid.split(":")
@@ -45,6 +46,7 @@ module Document::Corpus
       end
     end
 
+    res.force_encoding(Encoding.default_external) if res 
     Document.setup(res, namespace, id, type, self) unless res.nil?
     
     res
