@@ -31,7 +31,8 @@ module Linnaeus
     init unless defined? @@Matcher
 
     @@Matcher.match(text).toArray().collect do |mention|
-      NamedEntity.setup(mention.text(), :offset => mention.start(), :entity_type => "Organism", :code => mention.ids(), :score => mention.probabilities())
+      best_id, best_prob = mention.ids().zip(mention.probabilities()).sort_by{|i,p| p.to_f }.last
+      NamedEntity.setup(mention.text(), :offset => mention.start(), :entity_type => "Organism", :code => best_id, :score => best_prob)
     end
   end
 end

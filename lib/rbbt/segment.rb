@@ -49,9 +49,12 @@ module Segment
     length
   end
 
+
   def eend
     offset.to_i + length - 1
   end
+
+  alias end eend
 
   def range
     (offset.to_i..eend)

@@ -30,6 +30,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
 
     tsv.rb
    }
+   relationship.rb
 
    // OLD STUFF
    text=.save/text{
@@ -87,6 +88,7 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
    patterns.rb
    regexpNER.rb
    token_trieNER.rb
+   rner.rb
    rnorm.rb
    rnorm=rnorm{
     cue_index.rb
@@ -112,6 +114,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   rnorm=rnorm filter="*"{
    cue_default
    tokens_default
+  }
+  rner=rner{
+   config.rb
   }
  }
 

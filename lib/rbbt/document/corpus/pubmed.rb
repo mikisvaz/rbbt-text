@@ -16,6 +16,7 @@ module Document::Corpus
                  end
       Log.debug "Loading pmid #{pmid}"
       add_document(document)
+      document
     end
 
     Document.setup(res)

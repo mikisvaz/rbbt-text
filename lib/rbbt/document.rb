@@ -53,3 +53,9 @@ module Document
   alias id docid
 end
 
+#class String
+#  def docid
+#    digest = Misc.digest(self)
+#    ["STRING", digest, nil, nil] * ":"
+#  end
+#end

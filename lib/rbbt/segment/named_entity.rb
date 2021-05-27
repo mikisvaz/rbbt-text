@@ -8,6 +8,10 @@ module NamedEntity
 
   self.annotation :entity_type, :code, :score
 
+  def entity_type
+    annotation_values[:entity_type] || annotation_values[:type]
+  end
+
   def report
     <<-EOF
 String: #{ self }

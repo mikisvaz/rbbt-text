@@ -13,7 +13,7 @@ module Document
       end
 
       docid = self.docid
-      segments.each{|s| s.docid = docid if s.docid.nil? }
+      segments.each{|s| s.docid = docid }
 
       segments
     end
@@ -36,7 +36,7 @@ module Document
 
         docid = document.docid
 
-        segments.each{|s| s.docid = docid if s.docid.nil? }
+        segments.each{|s| s.docid = docid }
 
         segments
       end

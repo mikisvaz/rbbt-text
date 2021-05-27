@@ -39,14 +39,15 @@ class Abner < NER
     types = res[1]
     strings = res[0]
 
+    docid = Misc.digest(text)
     global_offset = 0
     strings.zip(types).collect do |mention, type| 
       mention = mention.to_s; 
       offset = text.index(mention)
       if offset.nil?
-        NamedEntity.setup(mention, nil, type.to_s)
+        NamedEntity.setup(mention, :docid => docid, :entity_type => type)
       else
-        NamedEntity.setup(mention, offset + global_offset, type.to_s)
+        NamedEntity.setup(mention, :offset => offset + global_offset, :docid => docid, :entity_type => type.to_s)
         text = text[offset + mention.length..-1]
         global_offset += offset + mention.length
       end

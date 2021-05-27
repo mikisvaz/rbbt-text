@@ -3,6 +3,7 @@ require 'rbbt-util'
 module Document::Corpus
 
   def self.setup(corpus)
+    corpus = Persist.open_tokyocabinet(corpus, true, :single, "BDB") if String === corpus
     corpus.extend Document::Corpus unless Document::Corpus === corpus
     corpus.extend Persist::TSVAdapter unless Persist::TSVAdapter === corpus
     corpus
@@ -16,7 +17,8 @@ module Document::Corpus
     end
   end
   
-  def docids(prefix)
+  def docids(*prefix)
+    prefix = prefix * ":" 
     prefix += ":" unless prefix == :all || prefix[-1] == ":"
     docids = self.read_and_close do
       prefix == :all ? self.keys : self.prefix(prefix)
@@ -24,8 +26,8 @@ module Document::Corpus
     DocID.setup(docids, :corpus => self)
   end
 
-  def documents(prefix)
-    self.docids(prefix).document
+  def documents(*prefix)
+    self.docids(*prefix).document
   end
 
   def [](*args)

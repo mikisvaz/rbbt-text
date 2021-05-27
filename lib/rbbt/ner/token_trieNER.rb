@@ -249,7 +249,8 @@ class TokenTrieNER < NER
       match << ((t.respond_to?(:original) and not t.original.nil?) ? t.original : t)
     }
 
-    NamedEntity.setup(match, :offset => match_tokens.first.offset, :entity_type => type, :code => codes)
+    type = type.first
+    NamedEntity.setup(match, :offset => match_tokens.first.offset, :entity_type => type, :code => codes, :type => type)
   end
 
   attr_accessor :index, :longest_match, :type, :slack, :split_at, :no_clean, :stem

@@ -144,7 +144,7 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     gene2.entity_type = "Protein"
 
     Transformed.with_transform(a, [gene1,gene2], Proc.new{|e| e.html}) do 
-      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein'>CDK5R1</span> protein", a
+      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene' title='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein' title='Protein'>CDK5R1</span> protein", a
     end
   end
 
@@ -165,7 +165,7 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     gene2.entity_type = "Protein"
 
     Transformed.with_transform(a, [gene1,gene2], Proc.new{|e| e.html}) do 
-      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein'>CDK5R1</span> protein", a
+      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene' title='Gene'>TP53</span> gene and the <span class='Entity' attr-entity-type='Protein' title='Protein'>CDK5R1</span> protein", a
     end
   end
 
@@ -185,9 +185,9 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     assert_equal [gene1], Segment.overlaps(Segment.sort([gene1,gene2]))
 
     Transformed.with_transform(a, [gene1], Proc.new{|e| e.html}) do 
-      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene'>TP53</span> gene and the CDK5R1 protein", a
+      assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Gene' title='Gene'>TP53</span> gene and the CDK5R1 protein", a
       Transformed.with_transform(a, [gene2], Proc.new{|e| e.html}) do 
-        assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Expanded Gene'><span class='Entity' attr-entity-type='Gene'>TP53</span> gene</span> and the CDK5R1 protein", a
+        assert_equal "This sentence mentions the <span class='Entity' attr-entity-type='Expanded Gene' title='Expanded Gene'><span class='Entity' attr-entity-type='Gene' title='Gene'>TP53</span> gene</span> and the CDK5R1 protein", a
       end
     end
   end

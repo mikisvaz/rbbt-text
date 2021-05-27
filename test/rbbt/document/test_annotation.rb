@@ -4,6 +4,7 @@ require 'rbbt/document/corpus'
 require 'rbbt/segment'
 require 'rbbt/document/annotation'
 require 'rbbt/segment/named_entity'
+require 'rbbt/ner/abner'
 
 class TestAnnotation < Test::Unit::TestCase
   class CalledOnce < Exception; end
@@ -27,6 +28,12 @@ class TestAnnotation < Test::Unit::TestCase
       $called_once = true
       self.split(" ").collect{|e| NamedEntity.setup(e, :code => Misc.digest(e)) }
     end
+
+    Document.define :abner do
+      $called_once = true
+      Abner.new.match(self)
+    end
+
 
     Document.persist :ner
   end
@@ -133,7 +140,9 @@ class TestAnnotation < Test::Unit::TestCase
     text.ner
 
     assert ! $called_once
-    
+
+    assert_equal text.abner.first.docid, text.docid
+
     assert  text.ner.first.segid.include?("TEST:")
   end
 end

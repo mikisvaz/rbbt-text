@@ -55,6 +55,7 @@ class Banner < NER
   # text.
   def match(text)
     return [] if text.nil? 
+    text = text.dup if text.frozen?
     text.gsub!(/\n/,' ')
     text.gsub!(/\|/,'/') # Character | gives an error
     return [] if text.strip.empty? 
@@ -66,6 +67,7 @@ class Banner < NER
     @parenPP.postProcess(sentence)
     tagged = sentence.getSGML
 
+    docid = Misc.digest text
     res = tagged.scan(/<GENE>.*?<\/GENE>/).
       collect{|r|
       r.match(/<GENE>(.*?)<\/GENE>/)
@@ -73,7 +75,7 @@ class Banner < NER
       mention.sub!(/^\s*/,'')
       mention.sub!(/\s*$/,'')
       offset = text.index(mention)
-      NamedEntity.setup(mention, offset, 'GENE')
+      NamedEntity.setup(mention, :offset => offset, :docid => docid, :entity_type => 'GENE')
       mention
     }
     res
