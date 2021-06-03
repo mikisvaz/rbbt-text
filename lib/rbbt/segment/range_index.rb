@@ -6,7 +6,7 @@ module Segment::RangeIndex
     SegID.setup(res, :corpus => corpus)
   end
 
-  def self.index(segments, corpus, persist_file = :memory)
+  def self.index(segments, corpus = nil, persist_file = :memory)
     segments = segments.values.flatten if Hash === segments
 
     annotation_index = 
