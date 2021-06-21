@@ -8,7 +8,6 @@ class TestCorpusPubmed < Test::Unit::TestCase
     corpus = Document::Corpus.setup({})
 
     document = corpus.add_pmid("33359141", :abstract).first
-    iii document.docid
     title = document.to(:title)
     assert title.include?("COVID-19")
   end

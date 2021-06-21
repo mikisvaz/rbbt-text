@@ -6,6 +6,7 @@ module Document::Corpus
     corpus = Persist.open_tokyocabinet(corpus, true, :single, "BDB") if String === corpus
     corpus.extend Document::Corpus unless Document::Corpus === corpus
     corpus.extend Persist::TSVAdapter unless Persist::TSVAdapter === corpus
+    corpus.close
     corpus
   end
 
