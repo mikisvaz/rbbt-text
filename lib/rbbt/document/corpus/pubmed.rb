@@ -1,18 +1,26 @@
 require 'rbbt/sources/pubmed'
 
 module Document::Corpus
-  def add_pmid(pmid, type = nil)
+  PUBMED_NAMESPACE="PMID"
+  def add_pmid(pmid, type = nil, update = false)
+    type = :abstract if type.nil?
+    if update == false
+      id = [PUBMED_NAMESPACE, pmid, type].collect{|e| e.to_s}*":"
+      documents = self.documents(id)
+      return documents if documents.any?
+    end
+
     pmids = Array === pmid ? pmid : [pmid]
     type = nil if String === type and type.empty?
 
     res = PubMed.get_article(pmids).collect do |pmid, article|
-      document = if type.nil? || type.to_sym == :abstract
-                   Document.setup(article.abstract || "", "PMID", pmid, :abstract, self, :corpus => self)
+      document = if type.to_sym == :abstract
+                   Document.setup(article.abstract || "", PUBMED_NAMESPACE, pmid, :abstract, self, :corpus => self)
                  elsif type.to_sym == :title
-                   Document.setup(article.title, :PMID, pmid, :title, self)
+                   Document.setup(article.title, PUBMED_NAMESPACE, pmid, :title, self)
                  else
                    raise "No FullText available for #{ pmid }" if article.full_text.nil?
-                   Document.setup(article.full_text, :PMID, pmid, :fulltext, self, :corpus => self)
+                   Document.setup(article.full_text, PUBMED_NAMESPACE, pmid, :fulltext, self, :corpus => self)
                  end
       Log.debug "Loading pmid #{pmid}"
       add_document(document)
