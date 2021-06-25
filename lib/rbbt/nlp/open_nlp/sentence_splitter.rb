@@ -7,7 +7,7 @@ module OpenNLP
   Rbbt.claim Rbbt.software.opt.OpenNLP, :install, Rbbt.share.install.software.OpenNLP.find
 
 
-  Rbbt.claim Rbbt.software.opt.OpenNLP.models["da-sent.bin"], :url, "http://opennlp.sourceforge.net/models-1.5/de-sent.bin"
+  Rbbt.claim Rbbt.software.opt.OpenNLP.models["da-sent.bin"], :url, "https://www.apache.org/dyn/closer.cgi/opennlp/models/ud-models-1.0/opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin"
 
   MAX = 5
 

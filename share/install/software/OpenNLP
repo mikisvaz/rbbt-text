@@ -1,12 +1,6 @@
 #!/bin/bash
 
 name='OpenNLP'
-url="http://apache.rediris.es/opennlp/opennlp-1.9.2/apache-opennlp-1.9.2-bin.tar.gz"
+url="http://apache.rediris.es/opennlp/opennlp-1.9.3/apache-opennlp-1.9.3-bin.tar.gz"
 
-get_src "$name" "$url"
-move_opt "$name" 
-
-
-ln -sf  "$OPT_DIR/$name/lib/"*.jar  "$OPT_JAR_DIR/"
-
-clean_build
+install_jar $name $url
