@@ -22,9 +22,7 @@ module DocID
     if Array === self
       namespace, id, type = nil, nil, nil
       docs = self.collect do |docid|
-        text = self.corpus[docid]
-        namespace, id, type = docid.split(":")
-        text
+        self.corpus[docid]
       end
       Document.setup(docs, :corpus => corpus)
     else

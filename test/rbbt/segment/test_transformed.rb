@@ -393,43 +393,26 @@ This is another sentence. Among the nonstructural proteins, the leader protein (
     end
   end
 
-  def ___test_transform
-    a = "This sentence mentions the TP53 gene and the CDK5 protein"
+  def test_transform_sorter_end
+    a = "The transcription factors farnesoid X receptor, small heterodimer partner, liver receptor homolog-1, and liver X receptor comprise the signaling cascade network that regulates the expression and secretion of apoM."
     original = a.dup
 
-    gene1 = "TP53"
+    gene1 = "liver receptor homolog-1"
     gene1.extend Segment
     gene1.offset = a.index gene1
 
-    gene2 = "CDK5"
+    gene2 = "apoM"
     gene2.extend Segment
     gene2.offset = a.index gene2
 
     assert_equal gene1, a[gene1.range]
     assert_equal gene2, a[gene2.range]
     
-    c = a.dup
-
-    c[gene2.range] = "GN"
-    assert_equal c, Transformed.transform(a,[gene2], "GN")
-    c[gene1.range] = "GN"
-    assert_equal c, Transformed.transform(a,[gene1], "GN")
-
-    iii a.transformation_offset_differences
-    raise
-    assert_equal gene2.offset, a.transformation_offset_differences.first.first.first
-    assert_equal gene1.offset, a.transformation_offset_differences.last.first.first
-
-
-    gene3 = "GN gene"
-    gene3.extend Segment
-    gene3.offset = a.index gene3
-
-    assert_equal gene3, a[gene3.range]
-
-    a.restore([gene3])
-    assert_equal original, a
-    assert_equal "TP53 gene", a[gene3.range]
+    Transformed.with_transform(a, [gene1], "[TF]") do 
+      Transformed.with_transform(a, [gene2], "[TG]") do 
+        assert_equal "The transcription factors farnesoid X receptor, small heterodimer partner, [TF], and liver X receptor comprise the signaling cascade network that regulates the expression and secretion of [TG].", a
+      end
+    end
 
   end
 

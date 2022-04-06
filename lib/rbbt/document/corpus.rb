@@ -20,9 +20,9 @@ module Document::Corpus
   
   def docids(*prefix)
     prefix = prefix * ":" 
-    prefix += ":" unless prefix == :all || prefix[-1] == ":"
+    prefix += ":" unless prefix == :all || prefix == "all" || prefix[-1] == ":"
     docids = self.read_and_close do
-      prefix == :all ? self.keys : self.prefix(prefix)
+      prefix == "all" ? self.keys : self.prefix(prefix)
     end
     DocID.setup(docids, :corpus => self)
   end
@@ -34,7 +34,7 @@ module Document::Corpus
   def [](*args)
     docid, *rest = args
 
-    res = self.read_and_close do
+    res = self.with_read do
       super(*args)
     end
     
@@ -44,7 +44,7 @@ module Document::Corpus
     namespace, id, type  = docid.split(":")
 
     if res.nil?
-      if Document::Corpus.claims.include?(namespace.to_s)
+      if Document::Corpus.claims && Document::Corpus.claims.include?(namespace.to_s)
         res = self.instance_exec(id, type, &Document::Corpus.claims[namespace.to_s])
       end
     end

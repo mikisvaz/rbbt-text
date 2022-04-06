@@ -18,6 +18,10 @@ class Normalizer
     values.select{|p| p[1] == best}
   end
 
+  def token_evaluate(mention, name)
+    @tokens.evaluate(mention, name)
+  end
+
   # Compares the tokens and gives each candidate a score based on the
   # commonalities and differences amongst the tokens.
   def token_score(code, mention)
@@ -31,7 +35,7 @@ class Normalizer
               when mention.downcase.gsub(/\s/,'') == name.downcase.gsub(/\s/,'')
                 80
               else
-                @tokens.evaluate(mention, name)
+                token_evaluate(mention, name)
               end
       [value, name]
     }.sort_by{|value, name| value }.last

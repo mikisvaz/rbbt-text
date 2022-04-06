@@ -70,7 +70,15 @@ module Transformed
     orig_length = self.length
 
     offset = self.respond_to?(:offset) ? self.offset.to_i : 0
-    segments = segments.select{|s| s.offset.to_i >= offset && s.offset.to_i <= offset + self.length - 1 }
+
+    segments = segments.select do |s| 
+      shift = shift s.range
+      s_offset = s.offset.to_i
+      s_offset += shift.first if shift
+
+      s_offset >= offset && 
+        s_offset <= offset + self.length - 1 
+    end
 
     Segment.clean_sort(segments).each do |segment|
       next if segment.offset.nil?

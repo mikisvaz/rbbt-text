@@ -43,4 +43,9 @@ S000000376	AAA	GENE1	DDD
   def test_order
     assert_equal(["S000000375"], @norm.resolve("GENE1"))
   end
+
+  def test_token_evaluate
+    iii @norm.token_evaluate("PDGFRA","PDGFRalpha")
+  end
+
 end

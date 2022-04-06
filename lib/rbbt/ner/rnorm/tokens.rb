@@ -172,6 +172,7 @@ class Tokenizer
 
   #{{{ Token Types
   GREEK_RE = "(?:" + $greek.keys.select{|w| w.length > 3}.collect{|w| w.downcase}.join("|") + ")"
+  GREEK_LETTER_RE = "(?:" + $inverse_greek.keys.select{|w| w.length == 1}.collect{|w| w.upcase}.join("|") + ")"
   def tokenize(word)
     return word.
       gsub(/([^IVX])I$/,'\1|I|').     # Separate last roman number
@@ -180,6 +181,7 @@ class Tokenizer
       gsub(/([A-Z]{2,})([a-z])/,'\1-\2').
       gsub(/^(#{GREEK_RE})/,'\1-').
       gsub(/(#{GREEK_RE})$/,'-\1').
+      gsub(/(#{GREEK_LETTER_RE})$/,'-\1').
       split( /[^\w.]+/).  # Split by separator char
       select{|t|  !t.empty? }
   end
@@ -204,7 +206,7 @@ class Tokenizer
   end
 
   #{{{ Comparisons
-
+  
   def evaluate_tokens(list1, list2)
     @operations.inject(0){|acc, o|
       acc + o.eval(list1, list2)
