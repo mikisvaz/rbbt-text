@@ -3,4 +3,5 @@
 name='OpenNLP'
 url="http://apache.rediris.es/opennlp/opennlp-1.9.4/apache-opennlp-1.9.4-bin.tar.gz"
 
-install_jar $name $url
+install_src $name $url
+(cd $OPT_DIR/jars; ln -s $OPT_DIR/$name/lib/*.jar .)
