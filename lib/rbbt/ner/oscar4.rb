@@ -1,6 +1,5 @@
 require 'rbbt'
 require 'rjb'
-require 'libxml'
 require 'rbbt/segment'
 require 'rbbt/ner/NER'
 require 'rbbt/util/log'
