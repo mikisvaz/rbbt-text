@@ -17,7 +17,7 @@ module Transformed
 
     segments = yield text
 
-    segments = nil unless Array === segments && Segment === segments.first
+    segments = [] unless Array === segments && Segment === segments.first
 
     text.restore(segments, true)
   end

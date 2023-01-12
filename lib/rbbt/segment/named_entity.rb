@@ -23,13 +23,14 @@ Score: #{score.inspect}
   end
 
   def html
-    title = code.nil? ? entity_type : [entity_type, code].compact * ":"
+    title = code.nil? ? entity_type : [entity_type, code].compact * " - "
 
     text = <<-EOF
 <span class='Entity'\
 #{entity_type.nil? ? "" : " attr-entity-type='#{Array === entity_type ? entity_type * " " : entity_type}'"}\
 #{code.nil?  ? "" : " attr-entity-code='#{Array === code ? code * " " : code}'"}\
 #{score.nil? ? "" : " attr-entity-score='#{Array === score ? score * " " : score}'"}\
+#{segid.nil? ? "" : " attr-segid='#{segid}'"}\
 #{title.nil? ? "" : " title='#{Array === title ? title * " " : title}'"}\
 >#{ self }</span>
     EOF
