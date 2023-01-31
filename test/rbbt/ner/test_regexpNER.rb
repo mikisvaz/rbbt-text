@@ -88,6 +88,14 @@ class TestRegExpNER < Test::Unit::TestCase
   end
 
 
+  def test_entities_named_captures
+    sentence = "In a sentence I should find not this but this"
+
+    ner = RegExpNER.new({:this => /(?<who>I) should find not this but (this)/})
+    matches = ner.entities(sentence)
+  end
+
+
 
   def test_regexp_order
     text =<<-EOF

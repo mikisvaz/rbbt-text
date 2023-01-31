@@ -11,7 +11,15 @@ class RegExpNER < NER
       pre   = matchdata.pre_match
       post  = matchdata.post_match
 
-      if matchdata.captures.any?
+      if matchdata.named_captures.any?
+        match = matchdata[0]
+        code = matchdata.named_captures.collect{|k,v| [k,v] * "=" } * ";"
+        NamedEntity.setup(match, :offset => pre.length + start, :entity_type => type, :code => code)
+        matches << match
+        eend = match.length + pre.length
+        text = text[eend..-1] 
+        start += match.length + pre.length
+      elsif matchdata.captures.any?
         match = matchdata.captures.first
         offset, eend = matchdata.offset(1)
         NamedEntity.setup(match, :offset => start + offset, :entity_type => type)
@@ -88,7 +96,7 @@ class RegExpNER < NER
   def match(text)
     matches = RegExpNER.match_regexp_hash(text, @regexps, @split_on_matches)
     matches.collect do |m|
-      NamedEntity.setup(m, :offset => m.offset, :type =>  m.type, :code => m)
+      NamedEntity.setup(m, :offset => m.offset, :type =>  m.type, :code => m.code || m)
     end
   end
 
