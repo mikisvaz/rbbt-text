@@ -66,7 +66,8 @@ EOF
         end
 
         Open.write('config', CONFIG)
-        CMD.cmd_log("java -Xmx20G -Xms20G  -jar '#{Rbbt.software.opt.GNormPlus.produce.find}/GNormPlus.jar' 'input' 'output' 'config'")
+        mem = Rbbt::Config.get(:java_mem, :GNormPlus, :g_norm_plus, :gnormplus, :gnp, :default => "20G")
+        CMD.cmd_log("java -Xmx#{mem} -Xms#{mem}  -jar '#{Rbbt.software.opt.GNormPlus.produce.find}/GNormPlus.jar' 'input' 'output' 'config'")
 
         if texts.respond_to? :key_field
           key_field = texts.key_field

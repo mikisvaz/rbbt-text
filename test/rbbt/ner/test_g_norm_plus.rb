@@ -12,6 +12,7 @@ We found that TP53 is regulated by MDM2 in Homo
 sapiens
     EOF
 
+    Rbbt::Config.add_entry :java_mem, "2G", :gnp
     mentions = GNormPlus.process({:file => text})
 
     assert_equal 1, mentions.length
@@ -23,6 +24,7 @@ sapiens
 We found that TP53 is regulated by MDM2 in Homo sapiens
     EOF
 
+    Rbbt::Config.add_entry :java_mem, "2G", :gnp
     mentions = GNormPlus.entities({:file => text})
     assert mentions["file"].include?("TP53")
     mentions["file"].each do |mention|
