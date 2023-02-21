@@ -10,34 +10,41 @@ class RegExpNER < NER
     while matchdata = text.match(regexp)
       pre   = matchdata.pre_match
       post  = matchdata.post_match
-      match = matchdata[0]
 
-      if matchdata.captures.any?
-        capture = matchdata.captures.first
-        more_pre, more_post = match.split(/#{capture}/)
-
-        match = capture
-        pre << more_pre if more_pre
-        post = more_post << post if more_post
-      end
-
-      if match and not match.empty?
-        NamedEntity.setup(match, :offset => start + pre.length, :entity_type => type)
+      if matchdata.named_captures.any?
+        match = matchdata[0]
+        code = matchdata.named_captures.collect{|k,v| [k,v] * "=" } * ";"
+        NamedEntity.setup(match, :offset => pre.length + start, :entity_type => type, :code => code)
         matches << match
+        eend = match.length + pre.length
+        text = text[eend..-1] 
+        start += match.length + pre.length
+      elsif matchdata.captures.any?
+        match = matchdata.captures.first
+        offset, eend = matchdata.offset(1)
+        NamedEntity.setup(match, :offset => start + offset, :entity_type => type)
+        matches << match
+        start += offset + match.length
+        text = text[eend..-1] 
+      else
+        match = matchdata[0]
+        NamedEntity.setup(match, :offset => pre.length + start, :entity_type => type)
+        matches << match
+        eend = match.length + pre.length
+        text = text[eend..-1] 
+        start += match.length + pre.length
       end
-
-      start += pre.length + match.length
-      text = post
     end
 
     matches
   end
 
-  def self.match_regexp_list(text, regexp_list, type = nil)
+  def self.match_regexp_list(text, regexp_list, type = nil, split_on_matches = false)
     matches = []
 
     regexp_list.each do |regexp|
-      chunks = Segment.split(text, matches)
+      chunks = split_on_matches ? Segment.split(text, matches) : Segment.split(text, [])
+      chunks = Segment.split(text, [])
       chunks.each do |chunk|
         new_matches = match_regexp(chunk, regexp, type)
         new_matches.each do |match| match.offset += chunk.offset; matches << match end
@@ -47,15 +54,15 @@ class RegExpNER < NER
     matches
   end
 
-  def self.match_regexp_hash(text, regexp_hash)
+  def self.match_regexp_hash(text, regexp_hash, split_on_matches = false)
     matches = []
 
     regexp_hash.each do |type, regexp_list|
       regexp_list = [regexp_list] unless Array === regexp_list
-      chunks = Segment.split(text, matches)
+      chunks = split_on_matches ? Segment.split(text, matches) : Segment.split(text, [])
       chunks.each do |chunk|
         chunk_offset = chunk.offset
-        match_regexp_list(chunk, regexp_list, type).each do |match| 
+        match_regexp_list(chunk, regexp_list, type, split_on_matches).each do |match| 
           match.offset = match.offset + chunk_offset; 
           matches << match 
         end
@@ -65,7 +72,7 @@ class RegExpNER < NER
     matches
   end
 
-  attr_accessor :regexps
+  attr_accessor :regexps, :split_on_matches
   def initialize(regexps = {})
     @regexps = regexps.collect{|p| p }
   end
@@ -87,9 +94,9 @@ class RegExpNER < NER
   end
 
   def match(text)
-    matches = RegExpNER.match_regexp_hash(text, @regexps)
+    matches = RegExpNER.match_regexp_hash(text, @regexps, @split_on_matches)
     matches.collect do |m|
-      NamedEntity.setup(m, :offset => m.offset, :type =>  m.type, :code => m)
+      NamedEntity.setup(m, :offset => m.offset, :type =>  m.type, :code => m.code || m)
     end
   end
 

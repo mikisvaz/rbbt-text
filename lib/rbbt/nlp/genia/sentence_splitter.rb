@@ -1,6 +1,7 @@
 require 'rbbt/nlp/nlp'
 require 'rbbt/segment'
 module NLP
+
   Rbbt.claim Rbbt.software.opt.Geniass, :install, Rbbt.share.install.software.Geniass.find
 
   def self.returnFeatures(prevWord, delimiter, nextWord)
@@ -136,6 +137,7 @@ module NLP
   end
 
   def self.process_labels(marked_text, labels)
+    return "" if marked_text.empty? || labels.empty?
     out = ""
 
     count = 0
@@ -171,17 +173,23 @@ module NLP
   end
 
   def self.geniass_sentence_splitter_extension(text)
+    cleaned = text.gsub("\n",NEW_LINE_MASK)
+    events, marks = event_extraction(cleaned)
+
     Rbbt.software.opt.Geniass.produce
-    require Rbbt.software.opt.Geniass.ruby["Geniass.so"].find
+    begin
+      ENV["LD_LIBRARY_PATH"] = Rbbt.software.opt.Geniass.lib.find + ":" + ENV["LD_LIBRARY_PATH"]
+      require Rbbt.software.opt.Geniass.ruby["Geniass.so"].find
+    rescue LoadError
+      raise LoadError, "Geniass ruby module needs to be able to find #{Rbbt.software.opt.Geniass.lib.find} in LD_LIBRARY_PATH"
+    end
+
     geniass = Geniass.new
     if not geniass.geniass_is_loaded
       Misc.in_dir Rbbt.software.opt.Geniass.find do
         geniass.load_geniass
       end
     end
-
-    cleaned = text.gsub("\n",NEW_LINE_MASK)
-    events, marks = event_extraction(cleaned)
 
     labels = events.split(/\n/).collect{|line| 
       geniass.label(line)

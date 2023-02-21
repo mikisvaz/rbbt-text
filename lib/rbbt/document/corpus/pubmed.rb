@@ -4,10 +4,11 @@ module Document::Corpus
   PUBMED_NAMESPACE="PMID"
   def add_pmid(pmid, type = nil, update = false)
     type = :abstract if type.nil?
-    if update == false
+
+    if ! (update || Array === pmid)
       id = [PUBMED_NAMESPACE, pmid, type].collect{|e| e.to_s}*":"
       documents = self.documents(id)
-      return documents if documents.any?
+      return documents.first if documents.any?
     end
 
     pmids = Array === pmid ? pmid : [pmid]
@@ -27,7 +28,14 @@ module Document::Corpus
       document
     end
 
-    Document.setup(res)
+    if Array === pmid
+      corpus = res.first.corpus if res.first
+      Document.setup(res, :corpus => corpus)
+    else
+      res = res.first
+    end
+
+    res
   end
   
   def add_pubmed_query(query, max = 3000, type = nil)
@@ -35,8 +43,8 @@ module Document::Corpus
     add_pmid(pmids, type)
   end
 
-  self.claim "PMID" do |id, type|
+  self.claim "PMID" do |id,type,update|
     Log.debug "Claiming #{id}"
-    self.add_pmid(id, type).first
+    self.add_pmid(id, type,update)
   end
 end

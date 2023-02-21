@@ -3,7 +3,7 @@ require 'rbbt-util'
 module Document::Corpus
 
   def self.setup(corpus)
-    corpus = Persist.open_tokyocabinet(corpus, true, :single, "BDB") if String === corpus
+    corpus = Persist.open_tokyocabinet(corpus, false, :single, "BDB") if String === corpus
     corpus.extend Document::Corpus unless Document::Corpus === corpus
     corpus.extend Persist::TSVAdapter unless Persist::TSVAdapter === corpus
     corpus.close

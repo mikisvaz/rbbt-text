@@ -12,7 +12,6 @@ sentence. This is
 another broken sentence. 
     EOF
 
-    iii NLP.geniass_sentence_splitter(text)
     assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter(text)[2].strip
   end
 
@@ -37,7 +36,17 @@ sentence. This is
 another broken sentence. 
     EOF
 
-    assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter_extension(text)[2].strip
+    Log.with_severity 0 do
+      assert_equal "This is a broken\nsentence.", NLP.geniass_sentence_splitter_extension(text)[2].strip
+    end
+  end
+
+  def test_sentence_cmi
+    text =<<-EOF
+The COVID-19 infection was reported as the main cause of death and patients with a higher mortality risk were those aged ≥65 years [adjusted HR = 3.40 (95% CI 2.20-5.24)], with a higher disease severity [adjusted HR = 1.87 (95%CI 1.43-2.45)].
+    EOF
+
+    iii NLP.geniass_sentence_splitter(text)
   end
 end
 

@@ -79,6 +79,23 @@ class TestRegExpNER < Test::Unit::TestCase
     assert_equal :should, matches.select{|m| m.entity_type == :should}[0].entity_type
   end
 
+  def test_entities_captures_repeat
+    sentence = "In a sentence I should find not this but this"
+
+    ner = RegExpNER.new({:this => /not this but (this)/})
+    matches = ner.entities(sentence)
+    assert sentence[0..matches.first.offset-1].include?('this')
+  end
+
+
+  def test_entities_named_captures
+    sentence = "In a sentence I should find not this but this"
+
+    ner = RegExpNER.new({:this => /(?<who>I) should find not this but (this)/})
+    matches = ner.entities(sentence)
+  end
+
+
 
   def test_regexp_order
     text =<<-EOF

@@ -6,6 +6,7 @@ tokens do
 
   # Some (possible) single letters first
   receptor     /^(?:receptor|r)s?$/i 
+  activator      /^(?:activator|p)s?$/i 
   protein      /^(?:protein|p)s?$/i 
   roman        /^[IV]+$/ 
   greek_letter do |w| $inverse_greek[w.downcase] != nil end
@@ -58,6 +59,8 @@ comparisons do
 
   diff.promoter   -10 
   diff.receptor   -10 
+  diff.activator   -10 
+
   diff.similar    -10 
   diff.capital    -10 
 

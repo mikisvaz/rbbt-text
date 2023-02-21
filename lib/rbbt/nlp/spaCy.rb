@@ -153,8 +153,8 @@ module SpaCy
 
     chunk_index = Segment.index(SpaCy.chunk_segments(text, lang))
 
-    source_id = chunk_index[source.offset].first || source.segid
-    target_id = chunk_index[target.offset].first || target.segid
+    source_id = chunk_index[source.offset.to_i].first || source.segid
+    target_id = chunk_index[target.offset.to_i].first || target.segid
 
     path = Paths.dijkstra(graph, source_id, [target_id])
 
