@@ -6,7 +6,9 @@ module Document
     send :property, type do 
       segments = self.instance_exec &block
 
-      Segment.align(self, segments) unless segments.empty? || (Segment === segments && segments.offset) || (Segment === segments.first && segments.first.offset)
+      Segment.align(self, segments) unless segments.empty? || 
+          (Segment === segments && segments.offset) || 
+          (Array === segments && Segment === segments.first && segments.first.offset)
 
       segments.each do |segment|
         SegmentAnnotation.setup(segment, :type => type.to_s) unless SegmentAnnotation === segment && segment.type
@@ -29,6 +31,24 @@ module Document
     Segment.property type do
       self.overlaps(self.docid.send(type))
     end
+
+    seg_type = "segids_for_" + type.to_s
+
+    send :property, seg_type do 
+      SegID.setup(self.send(type).collect{|s| s.segid })
+    end
+
+    DocID.property seg_type do
+      self.document.send(seg_type)
+    end
+
+    SegID.property seg_type do
+      self.overlaps(self.docid.send(seg_type))
+    end
+
+    Segment.property seg_type do
+      self.overlaps(self.docid.send(seg_type))
+    end
   end
 
   def self.define_multiple(type, &block)
@@ -40,7 +60,10 @@ module Document
       doc_segments.each_with_index do |segments,i|
         next if segments.nil?
         document = list[i]
-        Segment.align(document, segments) unless segments.nil? || segments.empty? || (Segment === segments && segments.offset) || (Segment === segments.first && segments.first.offset)
+        Segment.align(document, segments) unless segments.nil? || 
+          segments.empty? || 
+          (Segment === segments && segments.offset) || 
+          (Array === segments && Segment === segments.first && segments.first.offset)
 
         segments.each do |segment|
           SegmentAnnotation.setup(segment, :type => type.to_s) unless SegmentAnnotation === segment && segment.type
@@ -50,7 +73,7 @@ module Document
 
         segments.each{|s| s.docid = docid }
 
-        segments
+        segments.segid
       end
     end
 
@@ -65,14 +88,23 @@ module Document
     Segment.property type do
       self.overlaps(self.docid.send(type))
     end
-  end
 
-  class << self
-    alias old_persist persist
-  end
+    seg_type = "segids_for_" + type.to_s
 
-  def self.persist(name, type = nil, options = {})
-    DocID.persist name, type, options.merge(:dir => File.join(Entity.entity_property_cache, "Document", name.to_s))
-    old_persist(name, type, options)
+    send :property, seg_type do 
+      SegID.setup(self.send(type).collect{|s| s.segid })
+    end
+
+    DocID.property seg_type do
+      self.document.send(seg_type)
+    end
+
+    SegID.property seg_type do
+      self.overlaps(self.docid.send(seg_type))
+    end
+
+    Segment.property seg_type do
+      self.overlaps(self.docid.send(seg_type))
+    end
   end
 end
