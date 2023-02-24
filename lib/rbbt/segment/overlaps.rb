@@ -1,4 +1,4 @@
-module Segment
+module SegmentRanges
   def pull(offset)
     if self.offset.nil? or offset.nil?
       self.offset = nil
@@ -60,4 +60,12 @@ module Segment
       main.select{|ms| ms.overlaps? ss }.any?
     end
   end
+end
+
+module Segment
+  include SegmentRanges
+end
+
+module SegID
+  include SegmentRanges
 end

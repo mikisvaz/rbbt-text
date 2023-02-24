@@ -9,6 +9,10 @@ module DocID
     attr_accessor :default_corpus
   end
 
+  def id
+    self
+  end
+
   def corpus
     annotation_values[:corpus] || DocID.default_corpus
   end

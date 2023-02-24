@@ -17,6 +17,18 @@ module Document
 
       segments
     end
+
+    DocID.property type do
+      self.document.send(type)
+    end
+
+    SegID.property type do
+      self.overlaps(self.docid.send(type))
+    end
+
+    Segment.property type do
+      self.overlaps(self.docid.send(type))
+    end
   end
 
   def self.define_multiple(type, &block)
@@ -41,5 +53,26 @@ module Document
         segments
       end
     end
+
+    DocID.property type do
+      self.document.send(type)
+    end
+
+    SegID.property type do
+      self.overlaps(self.docid.send(type))
+    end
+
+    Segment.property type do
+      self.overlaps(self.docid.send(type))
+    end
+  end
+
+  class << self
+    alias old_persist persist
+  end
+
+  def self.persist(name, type = nil, options = {})
+    DocID.persist name, type, options.merge(:dir => File.join(Entity.entity_property_cache, "Document", name.to_s))
+    old_persist(name, type, options)
   end
 end

@@ -13,6 +13,10 @@ class TestAnnotation < Test::Unit::TestCase
       self.split(" ")
     end
 
+    Document.define :lines do
+      self.split("\n")
+    end
+
     $called_once = false
     Document.define :persisted_words do
       raise CalledOnce if $called_once
@@ -144,6 +148,23 @@ class TestAnnotation < Test::Unit::TestCase
     assert_equal text.abner.first.docid, text.docid
 
     assert  text.ner.first.segid.include?("TEST:")
+  end
+
+  def test_sentence_words
+    text =<<-EOF
+This is sentence 1
+This is sentence 2
+    EOF
+
+    Document.setup(text)
+
+    words = text.words
+    numbers = words.select{|w| w =~ /\d/}
+    text.lines.each do |sentence|
+      Transformed.with_transform(sentence, numbers, "[NUM]") do
+        puts sentence
+      end
+    end
   end
 end
 

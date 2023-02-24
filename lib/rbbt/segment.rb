@@ -22,6 +22,10 @@ module SegID
     range.begin
   end
 
+  def eend
+    offset.to_i + length - 1
+  end
+
   def segment_length
     range.end - range.begin + 1
   end
