@@ -4,6 +4,7 @@ require 'rbbt/entity'
 
 module AnnotID
   extend Entity
+  include SegID
   self.annotation :corpus
 
   def _parts
