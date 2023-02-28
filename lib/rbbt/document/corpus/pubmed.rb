@@ -18,9 +18,9 @@ module Document::Corpus
       document = if type.to_sym == :abstract
                    Document.setup(article.abstract || "", PUBMED_NAMESPACE, pmid, type.to_sym , self, :corpus => self)
                  elsif type.to_sym == :title
-                   Document.setup(article.title, PUBMED_NAMESPACE, pmid, type.to_sym, self)
+                   Document.setup(article.title || "", PUBMED_NAMESPACE, pmid, type.to_sym, self)
                  elsif type.to_sym == :title_and_abstract
-                   Document.setup(article.title + "\n\n" + article.abstract, PUBMED_NAMESPACE, pmid, type.to_sym, self)
+                   Document.setup((article.title || "") + "\n\n" + (article.abstract || ""), PUBMED_NAMESPACE, pmid, type.to_sym, self)
                  else
                    raise "No FullText available for #{ pmid }" if article.full_text.nil?
                    Document.setup(article.full_text, PUBMED_NAMESPACE, pmid, :fulltext, self, :corpus => self)

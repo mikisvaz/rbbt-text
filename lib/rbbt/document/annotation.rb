@@ -73,7 +73,7 @@ module Document
 
         segments.each{|s| s.docid = docid }
 
-        segments.segid
+        segments
       end
     end
 
