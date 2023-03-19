@@ -37,7 +37,7 @@ $greek.each{|l,s| $inverse_greek[s] = l }
 
 class String
   CONSONANTS = []
-  if File.exists? File.join(Rbbt.datadir, 'wordlists/consonants')
+  if File.exist? File.join(Rbbt.datadir, 'wordlists/consonants')
     Object::Open.read(File.join(Rbbt.datadir, 'wordlists/consonants')).each_line{|l| CONSONANTS << l.chomp}
   end
 
