@@ -1,7 +1,7 @@
 #!/bin/bash
 
 name='OpenNLP'
-url="http://apache.rediris.es/opennlp/opennlp-1.9.4/apache-opennlp-1.9.4-bin.tar.gz"
+url="http://apache.rediris.es/opennlp/opennlp-2.3.0/apache-opennlp-2.3.0-bin.tar.gz"
 
 install_src $name $url
 (cd $OPT_DIR/jars; ln -s $OPT_DIR/$name/lib/*.jar .)

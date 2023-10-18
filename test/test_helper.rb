@@ -15,7 +15,11 @@ class Test::Unit::TestCase
 
   def setup
     FileUtils.mkdir_p Rbbt.tmp.test.persistence.find(:user)
-    Persist.cachedir = Rbbt.tmp.test.persistence.find :user
+    begin
+      Persist.cachedir = Rbbt.tmp.test.persistence.find :user
+    rescue
+      Persist.cache_dir = Rbbt.tmp.test.persistence.find :user
+    end
   end
 
   def teardown
