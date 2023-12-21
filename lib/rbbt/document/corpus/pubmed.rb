@@ -20,13 +20,25 @@ module Document::Corpus
                  elsif type.to_sym == :title
                    Document.setup(article.title || "", PUBMED_NAMESPACE, pmid, type.to_sym, self)
                  elsif type.to_sym == :title_and_abstract
-                   Document.setup((article.title || "") + "  " + (article.abstract || ""), PUBMED_NAMESPACE, pmid, type.to_sym, self)
+                   title = article.title
+                   abstract = article.abstract
+
+                   if title.nil? || title == ""
+                     text = article.abstract
+                     text = "" if text.nil?
+                   else
+                     title = title + "." unless title.end_with?(".")
+
+                     text = title + " " + abstract if abstract && ! abstract.empty?
+                   end
+
+                   Document.setup(text, PUBMED_NAMESPACE, pmid, type.to_sym, self)
                  else
                    raise "No FullText available for #{ pmid }" if article.full_text.nil?
                    Document.setup(article.full_text, PUBMED_NAMESPACE, pmid, :fulltext, self, :corpus => self)
                  end
       Log.debug "Loading pmid #{pmid}"
-      add_document(document)
+      add_document(document) if document
       document
     end
 
