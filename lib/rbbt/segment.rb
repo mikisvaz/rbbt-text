@@ -172,10 +172,24 @@ module Segment
     end
   end
 
+  def self.relocate(segment, original, target, pad = 20)
+    if segment != target[segment.range]
+      start_pad = [pad, segment.offset].min
+      end_pad = [pad, original.length - segment.end].min
+      start = segment.offset - start_pad
+      eend = segment.end + end_pad
+
+      context = original[start..eend].gsub(/\s/,' ')
+      target = target.gsub(/\s/, ' ')
+      i = target.index context
+      raise "Context not found in original text" if i.nil?
+      segment.offset = i + start_pad
+    end
+  end
+
   def self.index(*args)
     Segment::RangeIndex.index(*args)
   end
-
 end
 
 require 'rbbt/segment/range_index'

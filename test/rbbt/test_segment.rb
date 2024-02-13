@@ -134,6 +134,25 @@ Atypical teratoid/rhabdoid tumors (AT/RTs) are highly aggressive brain tumors of
     assert_equal parts.first.docid, text.docid
   end
 
+  def test_relocate
+    original =<<-EOF
+This sentences contains
+a mention to gene TP53
+This is a followup sentence
+    EOF
+
+    target = <<-EOF
+    This sentence is added before
+This sentences contains a mention to gene TP53
+This is a followup sentence
+    EOF
+
+    segment = Segment.setup("TP53")
+    Segment.align(original, [segment])
+    Segment.relocate(segment, original, target)
+    assert_equal segment, target[segment.range]
+  end
+
   def test_segment_index
     text = "This sentence mentions the TP53 gene and the CDK5R1 protein"
     Document.setup(text, "TEST", "test_doc1", nil)
