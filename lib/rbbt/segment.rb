@@ -167,8 +167,8 @@ module Segment
       offset = text.index part
       next if offset.nil?
       Segment.setup(part, pre_offset + offset, docid)
-      pre_offset += offset + part.segment_length - 1
-      text = text[(offset + part.segment_length - 1)..-1]
+      pre_offset += offset + part.segment_length
+      text = text[(offset + part.segment_length)..-1]
     end
   end
 

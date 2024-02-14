@@ -134,6 +134,20 @@ Atypical teratoid/rhabdoid tumors (AT/RTs) are highly aggressive brain tumors of
     assert_equal parts.first.docid, text.docid
   end
 
+  def test_align_parts
+    text =<<-EOF
+aabbccdd
+    EOF
+
+    parts = %w(aa bb cc dd)
+    Segment.align(text, parts)
+
+    parts.each do |p|
+      assert_equal p, text[p.range]
+    end
+  end
+
+
   def test_relocate
     original =<<-EOF
 This sentences contains
