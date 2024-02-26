@@ -6,6 +6,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
  lib=lib{
 
   rbbt=rbbt{
+   text=text{
+    misc.rb
+   }
    document.rb
    document=document{
     corpus.rb
@@ -117,6 +120,9 @@ rbbt-text=/$PWD filter="*.rb *.rake Rakefile *.rdoc *.R *.sh *.js *.haml *.sass 
   }
   rner=rner{
    config.rb
+  }
+  text=text{
+   greek.tsv
   }
  }
 

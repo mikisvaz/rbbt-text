@@ -10,10 +10,10 @@ module Transformed
     text
   end
  
-  def self.with_transform(text, segments, replacement = nil)
+  def self.with_transform(text, replace_segments, replacement = nil)
 
     text.extend Transformed
-    text.replace_segments(segments, replacement)
+    text.replace_segments(replace_segments, replacement)
 
     segments = yield text
 
@@ -61,7 +61,7 @@ module Transformed
     [begin_shift, end_shift]
   end
 
-  def replace_segments(segments, replacement = nil, &block)
+  def replace_segments(segments, replacement = nil, strict = false, &block)
     @transformed_segments ||= {}
     @transformation_stack ||= []
     stack = []
@@ -70,6 +70,15 @@ module Transformed
     orig_length = self.length
 
     offset = self.respond_to?(:offset) ? self.offset.to_i : 0
+
+    segments = segments.collect do |s|
+      if Segment === s
+        s
+      elsif String === s
+        matches = self.scan(s)
+        Segment.align(self, matches)
+      end
+    end.flatten
 
     segments = segments.select do |s| 
       shift = shift s.range
@@ -82,7 +91,6 @@ module Transformed
 
     Segment.clean_sort(segments).each do |segment|
       next if segment.offset.nil?
-
       shift = shift segment.range
 
       next if shift.nil?
@@ -139,7 +147,7 @@ module Transformed
     when (segment.offset.to_i <= range.begin and segment.eend >= range.end + diff)
       segment.replace self[segment.offset.to_i..segment.eend - diff]
     else
-      raise "Segment Overlaps"
+      raise "Segment overlaps with transformation: #{Misc.fingerprint(segment)} (#{segment.range} & #{range.begin}..#{range.end + diff})"
     end
   end
 
@@ -155,10 +163,16 @@ module Transformed
 
         new_range = (range.begin..range.last + diff)
         self[new_range] = text
-        segments.each do |segment|
-          next unless Segment === segment
-          fix_segment(segment, range, diff)
-        end if Array === segments
+        segments = segments.collect do |segment|
+          next segment unless Segment === segment
+          begin
+            fix_segment(segment, range, diff)
+            segment
+          rescue
+            Log.low "Skipped: " + $!.message
+            next
+          end
+        end.compact if Array === segments
       end
       segments
     else

@@ -279,6 +279,29 @@ More recently, PPAR activators were shown to inhibit the activation of inflammat
     end
   end
 
+  def test_string_transform
+    a = "This sentence mentions the TP53 gene and the CDK5R1 protein"
+
+    gene1 = "TP53"
+
+    gene2 = "CDK5R1"
+
+   Transformed.with_transform(a, [gene1,gene2], "[G]") do 
+      assert_equal "This sentence mentions the [G] gene and the [G] protein", a
+    end
+    Transformed.with_transform(a, [gene1], "[G1]") do 
+      Transformed.with_transform(a, [gene2], "[G2]") do 
+        assert_equal "This sentence mentions the [G1] gene and the [G2] protein", a
+      end
+    end
+    Transformed.with_transform(a, [gene2], "[G2]") do 
+      Transformed.with_transform(a, [gene1], "[G1]") do 
+        assert_equal "This sentence mentions the [G1] gene and the [G2] protein", a
+      end
+    end
+  end
+
+
   def test_offset_transform
     a = "ILF can bind to purine-rich regulatory motifs such as the human T-cell leukemia virus-long terminal region and the interleukin-2 promoter."
 
