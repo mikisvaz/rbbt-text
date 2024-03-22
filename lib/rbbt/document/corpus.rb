@@ -1,4 +1,5 @@
 require 'rbbt-util'
+require 'rbbt/tsv'
 
 module Document::Corpus
 

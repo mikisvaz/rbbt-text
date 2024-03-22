@@ -12,7 +12,7 @@ class TestPubtator < Test::Unit::TestCase
     end
   end
 
-  def _test_align
+  def test_align
     pmids = "19522013|20861254|38267746".split("|")
     alignments = {} 
     with_corpus do |corpus|
@@ -47,7 +47,7 @@ class TestPubtator < Test::Unit::TestCase
     end
   end
 
-  def _test_greek
+  def test_greek
 
     pmids = "20861254".split("|")
     alignments = {} 

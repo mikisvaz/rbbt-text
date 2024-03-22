@@ -1,4 +1,3 @@
-
 require 'rbbt/segment'
 require 'rbbt/segment/named_entity'
 require 'rbbt/segment/transformed'
