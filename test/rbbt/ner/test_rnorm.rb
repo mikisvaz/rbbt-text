@@ -45,7 +45,7 @@ S000000376	AAA	GENE1	DDD
   end
 
   def test_token_evaluate
-    iii @norm.token_evaluate("PDGFRA","PDGFRalpha")
+    assert @norm.token_evaluate("PDGFRA","PDGFRalpha") > 0
   end
 
 end

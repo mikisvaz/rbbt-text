@@ -36,7 +36,7 @@ module SegmentAnnotation
   include Object::Segment
   self.annotation :type
 
-  property :segid do
+  def segid
     case self
     when SegID
       self

@@ -266,8 +266,8 @@ class TokenTrieNER < NER
     file = [] if file.nil?
     file = [file] unless Array === file
     persist_options = Misc.pull_keys options, :persist
-    @index = Persist.persist_tsv(file, options, persist_options) do |data|
-      data.serializer = :marshal if data.respond_to? :serializer and data.serializer == :type
+    @index = Persist.persist_tsv(file, nil, options, persist_options) do |data|
+      data.serializer = :marshal if data.respond_to?(:serializer) and (data.serializer == :type || data.serializer.nil?)
 
       @index = data
       file.each do |f| 
@@ -282,7 +282,7 @@ class TokenTrieNER < NER
     case
     when TokenTrieNER === new
       Log.debug "TokenTrieNER merging other TokenTrieNER"
-      TokenTrieNER.merge(@index, new.index)
+     TokenTrieNER.merge(@index, new.index)
     when TSV === new
       Log.debug "TokenTrieNER merging TSV"
       new.with_unnamed do
