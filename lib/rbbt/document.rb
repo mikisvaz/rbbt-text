@@ -41,7 +41,7 @@ module Document
   extend Entity
   self.annotation :namespace, :code, :type, :corpus
 
-  property :docid do |corpus=nil|
+  def docid(corpus=nil)
     digest = Misc.digest(self)
     corpus = self.corpus if corpus.nil?
 
