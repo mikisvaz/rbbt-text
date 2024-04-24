@@ -13,7 +13,9 @@ module Document::Corpus
 
   def add_document(document)
     docid = document.docid
-    return self[docid] if self.include?(docid)
+    self.read_and_close do
+      return self[docid] if self.include?(docid)
+    end
     self.write_and_close do
       self[docid] = document
     end
@@ -35,7 +37,7 @@ module Document::Corpus
   def [](*args)
     docid, *rest = args
 
-    res = self.with_read do
+    res = self.read_and_close do
       super(*args)
     end
     

@@ -3,8 +3,8 @@ require 'rbbt/segment/annotation'
 
 module Document
   def self.define(type, &block)
-    send :property, type do 
-      segments = self.instance_exec &block
+    send :property, type do |*args,**kwargs|
+      segments = self.instance_exec *args, **kwargs, &block
 
       Segment.align(self, segments) unless segments.empty? || 
           (Segment === segments && segments.offset) || 
@@ -53,6 +53,7 @@ module Document
 
   def self.define_multiple(type, &block)
     send :property, type => :multiple do |list|
+      list = self if Array === self
       doc_segments = self.instance_exec list, &block
 
       doc_segments = doc_segments.chunked_values_at(list) if Hash === doc_segments
