@@ -13,8 +13,10 @@ module DocID
     self
   end
 
-  def corpus
-    annotation_values[:corpus] || DocID.default_corpus
+  def get_corpus
+    corpus = annotation_values[:corpus] || DocID.default_corpus
+    corpus = Document::Corpus.setup corpus if String === corpus
+    corpus
   end
 
   property :to do |type|
@@ -26,11 +28,11 @@ module DocID
     if Array === self
       namespace, id, type = nil, nil, nil
       docs = self.collect do |docid|
-        self.corpus[docid]
+        self.get_corpus[docid]
       end
       Document.setup(docs, :corpus => corpus)
     else
-      text = self.corpus[self]
+      text = self.get_corpus[self]
       namespace, id, type = self.split(":")
       Document.setup(text, :namespace => namespace, :code => id, :type => type, :corpus => corpus)
     end
