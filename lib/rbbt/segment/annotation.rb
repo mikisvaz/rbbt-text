@@ -36,12 +36,13 @@ module SegmentAnnotation
   include Object::Segment
   self.annotation :type
 
-  def segid
+  property :segid do |corpus=nil|
     case self
     when SegID
+      self.corpus = corpus if corpus
       self
     when Segment
-      super()
+      SegID.setup([docid, range] * ":", corpus: corpus)
     else
       raise "Unknown object: #{self}"
     end
